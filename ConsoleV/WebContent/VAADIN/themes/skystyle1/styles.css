@@ -1,0 +1,578 @@
+@import "../runo/styles.css";
+
+.v-gridlayout-currentInfo {
+    margin:     20px; /* Empty space around the layout. */
+    font-size:14px;
+}
+
+/* Add padding through which the background color shows. */
+.v-gridlayout-currentInfo .v-gridlayout-margin {
+    padding: 2px;     
+}
+
+/* Add cell borders and make the cell backgrounds white.
+ * Warning: This depends heavily on the HTML structure. */
+.v-gridlayout-currentInfo > div > div > div {
+    padding:    2px;   /* Layout background will show through. */
+    background: white; /* The cells will be colored white. */
+}
+
+/* Components inside the layout are a safe way to style cells. */
+.v-gridlayout-currentInfo .v-label {
+    text-align: left;
+}
+
+/* Set the amount of horizontal cell spacing in a
+ * specific element with the "-currentInfo" style. */
+.v-horizontallayout-currentInfo .v-horizontallayout-spacing-on {
+    padding-left: 30px;
+}
+
+/* Set the amount of vertical cell spacing in a
+ * specific element with the "-currentInfo" style. */
+.v-verticallayout-currentInfo .v-verticallayout-spacing-on {
+    padding-top: 10px;
+}
+
+/* Set the amount of both vertical and horizontal cell spacing
+ * in a specific element with the "-currentInfo" style. */
+.v-gridlayout-currentInfo .v-gridlayout-spacing-on {
+    padding-top: 10px;
+    padding-left: 30px;
+}
+
+.v-tabsheet-tabs {
+	font-size:16px;
+}
+
+.v-tabsheet {
+	margin-top: 20px;
+}
+
+.v-tabsheet-content {
+
+}
+
+.v-verticallayout-login {
+	background: #A8C8F9;
+}
+
+.v-verticallayout-loginbox {
+	font-size: 16px;
+	white-space:nowrap;	
+}
+
+.v-nativebutton-stopped {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/stopped.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+.v-nativebutton-stopped-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/stopped.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+
+.v-nativebutton-offline {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/offline.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+.v-nativebutton-offline-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/offline.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+
+.v-nativebutton-error {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/error.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+.v-nativebutton-error-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/error.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+
+.v-nativebutton-starting {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/starting.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}      
+.v-nativebutton-starting-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/starting.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}      
+
+.v-nativebutton-stopping {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/stopping.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+.v-nativebutton-stopping-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/stopping.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+
+.v-nativebutton-isolating {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/isolating.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+.v-nativebutton-isolating-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/isolating.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+
+.v-nativebutton-recovering {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/recovering.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+.v-nativebutton-recovering-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/recovering.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+
+.v-nativebutton-synchronizing {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/synchronizing.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+.v-nativebutton-synchronizing-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/synchronizing.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+
+.v-nativebutton-promoting {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/promoting.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+.v-nativebutton-promoting-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/promoting.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+
+.v-nativebutton-backingup {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/backingup.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+.v-nativebutton-backingup-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/backingup.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+
+.v-nativebutton-restoring {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/restoring.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+.v-nativebutton-restoring-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/restoring.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+
+.v-nativebutton-invalid {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/invalid.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+.v-nativebutton-invalid-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/invalid.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+
+.v-nativebutton-system,
+.v-nativebutton-sys_stopping,
+.v-nativebutton-sys_stopped,
+.v-nativebutton-sys_starting {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/system.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+.v-nativebutton-system-selected,
+.v-nativebutton-sys_stopping-selected,
+.v-nativebutton-sys_stopped-selected,
+.v-nativebutton-sys_starting-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/system.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+
+.v-nativebutton-node {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/node_0.png) no-repeat;
+    width: 128px;
+    height: 162px;
+    /***
+    -webkit-transition: all .3s ease-out; 
+   	-moz-transition: all .3s ease-out; 
+   	-o-transition: all .3s ease-out; 
+   	transition: all .3s ease-out;
+   	***/
+    
+}   
+.v-nativebutton-node-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/node_0.png) no-repeat;
+    width: 128px;
+    height: 162px;
+    /***
+    -moz-transform: scale(1.3);
+   	-webkit-transform: scale(1.3);
+   	-o-transform: scale(1.3);
+   	transform: scale(1.3);
+   	-ms-transform: scale(1.3);
+   	***/
+}    
+.v-nativebutton-node-20 {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/node_20.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+.v-nativebutton-node-20-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/node_20.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+
+.v-nativebutton-node-40 {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/node_40.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+.v-nativebutton-node-40-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/node_40.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+
+.v-nativebutton-node-60 {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/node_60.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+.v-nativebutton-node-60-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/node_60.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+
+.v-nativebutton-node-80 {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/node_80.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+.v-nativebutton-node-80-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/node_80.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+
+.v-nativebutton-node-100 {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/node_100.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+.v-nativebutton-node-100-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/node_100.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+
+.v-nativebutton-master {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/master_0.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+.v-nativebutton-master-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/master_0.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+
+.v-nativebutton-master-20 {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/master_20.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+.v-nativebutton-master-20-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/master_20.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+
+.v-nativebutton-master-40 {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/master_40.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+.v-nativebutton-master-40-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/master_40.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+
+.v-nativebutton-master-60 {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/master_60.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+.v-nativebutton-master-60-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/master_60.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+
+.v-nativebutton-master-80 {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/master_80.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+.v-nativebutton-master-80-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/master_80.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+
+.v-nativebutton-master-100 {
+    outline: none;
+    border: none;
+    background: transparent url(img/normal/master_100.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}    
+.v-nativebutton-master-100-selected {
+    outline: none;
+    border: none;
+    background: lemonchiffon url(img/normal/master_100.png) no-repeat;
+    width: 128px;
+    height: 162px;
+}
+
+.v-nativebutton-caption {
+    font-size: 16px;
+    font-weight: normal;
+    position:absolute;
+    bottom:0;
+}
+
+
+.v-horizontallayout-titleLayout {
+	
+}
+
+.v-verticallayout-instructions {
+    font-size: 16px;
+}
+
+.v-label-instructions {
+	/*background: yellow;*/
+    font-size: 16px;
+}
+
+.icon-after-caption img {
+    float: right;
+}
+
+.v-verticallayout-placeholderLayout {
+    /*font-size: 18px;*/
+}
+
+.v-label-placeholder {
+	/*background: yellow;*/
+    font-size: 18px;
+}
+
+.v-verticallayout-externalsLayout {
+    font-size: 14px;
+}
+
+.v-gridlayout-buttonsGrid {
+	padding-top: 10px;
+    padding-left: 20px;
+}
+
+.v-horizontallayout-controlTab {
+	/*background: blue;*/
+}
+
+.v-verticallayout-containerLayout {
+	/*background: red;*/
+}
+
+.v-verticallayout-controlsLayout {
+}
+
+.v-horizontallayout-scriptingLayout {
+}
+
+.v-verticallayout-scriptingControlsLayout {
+}
+
+.v-verticallayout-scriptingProgressLayout {
+}
+
+.stepIcons {
+    font-size: 20px;
+    font-weight: normal;
+}
+
+.v-embedded-image-stepIcons .v-embedded-image-caption {
+    display: block;
+    white-space: normal;
+    text-align: center;
+}
+
+.v-verticallayout-scriptingResultsLayout {
+}
+
+.v-scriptingLayout-margin-top {
+	padding-top: 50px;
+}
+
+.v-horizontallayout-systemPanel {
+    background: url(img/networkBackground.png) no-repeat;
+    background-position: left bottom;
+    /*text-align: center;
+    font-size: 24px;*/
+}
+
+.v-nativebutton-run {
+    outline: none;
+    border: none;
+    background: transparent url(img/scripting/controls/start.png) no-repeat;
+    width: 48px;
+    height: 48px;
+}    
+
+.v-nativebutton-pause {
+    outline: none;
+    border: none;
+    background: transparent url(img/scripting/controls/pause.png) no-repeat;
+    width: 48px;
+    height: 48px;
+}    
+
+.v-nativebutton-stop {
+    outline: none;
+    border: none;
+    background: transparent url(img/scripting/controls/stop.png) no-repeat;
+    width: 48px;
+    height: 48px;
+}    
+
+.v-nativebutton-schedule {
+    outline: none;
+    border: none;
+    background: transparent url(img/scripting/controls/schedule.png) no-repeat;
+    width: 48px;
+    height: 48px;
+}    
+
