@@ -1,8 +1,8 @@
 package com.skysql.consolev;
 
-
 import org.vaadin.artur.icepush.ICEPush;
 
+import com.skysql.consolev.api.NodeInfo;
 import com.skysql.consolev.api.SystemInfo;
 import com.skysql.consolev.api.SystemProperties;
 import com.skysql.consolev.api.UserLogin;
@@ -13,26 +13,40 @@ public class SessionData {
 	private SystemProperties systemProperties;
 	private UserLogin userLogin;
 	private ICEPush pusher;
-	
-	
+	private NodeInfo nodeInfo;
+
+	public NodeInfo getNodeInfo() {
+		return nodeInfo;
+	}
+
+	public void setNodeInfo(NodeInfo nodeInfo) {
+		this.nodeInfo = nodeInfo;
+	}
+
 	public SystemInfo getSystemInfo() {
 		return systemInfo;
 	}
+
 	public void setSystemInfo(SystemInfo systemInfo) {
 		this.systemInfo = systemInfo;
 	}
+
 	public SystemProperties getSystemProperties() {
 		return systemProperties;
 	}
+
 	public void setSystemProperties(SystemProperties systemProperties) {
 		this.systemProperties = systemProperties;
 	}
+
 	public UserLogin getUserLogin() {
 		return userLogin;
 	}
+
 	public void setUserLogin(UserLogin userLogin) {
 		this.userLogin = userLogin;
 	}
+
 	public ICEPush getICEPush() {
 		return pusher;
 	}
@@ -42,7 +56,5 @@ public class SessionData {
 		this.systemProperties = systemProperties;
 		pusher = new ICEPush();
 	}
-	
-	
-}
 
+}

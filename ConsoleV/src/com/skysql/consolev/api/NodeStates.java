@@ -21,10 +21,11 @@ public class NodeStates {
 	private static NodeStates nodeStates;
 	private static LinkedHashMap<String, String> nodeStatesIcons;
 	private static LinkedHashMap<String, String> nodeStatesDescriptions;
-	
-	public static LinkedHashMap<String, String> getNodeStatesIcons() {
+
+	public static String getNodeIcon(String state) {
 		GetNodeStates();
-		return NodeStates.nodeStatesIcons;
+		String icon = nodeStatesIcons.get(state);
+		return (icon == null ? "invalid" : icon);
 	}
 
 	public static LinkedHashMap<String, String> getNodeStatesDescriptions() {
@@ -32,7 +33,7 @@ public class NodeStates {
 		return NodeStates.nodeStatesDescriptions;
 	}
 
-	private static void GetNodeStates() {
+	private synchronized static void GetNodeStates() {
 		if (nodeStates == null) {
 			String inputLine = null;
 			try {
@@ -42,15 +43,15 @@ public class NodeStates {
 				inputLine = in.readLine();
 				in.close();
 			} catch (IOException e) {
-	        	e.printStackTrace();
-	        	throw new RuntimeException("Could not get response from API");
+				e.printStackTrace();
+				throw new RuntimeException("Could not get response from API");
 			}
 
 			Gson gson = AppData.getGson();
 			nodeStates = gson.fromJson(inputLine, NodeStates.class);
 		}
 	}
-	
+
 	protected void setNodeStatesIcons(LinkedHashMap<String, String> pairs) {
 		NodeStates.nodeStatesIcons = pairs;
 	}
@@ -61,31 +62,29 @@ public class NodeStates {
 }
 
 class NodeStatesDeserializer implements JsonDeserializer<NodeStates> {
-		  public NodeStates deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-		      throws JsonParseException
-		  {
-			NodeStates nodeStates = new NodeStates();
-			
-			JsonElement jsonElement = json.getAsJsonObject().get("nodeStates");
-			if (jsonElement == null || jsonElement.isJsonNull()) {
-			    nodeStates.setNodeStatesIcons(null);
-			    nodeStates.setNodeStatesDescriptions(null);
-			} else {
-		    	JsonArray array = jsonElement.getAsJsonArray();
-		    	int length = array.size();
-		    	
-			    LinkedHashMap<String, String> icons = new LinkedHashMap<String, String>(length);
-			    LinkedHashMap<String, String> descriptions = new LinkedHashMap<String, String>(length);
-			    for (int i = 0; i < length; i++) {
-			    	JsonObject pair = array.get(i).getAsJsonObject();
-			    	icons.put(pair.get("state").getAsString(), pair.get("icon").getAsString());
-			    	descriptions.put(pair.get("state").getAsString(), pair.get("description").getAsString());
-			    }
-			    nodeStates.setNodeStatesIcons(icons);
-			    nodeStates.setNodeStatesDescriptions(descriptions);
-		    }
-		    
-			return nodeStates;
-		  }
+	public NodeStates deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+		NodeStates nodeStates = new NodeStates();
+
+		JsonElement jsonElement = json.getAsJsonObject().get("nodeStates");
+		if (jsonElement == null || jsonElement.isJsonNull()) {
+			nodeStates.setNodeStatesIcons(null);
+			nodeStates.setNodeStatesDescriptions(null);
+		} else {
+			JsonArray array = jsonElement.getAsJsonArray();
+			int length = array.size();
+
+			LinkedHashMap<String, String> icons = new LinkedHashMap<String, String>(length);
+			LinkedHashMap<String, String> descriptions = new LinkedHashMap<String, String>(length);
+			for (int i = 0; i < length; i++) {
+				JsonObject pair = array.get(i).getAsJsonObject();
+				icons.put(pair.get("state").getAsString(), pair.get("icon").getAsString());
+				descriptions.put(pair.get("state").getAsString(), pair.get("description").getAsString());
+			}
+			nodeStates.setNodeStatesIcons(icons);
+			nodeStates.setNodeStatesDescriptions(descriptions);
+		}
+
+		return nodeStates;
+	}
 
 }

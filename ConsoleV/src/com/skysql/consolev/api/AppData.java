@@ -18,10 +18,13 @@ public class AppData {
 			gsonBuilder.registerTypeAdapter(BackupCommands.class, new BackupCommandsDeserializer());
 			gsonBuilder.registerTypeAdapter(Monitors.class, new MonitorsDeserializer());
 			gsonBuilder.registerTypeAdapter(MonitorData.class, new MonitorDataDeserializer());
+			gsonBuilder.registerTypeAdapter(MonitorData2.class, new MonitorDataDeserializer2());
+			gsonBuilder.registerTypeAdapter(MonitorData3.class, new MonitorDataDeserializer3());
 			gsonBuilder.registerTypeAdapter(TaskRun.class, new TaskRunDeserializer());
 			gsonBuilder.registerTypeAdapter(TaskInfo.class, new TaskInfoDeserializer());
 			gsonBuilder.registerTypeAdapter(UserInfo.class, new UserInfoDeserializer());
 			gsonBuilder.registerTypeAdapter(UserLogin.class, new UserLoginDeserializer());
+			gsonBuilder.registerTypeAdapter(UserProperties.class, new UserPropertiesDeserializer());
 			gsonBuilder.registerTypeAdapter(CreateUser.class, new CreateUserDeserializer());
 			gsonBuilder.registerTypeAdapter(UpdateUser.class, new UpdateUserDeserializer());
 			gsonBuilder.registerTypeAdapter(DeleteUser.class, new DeleteUserDeserializer());
@@ -30,9 +33,10 @@ public class AppData {
 			gsonBuilder.registerTypeAdapter(Steps.class, new StepsDeserializer());
 			gsonBuilder.registerTypeAdapter(CommandSteps.class, new CommandStepsDeserializer());
 			gsonBuilder.registerTypeAdapter(Response.class, new ResponseDeserializer());
+			gsonBuilder.registerTypeAdapter(RunSQL.class, new RunSQLDeserializer());
 			gsonBuilder.registerTypeAdapter(SettingsValues.class, new SettingsValuesDeserializer());
-						
-			gson = gsonBuilder.create();    	
+
+			gson = gsonBuilder.create();
 		}
 		return gson;
 	}
@@ -40,5 +44,5 @@ public class AppData {
 	public static final String APPLICATION_MODE_PRODUCTION = "PRODUCTION";
 	public static final String APPLICATION_MODE_DEBUG = "DEBUG";
 	public static final String APPLICATION_MODE = APPLICATION_MODE_PRODUCTION;
-	
+
 }
