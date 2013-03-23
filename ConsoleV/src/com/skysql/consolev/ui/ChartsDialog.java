@@ -2,7 +2,6 @@ package com.skysql.consolev.ui;
 
 import java.util.ArrayList;
 
-import com.skysql.consolev.MonitorRecord;
 import com.skysql.consolev.api.UserChart;
 import com.skysql.consolev.ui.components.ChartsLayout;
 import com.vaadin.addon.charts.Chart;
@@ -41,8 +40,8 @@ public class ChartsDialog implements Window.CloseListener {
 		UserChart originalUserChart = (UserChart) chart.getData();
 		newUserChart = new UserChart(originalUserChart);
 
-		ArrayList<MonitorRecord> monitors = newUserChart.getMonitors();
-		MonitorsLayout monitorsLayout = new MonitorsLayout(monitors);
+		ArrayList<String> monitorIDs = newUserChart.getMonitorIDs();
+		MonitorsLayout monitorsLayout = new MonitorsLayout(monitorIDs);
 		windowLayout.addComponent(monitorsLayout);
 
 		VerticalLayout separator = new VerticalLayout();

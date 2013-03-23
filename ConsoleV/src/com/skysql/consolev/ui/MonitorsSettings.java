@@ -43,7 +43,6 @@ public class MonitorsSettings implements Window.CloseListener {
 	private Window secondaryDialog;
 	private Button deleteMonitor;
 	private ListSelect select;
-	private Monitors monitors;
 	private LinkedHashMap<String, MonitorRecord> monitorsAll;
 	private FormLayout monitorLayout;
 	private Label name = new Label(), description = new Label(), unit = new Label(), delta = new Label(), average = new Label(), chartType = new Label(),
@@ -60,8 +59,8 @@ public class MonitorsSettings implements Window.CloseListener {
 		selectLayout.setSpacing(true);
 		selectLayout.setMargin(true);
 
-		monitors = new Monitors(null);
-		monitorsAll = monitors.getMonitorsList();
+		Monitors.reloadMonitors();
+		monitorsAll = Monitors.getMonitorsList();
 
 		select = new ListSelect("Monitors");
 		select.setImmediate(true);
@@ -242,11 +241,11 @@ public class MonitorsSettings implements Window.CloseListener {
 			public void buttonClick(ClickEvent event) {
 				String monitorID = null;
 				try {
-					monitorID = monitors.deleteMonitor(monitor);
+					monitorID = Monitors.deleteMonitor(monitor);
 
 					if (monitorID != null) {
 						select.removeItem(monitorID);
-						monitorsAll = monitors.getMonitorsList();
+						monitorsAll = Monitors.getMonitorsList();
 						displayMonitorRecord(null);
 					}
 
@@ -403,14 +402,14 @@ public class MonitorsSettings implements Window.CloseListener {
 					monitor.setInterval((Integer) monitorInterval.getValue());
 					monitor.setChartType((String) monitorChartType.getValue());
 					if ((monitorID = monitor.getID()) == null) {
-						monitorID = monitors.setMonitor(monitor);
+						monitorID = Monitors.setMonitor(monitor);
 						if (monitorID != null) {
 							select.addItem(monitorID);
 							select.select(monitorID);
-							monitorsAll = monitors.getMonitorsList();
+							monitorsAll = Monitors.getMonitorsList();
 						}
 					} else {
-						monitorID = monitors.setMonitor(monitor);
+						monitorID = Monitors.setMonitor(monitor);
 					}
 
 					if (monitorID != null) {

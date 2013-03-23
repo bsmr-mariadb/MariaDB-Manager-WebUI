@@ -2,7 +2,6 @@ package com.skysql.consolev.ui;
 
 import java.util.ArrayList;
 
-import com.skysql.consolev.MonitorRecord;
 import com.skysql.consolev.api.UserChart;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
@@ -21,9 +20,8 @@ public class TimelineDialog {
 
 		UI.getCurrent().addWindow(dialogWindow);
 
-		ArrayList<MonitorRecord> monitors = userChart.getMonitors();
-
-		TimelineLayout timelineLayout = new TimelineLayout(userChart.getName(), monitors);
+		ArrayList<String> monitorIDs = userChart.getMonitorIDs();
+		TimelineLayout timelineLayout = new TimelineLayout(userChart.getName(), monitorIDs);
 		windowLayout.addComponent(timelineLayout.getTimeLine());
 
 	}

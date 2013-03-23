@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import com.skysql.consolev.MonitorRecord;
 import com.skysql.consolev.SessionData;
 import com.skysql.consolev.api.MonitorData2;
+import com.skysql.consolev.api.Monitors;
 import com.skysql.consolev.api.NodeInfo;
 import com.vaadin.addon.timeline.Timeline;
 import com.vaadin.addon.timeline.Timeline.ChartMode;
@@ -29,20 +30,21 @@ public class TimelineLayout extends VerticalLayout {
 	private LinkedHashMap<MonitorRecord, IndexedContainer> containers;
 	private String name;
 
-	public TimelineLayout(String name, ArrayList<MonitorRecord> monitors) {
+	public TimelineLayout(String name, ArrayList<String> monitorIDs) {
 		this.name = name;
 
 		setSpacing(true);
-		initializeContainers(monitors);
+		initializeContainers(monitorIDs);
 	}
 
-	private void initializeContainers(ArrayList<MonitorRecord> monitors) {
+	private void initializeContainers(ArrayList<String> monitorIDs) {
 
-		containers = new LinkedHashMap<MonitorRecord, IndexedContainer>(monitors.size());
+		containers = new LinkedHashMap<MonitorRecord, IndexedContainer>(monitorIDs.size());
 		SessionData userData = VaadinSession.getCurrent().getAttribute(SessionData.class);
 		NodeInfo nodeInfo = userData.getNodeInfo();
 
-		for (MonitorRecord monitor : monitors) {
+		for (String monitorID : monitorIDs) {
+			MonitorRecord monitor = Monitors.getMonitor(monitorID);
 			IndexedContainer container = createIndexedContainer();
 			MonitorData2 monitorData = new MonitorData2(monitor, nodeInfo.getSystemID(), nodeInfo.getNodeID(), null, MAX_TIMESPAN);
 			monitorData.fillDataSource(container);

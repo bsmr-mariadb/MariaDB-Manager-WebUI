@@ -21,7 +21,7 @@ public class MonitorsLayout extends VerticalLayout {
 	private int componentIndex;
 	private ChartPreviewLayout chartPreviewLayout;
 	private LinkedHashMap<String, MonitorRecord> availableMonitors;
-	private ArrayList<MonitorRecord> selectedMonitors;
+	private ArrayList<String> selectedMonitorIDs;
 	private ArrayList<ComboBox> selectMonitorList;
 
 	private ValueChangeListener monitorSelectListener = new ValueChangeListener() {
@@ -33,15 +33,15 @@ public class MonitorsLayout extends VerticalLayout {
 		}
 	};
 
-	public MonitorsLayout(ArrayList<MonitorRecord> selectedMonitors) {
-		this.selectedMonitors = selectedMonitors;
+	public MonitorsLayout(ArrayList<String> selectedMonitorIDs) {
+		this.selectedMonitorIDs = selectedMonitorIDs;
 
 		addStyleName("MonitorsLayout");
 		setSpacing(true);
 		setMargin(true);
 
-		Monitors monitors = new Monitors(null);
-		availableMonitors = monitors.getMonitorsList();
+		Monitors.reloadMonitors();
+		availableMonitors = Monitors.getMonitorsList();
 		initializeMonitors();
 
 	}
@@ -54,8 +54,8 @@ public class MonitorsLayout extends VerticalLayout {
 
 		componentIndex = getComponentCount(); // where the monitors start
 		selectMonitorList = new ArrayList<ComboBox>();
-		for (MonitorRecord monitor : selectedMonitors) {
-			addComponent(addRow(monitor));
+		for (String monitorID : selectedMonitorIDs) {
+			addComponent(addRow(monitorID));
 		}
 
 		final Button addButton = new Button("Add");
@@ -78,16 +78,16 @@ public class MonitorsLayout extends VerticalLayout {
 
 	private void refreshMonitors() {
 
-		selectedMonitors.clear();
+		selectedMonitorIDs.clear();
 		for (ComboBox select : selectMonitorList) {
 			String monitorID = (String) select.getValue();
-			selectedMonitors.add(availableMonitors.get(monitorID));
+			selectedMonitorIDs.add(monitorID);
 		}
 		chartPreviewLayout.refresh();
 
 	}
 
-	private Component addRow(MonitorRecord monitor) {
+	private Component addRow(String monitorID) {
 		HorizontalLayout row = new HorizontalLayout();
 		ComboBox selectMonitor = new ComboBox();
 		for (MonitorRecord availMonitor : availableMonitors.values()) {
@@ -97,9 +97,7 @@ public class MonitorsLayout extends VerticalLayout {
 		row.addComponent(selectMonitor);
 		selectMonitorList.add(selectMonitor);
 
-		if (monitor != null)
-			selectMonitor.setValue(monitor.getID());
-
+		selectMonitor.setValue(monitorID);
 		selectMonitor.setImmediate(true);
 		selectMonitor.addValueChangeListener(monitorSelectListener);
 

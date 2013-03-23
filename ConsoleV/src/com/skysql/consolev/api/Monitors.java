@@ -22,36 +22,28 @@ public class Monitors {
 
 	public static final String MONITOR_CAPACITY = "5";
 
-	private LinkedHashMap<String, MonitorRecord> monitorsList;
+	private static LinkedHashMap<String, MonitorRecord> monitorsList;
 	private ArrayList<MonitorRecord> monitorsDisplay;
 
-	public LinkedHashMap<String, MonitorRecord> getMonitorsList() {
+	public static LinkedHashMap<String, MonitorRecord> getMonitorsList() {
+		if (monitorsList == null) {
+			reloadMonitors();
+		}
 		return monitorsList;
 	}
 
-	public MonitorRecord getMonitor(String ID) {
-		return monitorsList.get(ID);
-	}
-
-	public ArrayList<MonitorRecord> getMonitorsList(String displayList) {
-		if (displayList != null) {
-			String[] ids = displayList.split(",");
-			monitorsDisplay = new ArrayList<MonitorRecord>(ids.length);
-			for (String id : ids) {
-				monitorsDisplay.add(monitorsList.get(id));
-			}
-		} else {
-			monitorsDisplay = new ArrayList<MonitorRecord>(monitorsList.values());
+	public static MonitorRecord getMonitor(String ID) {
+		if (monitorsList == null) {
+			reloadMonitors();
 		}
-
-		return monitorsDisplay;
+		return monitorsList.get(ID);
 	}
 
 	public Monitors() {
 
 	}
 
-	public Monitors(String dummy) {
+	public static void reloadMonitors() {
 
 		String inputLine = null;
 		try {
@@ -68,11 +60,11 @@ public class Monitors {
 
 		Gson gson = AppData.getGson();
 		Monitors monitors = gson.fromJson(inputLine, Monitors.class);
-		this.monitorsList = monitors.monitorsList;
+		//		Monitors.monitorsList = monitors.getMonitorsList();
 		monitors = null;
 	}
 
-	public String setMonitor(MonitorRecord monitor) {
+	public static String setMonitor(MonitorRecord monitor) {
 
 		String inputLine = null;
 		try {
@@ -99,7 +91,7 @@ public class Monitors {
 		return (monitorID);
 	}
 
-	public String deleteMonitor(MonitorRecord monitor) {
+	public static String deleteMonitor(MonitorRecord monitor) {
 
 		String inputLine = null;
 		try {
@@ -124,7 +116,7 @@ public class Monitors {
 	}
 
 	protected void setMonitorsList(LinkedHashMap<String, MonitorRecord> monitorsList) {
-		this.monitorsList = monitorsList;
+		Monitors.monitorsList = monitorsList;
 	}
 
 }

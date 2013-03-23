@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.LinkedHashMap;
@@ -15,16 +16,24 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.skysql.consolev.UserRecord;
 
 public class UserProperties {
 
+	public static final String PROPERTY_CHARTS = "CHARTS";
+
 	private LinkedHashMap<String, String> properties;
-	
+
 	public LinkedHashMap<String, String> getProperties() {
 		return properties;
 	}
-	
+
+	public String getProperty(String key) {
+		if (properties != null)
+			return properties.get(key);
+		else
+			return null;
+	}
+
 	protected void setProperties(LinkedHashMap<String, String> properties) {
 		this.properties = properties;
 	}
@@ -32,14 +41,16 @@ public class UserProperties {
 	public String setProperty(String userID, String property, String value) {
 		String inputLine = null;
 		try {
-			URL url = new URL("http://localhost/consoleAPI/userproperties.php?user=" + userID + "&property=" + property + "&value=" + value);
+			//URL url = new URL("http://localhost/consoleAPI/userproperties.php?user=" + userID + "&property=" + property + "&value=" + value);
+			URL url = new URI("http", "localhost", "/consoleAPI/userproperties.php", "user=" + userID + "&property=" + property + "&value=" + value, null)
+					.toURL();
 			URLConnection sc = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			inputLine = in.readLine();
 			in.close();
-		} catch (IOException e) {
-        	e.printStackTrace();
-        	throw new RuntimeException("Could not get response from API");
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Could not get response from API");
 		}
 
 		Gson gson = AppData.getGson();
@@ -59,8 +70,8 @@ public class UserProperties {
 			inputLine = in.readLine();
 			in.close();
 		} catch (IOException e) {
-        	e.printStackTrace();
-        	throw new RuntimeException("Could not get response from API");
+			e.printStackTrace();
+			throw new RuntimeException("Could not get response from API");
 		}
 
 		Gson gson = AppData.getGson();
@@ -68,31 +79,29 @@ public class UserProperties {
 		this.properties = userProp.properties;
 		userProp = null;
 	}
-	
+
 }
 
 class UserPropertiesDeserializer implements JsonDeserializer<UserProperties> {
-		  public UserProperties deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-		      throws JsonParseException
-		  {
-			UserProperties userProps = new UserProperties();
-			
-			JsonElement jsonElement = json.getAsJsonObject().get("properties");
-			if (jsonElement == null || jsonElement.isJsonNull()) {
-		    	userProps.setProperties(null);
-			} else {
-		    	JsonArray array = jsonElement.getAsJsonArray();
-		    	int length = array.size();
-		    	
-			    LinkedHashMap<String, String> properties = new LinkedHashMap<String, String>(length);
-			    for (int i = 0; i < length; i++) {
-			    	JsonObject pair = array.get(i).getAsJsonObject();
-			    	properties.put(pair.get("property").getAsString(), pair.get("value").getAsString());
-			    }
-			    userProps.setProperties(properties);
-		    }
-		    
-		    return userProps;
-		  }
+	public UserProperties deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+		UserProperties userProps = new UserProperties();
+
+		JsonElement jsonElement = json.getAsJsonObject().get("properties");
+		if (jsonElement == null || jsonElement.isJsonNull()) {
+			userProps.setProperties(null);
+		} else {
+			JsonArray array = jsonElement.getAsJsonArray();
+			int length = array.size();
+
+			LinkedHashMap<String, String> properties = new LinkedHashMap<String, String>(length);
+			for (int i = 0; i < length; i++) {
+				JsonObject pair = array.get(i).getAsJsonObject();
+				properties.put(pair.get("property").getAsString(), pair.get("value").getAsString());
+			}
+			userProps.setProperties(properties);
+		}
+
+		return userProps;
+	}
 
 }

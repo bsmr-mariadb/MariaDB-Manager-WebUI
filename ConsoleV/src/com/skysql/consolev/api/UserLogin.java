@@ -1,12 +1,12 @@
 package com.skysql.consolev.api;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.LinkedHashMap;
 
 import com.google.gson.Gson;
@@ -36,23 +36,27 @@ public class UserLogin {
 	}
 
 	public String setProperty(String key, String value) {
-		this.properties.put(key, value);
+		if (properties == null) {
+			properties = new LinkedHashMap<String, String>();
+		}
+		properties.put(key, value);
 
-		SessionData sessionData = VaadinSession.getCurrent().getAttribute(
-				SessionData.class);
+		SessionData sessionData = VaadinSession.getCurrent().getAttribute(SessionData.class);
 		String userID = sessionData.getUserLogin().getUserID();
+		//		if (userID == null) {
+		//			return "No user, no properties!";
+		//		}
 
 		String inputLine = null;
 		try {
-			URL url = new URL(
-					"http://localhost/consoleAPI/userproperties.php?user="
-							+ userID + "&property=" + key + "&value=" + value);
+			//			URL url = new URL("http://localhost/consoleAPI/userproperties.php?user=" + userID + "&property=" + key + "&value=" + value);
+			URL url = new URI("http", "localhost", "/consoleAPI/userproperties.php", "user=" + userID + "&property=" + key + "&value="
+					+ URLEncoder.encode(value, "UTF8"), null).toURL();
 			URLConnection sc = url.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					sc.getInputStream()));
+			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			inputLine = in.readLine();
 			in.close();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not get response from API");
 		}
@@ -77,12 +81,9 @@ public class UserLogin {
 
 		String inputLine = null;
 		try {
-			URL url = new URI("http", "localhost", "/consoleAPI/login.php",
-					"system=" + systemID + "&name=" + name + "&password="
-							+ password, null).toURL();
+			URL url = new URI("http", "localhost", "/consoleAPI/login.php", "system=" + systemID + "&name=" + name + "&password=" + password, null).toURL();
 			URLConnection sc = url.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					sc.getInputStream()));
+			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			inputLine = in.readLine();
 			in.close();
 		} catch (Exception e) {
@@ -101,15 +102,13 @@ public class UserLogin {
 }
 
 class UserLoginDeserializer implements JsonDeserializer<UserLogin> {
-	public UserLogin deserialize(JsonElement json, Type typeOfT,
-			JsonDeserializationContext context) throws JsonParseException {
+	public UserLogin deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		UserLogin userLogin = new UserLogin();
 
 		JsonObject jsonObject = json.getAsJsonObject();
 
 		JsonElement element;
-		userLogin.setID(((element = jsonObject.get("id")) == null || element
-				.isJsonNull()) ? null : element.getAsString());
+		userLogin.setID(((element = jsonObject.get("id")) == null || element.isJsonNull()) ? null : element.getAsString());
 
 		element = jsonObject.get("properties");
 		if (element == null || element.isJsonNull()) {
@@ -118,14 +117,11 @@ class UserLoginDeserializer implements JsonDeserializer<UserLogin> {
 			JsonArray array = element.getAsJsonArray();
 			int length = array.size();
 
-			LinkedHashMap<String, String> properties = new LinkedHashMap<String, String>(
-					length);
+			LinkedHashMap<String, String> properties = new LinkedHashMap<String, String>(length);
 			for (int i = 0; i < length; i++) {
 				JsonObject pair = array.get(i).getAsJsonObject();
-				String property = (element = pair.get("property")).isJsonNull() ? null
-						: element.getAsString();
-				String value = (element = pair.get("value")).isJsonNull() ? null
-						: element.getAsString();
+				String property = (element = pair.get("property")).isJsonNull() ? null : element.getAsString();
+				String value = (element = pair.get("value")).isJsonNull() ? null : element.getAsString();
 				properties.put(property, value);
 			}
 			userLogin.setProperties(properties);

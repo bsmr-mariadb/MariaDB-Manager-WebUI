@@ -49,9 +49,6 @@ public class AccountSettings implements Window.CloseListener {
 		currentUserID = userID;
 		this.systemID = systemID;
 
-		// accountTab.setWidth(Sizeable.SIZE_UNDEFINED, 0); // Default
-		// accountTab.setHeight(Sizeable.SIZE_UNDEFINED, 0); // Default
-
 		accountTab.addStyleName("accountTab");
 		accountTab.setSpacing(true);
 

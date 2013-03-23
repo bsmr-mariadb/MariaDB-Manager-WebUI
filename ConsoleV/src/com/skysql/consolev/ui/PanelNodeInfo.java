@@ -1,12 +1,7 @@
 package com.skysql.consolev.ui;
 
-import java.util.ArrayList;
-
-import com.skysql.consolev.MonitorRecord;
-import com.skysql.consolev.SessionData;
 import com.skysql.consolev.api.AppData;
 import com.skysql.consolev.api.Commands;
-import com.skysql.consolev.api.Monitors;
 import com.skysql.consolev.api.NodeInfo;
 import com.skysql.consolev.api.NodeStates;
 import com.skysql.consolev.api.SystemInfo;
@@ -15,7 +10,6 @@ import com.skysql.consolev.ui.components.ChartsLayout;
 import com.vaadin.addon.charts.Chart;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -34,7 +28,6 @@ import fi.jasoft.dragdroplayouts.client.ui.LayoutDragMode;
 public class PanelNodeInfo extends HorizontalLayout {
 
 	private static final String NOT_AVAILABLE = "n/a";
-	private static final String PROPERTY_MONITORS = "MONITORS";
 	private static final String SYSTEM_NODEID = "0";
 
 	private NodeInfo nodeInfo, lastNodeInfo;
@@ -43,7 +36,6 @@ public class PanelNodeInfo extends HorizontalLayout {
 	private VerticalLayout infoLayout, chartsLayout;
 	private DDCssLayout chartsArray;
 	private String chartTime, chartInterval = "1800", chartPoints = "15";
-	private ArrayList<MonitorRecord> monitorsList;
 	private String nodeLabels[] = { "Status", "Availability", "Connections", "Data Transfer", "Commands Running", "Public IP", "Private IP", "Instance ID", };
 	private String systemLabels[] = { "Status", "Availability", "Connections", "Data Transfer", "Last Backup", "Start Date", "Last Access" };
 	private ChartControls chartControls;
@@ -195,7 +187,7 @@ public class PanelNodeInfo extends HorizontalLayout {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
-				Chart chart = (Chart) chartsArrayLayout.addChart(monitorsList.get(0));
+				Chart chart = (Chart) chartsArrayLayout.addChart();
 				new ChartsDialog(chartsArrayLayout, chart);
 			}
 		});
@@ -240,15 +232,8 @@ public class PanelNodeInfo extends HorizontalLayout {
 
 	public DDCssLayout chartsArray() {
 
-		// Setup array of charts objects
-		SessionData sessionData = VaadinSession.getCurrent().getAttribute(SessionData.class);
-		String propertyMonitors = sessionData.getUserLogin().getProperty(PROPERTY_MONITORS);
-
-		Monitors monitors = new Monitors(null);
-		monitorsList = monitors.getMonitorsList(propertyMonitors);
-
 		chartsArrayLayout = new ChartsLayout(false);
-		chartsArrayLayout.initializeCharts(monitorsList);
+		chartsArrayLayout.initializeCharts();
 
 		return chartsArrayLayout;
 

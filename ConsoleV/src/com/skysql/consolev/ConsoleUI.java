@@ -280,8 +280,7 @@ public class ConsoleUI extends UI {
 				newInfo.setCommandTask(node.getCommandTask());
 
 				// fetch current capacity from monitor
-				Monitors monitors = new Monitors(null);
-				MonitorData monitorData = new MonitorData(monitors.getMonitor(Monitors.MONITOR_CAPACITY), newInfo.getSystemID(), newInfo.getNodeID(), null,
+				MonitorData monitorData = new MonitorData(Monitors.getMonitor(Monitors.MONITOR_CAPACITY), newInfo.getSystemID(), newInfo.getNodeID(), null,
 						null, "1");
 				String dataPoints[][] = monitorData.getDataPoints();
 				newInfo.setCapacity((dataPoints == null) ? null : dataPoints[0][1]);
