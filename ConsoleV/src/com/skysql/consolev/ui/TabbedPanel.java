@@ -2,36 +2,34 @@ package com.skysql.consolev.ui;
 
 import java.io.Serializable;
 
-import com.skysql.consolev.api.NodeInfo;
+import com.skysql.consolev.api.ClusterComponent;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 
 public class TabbedPanel implements Serializable {
-
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	private static final String SYSTEM_NODEID = "0";
-
-	private NodeInfo currentData;
 	private Component currentTab;
 	private TabSheet tabsheet;
-	private PanelNodeInfo panelNodeInfo;
+	private PanelInfo panelInfo;
 	private PanelControl panelControl;
 	private PanelBackup panelBackup;
 	private PanelTools panelTools;
 	private HorizontalLayout controlTab, backupTab, toolsTab;
 
 	public TabbedPanel() {
+
 		// Set another root layout for the middle panels section.
 		tabsheet = new TabSheet();
 		tabsheet.setImmediate(true);
 		tabsheet.setSizeFull();
 
 		// INFO TAB
-		panelNodeInfo = new PanelNodeInfo();
-		currentTab = panelNodeInfo;
+		panelInfo = new PanelInfo();
+		currentTab = panelInfo;
 		tabsheet.addTab(currentTab).setCaption("Info");
 
 		// CONTROL TAB
@@ -61,7 +59,7 @@ public class TabbedPanel implements Serializable {
 					Component selectedTab = source.getSelectedTab();
 					if (selectedTab != currentTab) {
 						currentTab = selectedTab;
-						refresh(currentData);
+						refresh();
 					}
 				}
 			}
@@ -72,20 +70,21 @@ public class TabbedPanel implements Serializable {
 		return this.tabsheet;
 	}
 
-	public void refresh(NodeInfo nodeInfo) {
-		tabsheet.getTab(backupTab).setVisible((nodeInfo.getNodeID().equalsIgnoreCase(SYSTEM_NODEID)) ? false : true);
+	public void refresh() {
+		ClusterComponent componentInfo = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
 
-		if (currentTab == panelNodeInfo) {
-			panelNodeInfo.refresh(nodeInfo);
+		tabsheet.getTab(backupTab).setVisible(componentInfo.getType() == ClusterComponent.CCType.system ? false : true);
+		tabsheet.getTab(controlTab).setVisible(componentInfo.getType() == ClusterComponent.CCType.system ? false : true);
+
+		if (currentTab == panelInfo) {
+			panelInfo.refresh();
 		} else if (currentTab == controlTab) {
-			panelControl.refresh(nodeInfo);
+			panelControl.refresh();
 		} else if (currentTab == backupTab) {
-			panelBackup.refresh(nodeInfo);
+			panelBackup.refresh();
 		} else if (currentTab == toolsTab) {
-			panelTools.refresh(nodeInfo);
+			panelTools.refresh();
 		}
 
-		currentData = nodeInfo;
 	}
-
 }

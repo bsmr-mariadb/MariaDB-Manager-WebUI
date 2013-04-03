@@ -5,13 +5,14 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 import com.skysql.consolev.BackupRecord;
-import com.skysql.consolev.SessionData;
 import com.skysql.consolev.TaskRecord;
 import com.skysql.consolev.api.BackupCommands;
 import com.skysql.consolev.api.BackupStates;
 import com.skysql.consolev.api.Backups;
+import com.skysql.consolev.api.ClusterComponent;
 import com.skysql.consolev.api.CommandStates;
 import com.skysql.consolev.api.NodeInfo;
+import com.skysql.consolev.api.SystemInfo;
 import com.skysql.consolev.api.TaskInfo;
 import com.skysql.consolev.api.UserInfo;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -32,7 +33,6 @@ import com.vaadin.ui.VerticalLayout;
 public class PanelBackup {
 
 	private static final String NOT_AVAILABLE = "n/a";
-	private static final String SYSTEM_NODEID = "0";
 
 	private NodeInfo nodeInfo;
 	private VerticalLayout commandsLayout, runningContainerLayout, placeholderLayout;
@@ -47,6 +47,7 @@ public class PanelBackup {
 	final LinkedHashMap<String, String> names = BackupCommands.getNames();
 
 	PanelBackup(HorizontalLayout thisTab) {
+
 		thisTab.setSizeFull();
 		thisTab.addStyleName("backupTab");
 		thisTab.setSpacing(true);
@@ -142,7 +143,7 @@ public class PanelBackup {
 
 		logsLayout.addComponent(backupInfoLayout);
 
-		userInfo = new UserInfo("dummy");
+		userInfo = new UserInfo(null);
 
 		/*** BACKUPS **********************************************/
 
@@ -160,19 +161,15 @@ public class PanelBackup {
 
 	}
 
-	public void refresh(NodeInfo nodeInfo) {
-		this.nodeInfo = nodeInfo;
+	public void refresh() {
+		nodeInfo = (NodeInfo) VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
 
 		String taskID = nodeInfo.getTask();
 		// String taskCommand = nodeInfo.getCommand();
 		RunningTask runningTask = nodeInfo.getBackupTask();
 		String commands[] = nodeInfo.getCommands();
 
-		if (nodeInfo.getNodeID().equalsIgnoreCase(SYSTEM_NODEID))
-			return; // we shouldn't get here, since we are supposed to
-					// only do Nodes, not the System
-
-		TaskInfo taskInfo = new TaskInfo(null, null, "backup", nodeInfo.getNodeID());
+		TaskInfo taskInfo = new TaskInfo(null, null, "backup", nodeInfo.getID());
 		tasksList = taskInfo.getTasksList();
 		if (tasksList != null) {
 			int size = tasksList.size();
@@ -182,16 +179,16 @@ public class PanelBackup {
 				logsTable.removeAllItems();
 				for (TaskRecord taskRecord : tasksList) {
 					logsTable.addItem(new Object[] { taskRecord.getStart(), taskRecord.getEnd(), names.get(taskRecord.getCommand()), taskRecord.getParams(),
-							userInfo.findNameByID(taskRecord.getUser()), CommandStates.getDescriptions().get(taskRecord.getStatus()) }, taskRecord.getID());
+							userInfo.findNameByID(taskRecord.getUserID()), CommandStates.getDescriptions().get(taskRecord.getStatus()) }, taskRecord.getID());
 				}
 			}
 		} else {
 			logsTable.removeAllItems();
 		}
 
-		SessionData userData = VaadinSession.getCurrent().getAttribute(SessionData.class);
-		LinkedHashMap<String, String> sysProperties = userData.getSystemProperties().getProperties();
-		String EIP = sysProperties.get("EIP");
+		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+		LinkedHashMap<String, String> sysProperties = systemInfo.getProperties();
+		String EIP = sysProperties.get(SystemInfo.PROPERTY_EIP);
 		Link backupLogLink;
 
 		Backups backups = new Backups(nodeInfo.getSystemID(), null);
@@ -315,9 +312,9 @@ public class PanelBackup {
 			backupInfoGrid = newBackupInfoGrid;
 		}
 
-		SessionData userData = VaadinSession.getCurrent().getAttribute(SessionData.class);
-		LinkedHashMap<String, String> sysProperties = userData.getSystemProperties().getProperties();
-		String EIP = sysProperties.get("EIP");
+		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+		LinkedHashMap<String, String> sysProperties = systemInfo.getProperties();
+		String EIP = sysProperties.get(SystemInfo.PROPERTY_EIP);
 		if (EIP != null) {
 			String url = "http://" + EIP + "/consoleAPI/" + record.getLog();
 			Link newBackupLogLink = new Link("Backup Log", new ExternalResource(url));
@@ -334,10 +331,6 @@ public class PanelBackup {
 				backupLogLink = newBackupLogLink;
 			}
 		}
-	}
-
-	private static void log(String aMsg) {
-		System.out.println(aMsg);
 	}
 
 }

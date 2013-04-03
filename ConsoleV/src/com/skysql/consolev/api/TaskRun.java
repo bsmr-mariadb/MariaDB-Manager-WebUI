@@ -16,10 +16,11 @@ import com.google.gson.JsonParseException;
 
 public class TaskRun {
 	private String task;
-	  
+
 	public String getTask() {
 		return task;
 	}
+
 	public void setTask(String task) {
 		this.task = task;
 	}
@@ -28,18 +29,19 @@ public class TaskRun {
 	}
 
 	public TaskRun(String systemID, String nodeID, String userID, String command, String params) {
-		
-    	String inputLine = null;
-        try {        	
-        	URL url = new URI("http", "localhost", "/consoleAPI/taskrun.php", "system="+systemID+"&node="+nodeID+"&user="+userID+"&command="+command+"&params="+params, null).toURL();
-        	URLConnection sc = url.openConnection();
-        	BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
-        	inputLine = in.readLine();
-        	in.close();
-        } catch (Exception e) {
-        	e.printStackTrace();
-        	throw new RuntimeException("Could not get response from API");
-        }
+
+		String inputLine = null;
+		try {
+			URL url = new URI("http", "localhost", "/consoleAPI/taskrun.php", "system=" + systemID + "&node=" + nodeID + "&user=" + userID + "&command="
+					+ command + "&params=" + params, null).toURL();
+			URLConnection sc = url.openConnection();
+			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
+			inputLine = in.readLine();
+			in.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Could not get response from API");
+		}
 
 		Gson gson = AppData.getGson();
 		TaskRun taskRun = gson.fromJson(inputLine, TaskRun.class);
@@ -48,35 +50,29 @@ public class TaskRun {
 		taskRun = null;
 
 	}
-	
+
 }
 
 class TaskRunDeserializer implements JsonDeserializer<TaskRun> {
-		  public TaskRun deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-		      throws JsonParseException
-		  {
-			TaskRun taskRun = new TaskRun();
-			
-		    JsonObject jsonObject = json.getAsJsonObject();
-		    
-		    JsonElement element;
-		    taskRun.setTask(((element = jsonObject.get("task")) == null || element.isJsonNull()) ? null : element.getAsString());
+	public TaskRun deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+		TaskRun taskRun = new TaskRun();
 
-		    /***  For when we implement server-side enabling/disabling of script controls
-		    element = jsonObject.get("controls");
-		    if (element == null || element.isJsonNull()) {
-		    	taskRun.setPrimitives(null);
-		    } else {
-			    JsonArray controlsJson = element.getAsJsonArray();
-			    int length = controlsJson.size();
-			    String[] controls = new String[length];
-			    taskRun.setControls(controls);
-			    for (int i = 0; i < length; i++)
-			    	controls[i] = controlsJson.get(i).getAsString();
-		    }
-		    ***/
+		JsonObject jsonObject = json.getAsJsonObject();
 
-		    return taskRun;
-		  }
-		
+		JsonElement element;
+		taskRun.setTask(((element = jsonObject.get("task")) == null || element.isJsonNull()) ? null : element.getAsString());
+
+		/***
+		 * For when we implement server-side enabling/disabling of script
+		 * controls element = jsonObject.get("controls"); if (element == null ||
+		 * element.isJsonNull()) { taskRun.setPrimitives(null); } else {
+		 * JsonArray controlsJson = element.getAsJsonArray(); int length =
+		 * controlsJson.size(); String[] controls = new String[length];
+		 * taskRun.setControls(controls); for (int i = 0; i < length; i++)
+		 * controls[i] = controlsJson.get(i).getAsString(); }
+		 ***/
+
+		return taskRun;
+	}
+
 }

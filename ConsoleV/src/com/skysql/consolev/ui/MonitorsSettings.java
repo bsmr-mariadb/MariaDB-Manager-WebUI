@@ -7,6 +7,7 @@ import com.skysql.consolev.MonitorRecord;
 import com.skysql.consolev.api.Monitors;
 import com.skysql.consolev.api.RunSQL;
 import com.skysql.consolev.api.SettingsValues;
+import com.skysql.consolev.api.SystemInfo;
 import com.skysql.consolev.api.UserChart;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -14,6 +15,7 @@ import com.vaadin.data.Validator;
 import com.vaadin.event.LayoutEvents.LayoutClickEvent;
 import com.vaadin.event.LayoutEvents.LayoutClickListener;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -38,8 +40,6 @@ import com.vaadin.ui.Window.CloseEvent;
 public class MonitorsSettings implements Window.CloseListener {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	private static final String PROPERTY_MONITOR_INTERVAL = "MonitorInterval";
-
 	private Window secondaryDialog;
 	private Button deleteMonitor;
 	private ListSelect select;
@@ -48,7 +48,7 @@ public class MonitorsSettings implements Window.CloseListener {
 	private Label name = new Label(), description = new Label(), unit = new Label(), delta = new Label(), average = new Label(), chartType = new Label(),
 			interval = new Label(), sql = new Label();
 
-	MonitorsSettings(final HorizontalLayout monitorTab, final String systemID) {
+	MonitorsSettings(final HorizontalLayout monitorTab) {
 
 		monitorTab.addStyleName("monitorsTab");
 		monitorTab.setSpacing(true);
@@ -207,10 +207,6 @@ public class MonitorsSettings implements Window.CloseListener {
 		textLayout.addComponent(label);
 		textLayout.setComponentAlignment(label, Alignment.MIDDLE_CENTER);
 
-		HorizontalLayout buttonsContainer = new HorizontalLayout();
-		buttonsContainer.setStyleName("buttonsContainer");
-		buttonsContainer.setSizeFull();
-
 		HorizontalLayout buttonsBar = new HorizontalLayout();
 		buttonsBar.setStyleName("buttonsBar");
 		buttonsBar.setSizeFull();
@@ -334,13 +330,14 @@ public class MonitorsSettings implements Window.CloseListener {
 		monitorAverage.setValue(monitor.isAverage());
 		form.addField("monitorAverage", monitorAverage);
 
-		SettingsValues intervalValues = new SettingsValues(PROPERTY_MONITOR_INTERVAL);
+		SettingsValues intervalValues = new SettingsValues(SettingsValues.SETTINGS_MONITOR_INTERVAL);
 		ArrayList<String> intervals = intervalValues.getValues();
 		for (String interval : intervals) {
 			monitorInterval.addItem(Integer.parseInt(interval));
 		}
 		if (monitor.getInterval() == 0) {
-			monitorInterval.select(Integer.parseInt(intervals.get(0)));
+			SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+			monitorInterval.select(Integer.parseInt(systemInfo.getProperties().get(SystemInfo.PROPERTY_DEFAULTMONITORINTERVAL)));
 		} else {
 			monitorInterval.select(monitor.getInterval());
 		}
@@ -353,10 +350,6 @@ public class MonitorsSettings implements Window.CloseListener {
 		monitorChartType.select(monitor.getChartType() == null ? UserChart.chartTypes()[0] : monitor.getChartType());
 		monitorChartType.setNullSelectionAllowed(false);
 		form.addField("monitorChartType", monitorChartType);
-
-		HorizontalLayout buttonsContainer = new HorizontalLayout();
-		buttonsContainer.setStyleName("buttonsContainer");
-		buttonsContainer.setSizeFull();
 
 		HorizontalLayout buttonsBar = new HorizontalLayout();
 		buttonsBar.setStyleName("buttonsBar");

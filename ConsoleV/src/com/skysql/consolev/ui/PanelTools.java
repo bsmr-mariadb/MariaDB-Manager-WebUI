@@ -2,10 +2,9 @@ package com.skysql.consolev.ui;
 
 import java.util.LinkedHashMap;
 
-import com.skysql.consolev.SessionData;
+import com.skysql.consolev.api.ClusterComponent;
 import com.skysql.consolev.api.NodeInfo;
 import com.skysql.consolev.api.SystemInfo;
-import com.skysql.consolev.api.SystemProperties;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.server.VaadinSession;
@@ -16,8 +15,6 @@ import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
 
 public class PanelTools {
-
-	private static final String SYSTEM_NODEID = "0";
 
 	private Link phpLink, monyogLink;
 	private String phpUrl;
@@ -30,18 +27,16 @@ public class PanelTools {
 		thisTab.setSpacing(true);
 
 		// External Tools Vertical Module
-		SessionData userData = VaadinSession.getCurrent().getAttribute(SessionData.class);
-		SystemInfo sysInfo = ((SessionData) userData).getSystemInfo();
-		SystemProperties systemProperties = new SystemProperties(sysInfo.getSystemID());
-		LinkedHashMap<String, String> properties = systemProperties.getProperties();
+		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+		LinkedHashMap<String, String> properties = systemInfo.getProperties();
 		if (properties != null) {
 			VerticalLayout externalsLayout = new VerticalLayout();
 			externalsLayout.setWidth("150px");
 			externalsLayout.addStyleName("externalsLayout");
 			externalsLayout.setSpacing(true);
 
-			String EIP = properties.get("EIP");
-			String MONyog = properties.get("MONyog");
+			String EIP = properties.get(SystemInfo.PROPERTY_EIP);
+			String MONyog = properties.get(SystemInfo.PROPERTY_MONYOG);
 			if (EIP != null && MONyog != null) {
 				String url = "http://" + EIP + MONyog;
 				monyogLink = new Link("MONyog", new ExternalResource(url));
@@ -53,14 +48,16 @@ public class PanelTools {
 				externalsLayout.setComponentAlignment(monyogLink, Alignment.BOTTOM_CENTER);
 			}
 
-			phpUrl = properties.get("phpMyAdmin");
-			phpLink = new Link("phpMyAdmin", null);
-			phpLink.setTargetName("_blank");
-			phpLink.setDescription("Open phpMyAdmin for the selected node");
-			phpLink.setIcon(new ThemeResource("img/externalLink.png"));
-			phpLink.addStyleName("icon-after-caption");
-			externalsLayout.addComponent(phpLink);
-			externalsLayout.setComponentAlignment(phpLink, Alignment.BOTTOM_CENTER);
+			phpUrl = properties.get(SystemInfo.PROPERTY_PHPMYADMIN);
+			if (phpUrl != null) {
+				phpLink = new Link("phpMyAdmin", null);
+				phpLink.setTargetName("_blank");
+				phpLink.setDescription("Open phpMyAdmin for the selected node");
+				phpLink.setIcon(new ThemeResource("img/externalLink.png"));
+				phpLink.addStyleName("icon-after-caption");
+				externalsLayout.addComponent(phpLink);
+				externalsLayout.setComponentAlignment(phpLink, Alignment.BOTTOM_CENTER);
+			}
 
 			thisTab.addComponent(externalsLayout);
 			thisTab.setComponentAlignment(externalsLayout, Alignment.MIDDLE_CENTER);
@@ -87,14 +84,21 @@ public class PanelTools {
 
 	}
 
-	public void refresh(NodeInfo nodeInfo) {
+	public void refresh() {
 
-		if (nodeInfo.getNodeID().equalsIgnoreCase(SYSTEM_NODEID)) {
+		ClusterComponent componentInfo = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
+
+		switch (componentInfo.getType()) {
+		case system:
 			phpLink.setVisible(false);
-		} else {
+			break;
+
+		case node:
+			NodeInfo nodeInfo = (NodeInfo) componentInfo;
 			String url = "http://" + nodeInfo.getPublicIP() + phpUrl;
 			phpLink.setResource(new ExternalResource(url));
 			phpLink.setVisible(true);
+			break;
 		}
 
 	}

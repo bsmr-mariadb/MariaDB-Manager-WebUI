@@ -1,6 +1,6 @@
 package com.skysql.consolev.ui;
 
-import com.skysql.consolev.api.AppData;
+import com.skysql.consolev.api.ClusterComponent;
 import com.skysql.consolev.api.Commands;
 import com.skysql.consolev.api.NodeInfo;
 import com.skysql.consolev.api.NodeStates;
@@ -10,6 +10,7 @@ import com.skysql.consolev.ui.components.ChartsLayout;
 import com.vaadin.addon.charts.Chart;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -25,19 +26,20 @@ import com.vaadin.ui.themes.Runo;
 import fi.jasoft.dragdroplayouts.DDCssLayout;
 import fi.jasoft.dragdroplayouts.client.ui.LayoutDragMode;
 
-public class PanelNodeInfo extends HorizontalLayout {
+public class PanelInfo extends HorizontalLayout {
+	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private static final String NOT_AVAILABLE = "n/a";
-	private static final String SYSTEM_NODEID = "0";
 
-	private NodeInfo nodeInfo, lastNodeInfo;
+	private ClusterComponent lastComponent;
 	private Component systemGrid, nodeGrid;
-	private Label systemValues[], nodeValues[];
 	private VerticalLayout infoLayout, chartsLayout;
 	private DDCssLayout chartsArray;
 	private String chartTime, chartInterval = "1800", chartPoints = "15";
-	private String nodeLabels[] = { "Status", "Availability", "Connections", "Data Transfer", "Commands Running", "Public IP", "Private IP", "Instance ID", };
-	private String systemLabels[] = { "Status", "Availability", "Connections", "Data Transfer", "Last Backup", "Start Date", "Last Access" };
+	private String systemLabelsStrings[] = { "Status", "Last Backup", "Start Date", "Last Access" };
+	private String nodeLabelsStrings[] = { "Status", "Availability", "Connections", "Data Transfer", "Commands Running", "Public IP", "Private IP",
+			"Instance ID", };
+	private Label systemLabels[], nodeLabels[];
 	private ChartControls chartControls;
 	private ChartsLayout chartsArrayLayout;
 	private Label nameLabel;
@@ -51,12 +53,12 @@ public class PanelNodeInfo extends HorizontalLayout {
 			Integer value = (Integer) (event.getProperty()).getValue();
 			// value = value / Integer.parseInt(chartPoints);
 			chartInterval = Integer.toString(value);
-			refresh(nodeInfo);
+			refresh();
 		}
 	};
 
-	PanelNodeInfo() {
-		// AppData.setPanelNodeInfo(this);
+	PanelInfo() {
+
 		setSizeFull();
 		addStyleName("infoTab");
 
@@ -97,9 +99,17 @@ public class PanelNodeInfo extends HorizontalLayout {
 
 			public void buttonClick(ClickEvent event) {
 				nameField = new TextField();
+				nameField.setImmediate(true);
 				nameField.setValue(nameLabel.getValue());
 				nameField.setWidth("12em");
 				nameField.focus();
+				nameField.addValueChangeListener(new ValueChangeListener() {
+					private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+					public void valueChange(ValueChangeEvent event) {
+						saveButton.click();
+					}
+				});
 				nameLayout.replaceComponent(nameLabel, nameField);
 				nameLayout.setComponentAlignment(nameField, Alignment.MIDDLE_LEFT);
 				nameLayout.replaceComponent(editButton, saveButton);
@@ -117,33 +127,38 @@ public class PanelNodeInfo extends HorizontalLayout {
 				nameLayout.setComponentAlignment(nameLabel, Alignment.MIDDLE_LEFT);
 				nameLayout.replaceComponent(saveButton, editButton);
 				nameLayout.setComponentAlignment(editButton, Alignment.MIDDLE_RIGHT);
-				lastNodeInfo.setName(name);
-				VerticalLayout button = (VerticalLayout) lastNodeInfo.getButton();
+				lastComponent.setName(name);
+				if (lastComponent instanceof NodeInfo) {
+					((NodeInfo) lastComponent).saveName(name);
+				} else if (lastComponent instanceof SystemInfo) {
+					((SystemInfo) lastComponent).saveName(name);
+				}
+				VerticalLayout button = (VerticalLayout) lastComponent.getButton();
 				Label label = (Label) button.getComponent(0);
 				label.setValue(name);
 			}
 		});
 
-		systemValues = new Label[systemLabels.length];
-		systemGrid = createCurrentInfo(systemLabels, systemValues);
-		nodeValues = new Label[nodeLabels.length];
-		nodeGrid = createCurrentInfo(nodeLabels, nodeValues);
+		systemLabels = new Label[systemLabelsStrings.length];
+		systemGrid = createCurrentInfo(systemLabels, systemLabelsStrings);
+		nodeLabels = new Label[nodeLabelsStrings.length];
+		nodeGrid = createCurrentInfo(nodeLabels, nodeLabelsStrings);
 		infoLayout.addComponent(systemGrid);
 	}
 
-	private Component createCurrentInfo(String[] currentLabels, Label[] currentValues) {
-		GridLayout currentGrid = new GridLayout(2, currentLabels.length);
+	private Component createCurrentInfo(Label[] labels, String[] values) {
+		GridLayout currentGrid = new GridLayout(2, labels.length);
 		currentGrid.addStyleName("currentInfo");
 		currentGrid.setSpacing(true);
 		currentGrid.setSizeUndefined();
 
-		for (int i = 0; i < currentLabels.length; i++) {
-			Label label = new Label(currentLabels[i]);
+		for (int i = 0; i < labels.length; i++) {
+			Label label = new Label(values[i]);
 			label.setSizeUndefined();
 			currentGrid.addComponent(label, 0, i);
-			currentValues[i] = new Label("");
-			currentValues[i].setSizeUndefined();
-			currentGrid.addComponent(currentValues[i], 1, i);
+			labels[i] = new Label("");
+			labels[i].setSizeUndefined();
+			currentGrid.addComponent(labels[i], 1, i);
 		}
 
 		return (currentGrid);
@@ -243,61 +258,69 @@ public class PanelNodeInfo extends HorizontalLayout {
 		DDCssLayout newChartsArray = chartsArray();
 		chartsLayout.replaceComponent(chartsArray, newChartsArray);
 		chartsArray = newChartsArray;
-		refresh(nodeInfo);
+		refresh();
 	}
 
-	public void refresh(NodeInfo nodeInfo) {
-		this.nodeInfo = nodeInfo;
+	public void refresh() {
+		ClusterComponent componentInfo = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
 
-		// switch out System or Node current info , if necessary
-		String newNodeID = nodeInfo.getNodeID();
-		String oldNodeID = (lastNodeInfo != null) ? lastNodeInfo.getNodeID() : null;
+		if ((lastComponent != null) && (componentInfo != lastComponent)) {
+			// switch out System or Node current info, if necessary
+			if (componentInfo.getType() != lastComponent.getType()) {
+				switch (componentInfo.getType()) {
+				case system:
+					infoLayout.replaceComponent(nodeGrid, systemGrid);
+					break;
 
-		if ((oldNodeID != null) && !oldNodeID.equalsIgnoreCase(newNodeID)
-				&& (newNodeID.equalsIgnoreCase(SYSTEM_NODEID) || oldNodeID.equalsIgnoreCase(SYSTEM_NODEID))) {
-			if (newNodeID.equalsIgnoreCase(SYSTEM_NODEID)) {
-				infoLayout.replaceComponent(nodeGrid, systemGrid);
-			} else {
-				infoLayout.replaceComponent(systemGrid, nodeGrid);
+				case node:
+					infoLayout.replaceComponent(systemGrid, nodeGrid);
+					break;
+				}
 			}
 		}
 
+		nameLabel.setValue(componentInfo.getName());
+
 		String value, values[];
-		Label[] currentValues;
-		if (newNodeID.equalsIgnoreCase(SYSTEM_NODEID)) {
-			currentValues = systemValues;
-			SystemInfo systemInfo = new SystemInfo(AppData.getGson());
-			nameLabel.setValue(systemInfo.getSystemName());
-			String localvalues[] = {
-					((value = nodeInfo.getStatus()) != null) && (value = NodeStates.getNodeStatesDescriptions().get(value)) != null ? value : "Invalid",
-					(value = nodeInfo.getHealth()) != null ? value + "%" : NOT_AVAILABLE, (value = nodeInfo.getConnections()) != null ? value : NOT_AVAILABLE,
-					(value = nodeInfo.getPackets()) != null ? value + " KB" : NOT_AVAILABLE,
+		Label[] currentLabels;
+
+		switch (componentInfo.getType()) {
+		case system:
+			SystemInfo systemInfo = (SystemInfo) componentInfo;
+			currentLabels = systemLabels;
+			String systemValues[] = {
+					((value = systemInfo.getStatus()) != null) && (value = NodeStates.getNodeStatesDescriptions().get(value)) != null ? value : "Invalid",
 					(value = systemInfo.getLastBackup()) != null ? value : NOT_AVAILABLE, (value = systemInfo.getStartDate()) != null ? value : NOT_AVAILABLE,
 					(value = systemInfo.getLastAccess()) != null ? value : NOT_AVAILABLE };
-			values = localvalues;
-		} else {
-			currentValues = nodeValues;
-			nameLabel.setValue(nodeInfo.getName());
-			String localvalues[] = {
+			values = systemValues;
+			break;
+
+		case node:
+			NodeInfo nodeInfo = (NodeInfo) componentInfo;
+			currentLabels = nodeLabels;
+			String nodeValues[] = {
 					((value = nodeInfo.getStatus()) != null) && (value = NodeStates.getNodeStatesDescriptions().get(value)) != null ? value : "Invalid",
 					(value = nodeInfo.getHealth()) != null ? value + "%" : NOT_AVAILABLE, (value = nodeInfo.getConnections()) != null ? value : NOT_AVAILABLE,
 					(value = nodeInfo.getPackets()) != null ? value + " KB" : NOT_AVAILABLE,
 					(value = nodeInfo.getCommand()) != null ? Commands.getNames().get(value) : NOT_AVAILABLE,
 					(value = nodeInfo.getPublicIP()) != null ? value : NOT_AVAILABLE, (value = nodeInfo.getPrivateIP()) != null ? value : NOT_AVAILABLE,
 					(value = nodeInfo.getInstanceID()) != null ? value : NOT_AVAILABLE };
-			values = localvalues;
+			values = nodeValues;
+			break;
+
+		default:
+			return;
 		}
 
-		for (int i = 0; i < values.length && i < currentValues.length; i++) {
+		for (int i = 0; i < values.length && i < currentLabels.length; i++) {
 			value = values[i];
-			if (!((String) currentValues[i].getValue()).equalsIgnoreCase(value)) {
-				currentValues[i].setValue(value);
+			if (!((String) currentLabels[i].getValue()).equalsIgnoreCase(value)) {
+				currentLabels[i].setValue(value);
 			}
 		}
 
-		chartsArrayLayout.refresh(nodeInfo, chartTime, chartInterval, chartPoints);
+		chartsArrayLayout.refresh(chartTime, chartInterval, chartPoints);
 
-		lastNodeInfo = nodeInfo;
+		lastComponent = componentInfo;
 	}
-
 }

@@ -1,15 +1,12 @@
 package com.skysql.consolev.ui;
 
-import java.util.ArrayList;
-
-import com.skysql.consolev.UserRecord;
-import com.skysql.consolev.api.CreateUser;
-import com.skysql.consolev.api.DeleteUser;
-import com.skysql.consolev.api.UpdateUser;
 import com.skysql.consolev.api.UserInfo;
+import com.skysql.consolev.api.UserObject;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
+import com.vaadin.server.VaadinSession;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -24,86 +21,74 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
-public class AccountSettings implements Window.CloseListener {
+@SuppressWarnings("deprecation")
+public class AccountSettings extends HorizontalLayout implements Window.CloseListener {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	private TextField userName = new TextField("User Name");
-	private TextField newUserName = new TextField("New User Name");
-	private PasswordField oldPassword = new PasswordField("Your Current Password");
-	private PasswordField newPassword;
-	private PasswordField newPassword2;
+	private TextField userName = new TextField("Full Name");
 	private String currentUserID, selectedUserID;
 	private ListSelect select;
-	private Button okButton;
 	private Button changePassword, removeUser;
-	private boolean firstPWValidation;
-
-	private HorizontalLayout accountTab;
 	private Window secondaryDialog;
-	private ArrayList<UserRecord> userRecords;
 	private UserInfo userInfo;
-	private final String systemID;
 
-	AccountSettings(final HorizontalLayout accountTab, final String systemID, String userID) {
-		this.accountTab = accountTab;
-		currentUserID = userID;
-		this.systemID = systemID;
+	AccountSettings() {
+		addStyleName("accountTab");
+		setSpacing(true);
 
-		accountTab.addStyleName("accountTab");
-		accountTab.setSpacing(true);
+		UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
+		currentUserID = userObject.getUserID();
 
 		VerticalLayout usersLayout = new VerticalLayout();
-		accountTab.addComponent(usersLayout);
+		addComponent(usersLayout);
 		usersLayout.setSpacing(true);
 		usersLayout.setMargin(true);
 
-		userInfo = new UserInfo("dummy");
-		userRecords = userInfo.getUsersList();
+		userInfo = new UserInfo(null);
 
 		select = new ListSelect("Users");
 		select.setImmediate(true);
-		for (UserRecord user : userRecords) {
-			String id = user.getID();
-			String name = user.getName();
-			select.addItem(name);
+		for (UserObject user : userInfo.getUsersList().values()) {
+			String id = user.getUserID();
+			select.addItem(id);
 			if (id.equalsIgnoreCase(currentUserID)) {
-				select.select(name);
-				userName.setValue(name);
+				select.select(id);
+				userName.setValue(user.getName());
 				selectedUserID = id;
 			}
 		}
 		select.setNullSelectionAllowed(false);
-		select.setWidth("12em");
+		select.setWidth("14em");
 		select.setRows(7);
 		usersLayout.addComponent(select);
 		select.addValueChangeListener(new ValueChangeListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void valueChange(ValueChangeEvent event) {
-				String name = (String) event.getProperty().getValue();
-				if (name != null) {
-					selectedUserID = userInfo.findIDByName(name);
-					if (selectedUserID.equalsIgnoreCase(currentUserID)) {
-						removeUser.setEnabled(false);
-					} else {
-						removeUser.setEnabled(true);
-					}
-					changePassword.setEnabled(true);
-					userName.setValue(name);
-					userName.setEnabled(true);
 
-				} else {
-					selectedUserID = null;
+				selectedUserID = (String) event.getProperty().getValue();
+
+				if (selectedUserID == null || selectedUserID.equalsIgnoreCase(currentUserID)) {
 					removeUser.setEnabled(false);
+				} else {
+					removeUser.setEnabled(true);
+				}
+
+				if (selectedUserID == null) {
 					changePassword.setEnabled(false);
-					userName.setValue("");
 					userName.setEnabled(false);
+					userName.setValue("");
+				} else {
+					changePassword.setEnabled(true);
+					userName.setValue(userInfo.findNameByID(selectedUserID));
+					userName.setEnabled(true);
 				}
 				userName.removeAllValidators();
 			}
 		});
 
 		HorizontalLayout userButtonsLayout = new HorizontalLayout();
+		userButtonsLayout.setSpacing(true);
 		usersLayout.addComponent(userButtonsLayout);
 
 		Button addUser = new Button("Add User...");
@@ -118,6 +103,7 @@ public class AccountSettings implements Window.CloseListener {
 		userButtonsLayout.setComponentAlignment(addUser, Alignment.MIDDLE_CENTER);
 
 		removeUser = new Button("Remove");
+		removeUser.setEnabled(false);
 		removeUser.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -125,42 +111,33 @@ public class AccountSettings implements Window.CloseListener {
 				removeUser(event);
 			}
 		});
-		removeUser.setEnabled(false);
 		userButtonsLayout.addComponent(removeUser);
 		userButtonsLayout.setComponentAlignment(removeUser, Alignment.MIDDLE_CENTER);
 
 		VerticalLayout userLayout = new VerticalLayout();
-		accountTab.addComponent(userLayout);
+		addComponent(userLayout);
 		userLayout.setSpacing(true);
 		userLayout.setMargin(true);
 
 		userLayout.addComponent(userName);
+		userName.setWidth("14em");
 		userName.setImmediate(true);
 		userName.addValueChangeListener(new ValueChangeListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void valueChange(ValueChangeEvent event) {
-				String newUserName = (String) event.getProperty().getValue();
-				String userID = userInfo.findIDByName(newUserName);
-				if (userID != null && !userID.equalsIgnoreCase(currentUserID)) {
-					// duplicate name is not allowed
-					Validator userNameValidator = new UserNameValidator();
-					userName.addValidator(userNameValidator);
-				} else if (userID == null && !newUserName.equalsIgnoreCase("")) {
-					String name = (String) userName.getValue();
-					UpdateUser newUser = new UpdateUser(systemID, selectedUserID, name, null);
-					userName.removeAllValidators();
-					String oldName = userInfo.findNameByID(selectedUserID);
-					UserRecord user = userInfo.findRecordByID(selectedUserID);
-					user.setName(newUserName);
-					select.removeItem(oldName);
-					select.addItem(newUserName);
-					select.select(newUserName);
+				if (selectedUserID != null) {
+					String newName = (String) event.getProperty().getValue();
+					String currentName = userInfo.findNameByID(selectedUserID);
+					if (!newName.equalsIgnoreCase(currentName)) {
+						userInfo.setUser(selectedUserID, newName, null);
+					}
 				}
 			}
 		});
 
 		changePassword = new Button("Change Password");
+		changePassword.setEnabled(false);
 		changePassword.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -174,26 +151,35 @@ public class AccountSettings implements Window.CloseListener {
 	}
 
 	public void windowClose(CloseEvent e) {
-		newUserName.setValue("");
-		oldPassword.setValue("");
-		if (newPassword != null)
-			newPassword.setValue("");
-		if (newPassword2 != null)
-			newPassword2.setValue("");
+
 	}
 
 	public void addUser(Button.ClickEvent event) {
+		final TextField newUsername = new TextField("New Username");
+		final TextField fullname = new TextField("Full Name");
+		final PasswordField newPassword;
+		final PasswordField newPassword2;
+		final Button okButton = new Button("Create User");
+
 		secondaryDialog = new DialogWindow("Add User");
 		UI.getCurrent().addWindow(secondaryDialog);
 		secondaryDialog.addCloseListener(this);
 
+		final VerticalLayout formContainer = new VerticalLayout();
+		formContainer.setMargin(new MarginInfo(true, true, false, true));
+		formContainer.setSpacing(false);
+
 		final Form form = new Form();
-		// form.setImmediate(true);
-		form.setDescription("Create a new administrator user.");
-		form.addField("newUserName", newUserName);
-		form.getField("newUserName").setRequired(true);
-		form.getField("newUserName").setRequiredError("User Name is missing");
-		newUserName.focus();
+		formContainer.addComponent(form);
+		form.setFooter(null);
+		form.setImmediate(false);
+		form.setDescription("Create a new administrator user");
+
+		form.addField("newUsername", newUsername);
+		form.getField("newUsername").setRequired(true);
+		form.getField("newUsername").setRequiredError("Username is missing");
+		newUsername.focus();
+		form.addField("fullname", fullname);
 		newPassword = new PasswordField("New Password");
 		newPassword2 = new PasswordField("Verify Password");
 		form.addField("newPassword", newPassword);
@@ -208,12 +194,20 @@ public class AccountSettings implements Window.CloseListener {
 		});
 
 		HorizontalLayout buttonsBar = new HorizontalLayout();
+		buttonsBar.setStyleName("buttonsBar");
+		buttonsBar.setSizeFull();
 		buttonsBar.setSpacing(true);
-		buttonsBar.setHeight("25px");
-		form.getFooter().addComponent(buttonsBar);
+		buttonsBar.setMargin(true);
+		buttonsBar.setHeight("49px");
+
+		Label filler = new Label();
+		buttonsBar.addComponent(filler);
+		buttonsBar.setExpandRatio(filler, 1.0f);
 
 		Button cancelButton = new Button("Cancel");
 		buttonsBar.addComponent(cancelButton);
+		buttonsBar.setComponentAlignment(cancelButton, Alignment.MIDDLE_RIGHT);
+
 		cancelButton.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -223,20 +217,22 @@ public class AccountSettings implements Window.CloseListener {
 			}
 		});
 
-		okButton = new Button("Create User");
 		okButton.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
 				try {
 					form.setComponentError(null);
-					firstPWValidation = false;
 					form.commit();
-					String name = (String) newUserName.getValue();
+					String userID = (String) newUsername.getValue();
+					String name = (String) fullname.getValue();
 					String password = (String) newPassword.getValue();
-					CreateUser newUser = new CreateUser(systemID, name, password);
-					userRecords.add(new UserRecord(newUser.getUserID(), name));
-					select.addItem(name);
+					boolean success = userInfo.setUser(userID, name, password);
+					if (success) {
+						select.addItem(userID);
+					} else {
+						return;
+					}
 				} catch (Exception e) {
 					return;
 				}
@@ -244,19 +240,19 @@ public class AccountSettings implements Window.CloseListener {
 			}
 		});
 		buttonsBar.addComponent(okButton);
-		buttonsBar.setComponentAlignment(okButton, Alignment.TOP_RIGHT);
+		buttonsBar.setComponentAlignment(okButton, Alignment.MIDDLE_RIGHT);
 
 		VerticalLayout windowLayout = (VerticalLayout) secondaryDialog.getContent();
-		windowLayout.addComponent(form);
+		windowLayout.setSpacing(false);
+		windowLayout.setMargin(false);
+		windowLayout.addComponent(formContainer);
+		windowLayout.addComponent(buttonsBar);
 
 		// attach the validators
 		Validator userNameValidator = new UserNameValidator();
-		newUserName.addValidator(userNameValidator);
+		newUsername.addValidator(userNameValidator);
 
-		Validator passwordValidator = new Password1Validator();
-		newPassword.addValidator(passwordValidator);
-
-		Validator password2Validator = new Password2Validator();
+		Validator password2Validator = new Password2Validator(newPassword);
 		newPassword2.addValidator(password2Validator);
 
 	}
@@ -266,23 +262,30 @@ public class AccountSettings implements Window.CloseListener {
 		UI.getCurrent().addWindow(secondaryDialog);
 		secondaryDialog.addCloseListener(this);
 
-		final Form form = new Form();
-		// form.setImmediate(true);
-		form.setDescription("Remove user " + userName.getValue() + " from the system.");
+		final VerticalLayout formContainer = new VerticalLayout();
+		formContainer.setMargin(new MarginInfo(true, true, false, true));
+		formContainer.setSpacing(false);
 
-		{
-			Label spacer = new Label();
-			spacer.setWidth("20px");
-			form.getLayout().addComponent(spacer);
-		}
+		final Form form = new Form();
+		formContainer.addComponent(form);
+		form.setFooter(null);
+		form.setDescription("Remove user " + userInfo.completeNamesByID(selectedUserID) + " from the system");
 
 		HorizontalLayout buttonsBar = new HorizontalLayout();
+		buttonsBar.setStyleName("buttonsBar");
+		buttonsBar.setSizeFull();
 		buttonsBar.setSpacing(true);
-		buttonsBar.setHeight("25px");
-		form.getFooter().addComponent(buttonsBar);
+		buttonsBar.setMargin(true);
+		buttonsBar.setHeight("49px");
+
+		Label filler = new Label();
+		buttonsBar.addComponent(filler);
+		buttonsBar.setExpandRatio(filler, 1.0f);
 
 		Button cancelButton = new Button("Cancel");
 		buttonsBar.addComponent(cancelButton);
+		buttonsBar.setComponentAlignment(cancelButton, Alignment.MIDDLE_RIGHT);
+
 		cancelButton.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -292,9 +295,7 @@ public class AccountSettings implements Window.CloseListener {
 			}
 		});
 
-		okButton = new Button("Remove User");
-		okButton.setImmediate(true);
-		okButton.focus();
+		Button okButton = new Button("Remove User");
 		okButton.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -302,10 +303,12 @@ public class AccountSettings implements Window.CloseListener {
 				try {
 					form.setComponentError(null);
 					form.commit();
-					DeleteUser goneUser = new DeleteUser(systemID, selectedUserID);
-					userRecords.remove(userInfo.findRecordByID(selectedUserID));
-					String name = (String) userName.getValue();
-					select.removeItem(name);
+					boolean success = userInfo.deleteUser(selectedUserID);
+					if (success) {
+						select.removeItem(selectedUserID);
+					} else {
+						return;
+					}
 				} catch (Exception e) {
 					return;
 				}
@@ -313,25 +316,37 @@ public class AccountSettings implements Window.CloseListener {
 			}
 		});
 		buttonsBar.addComponent(okButton);
-		buttonsBar.setComponentAlignment(okButton, Alignment.TOP_RIGHT);
+		buttonsBar.setComponentAlignment(okButton, Alignment.MIDDLE_RIGHT);
 
 		VerticalLayout windowLayout = (VerticalLayout) secondaryDialog.getContent();
-		windowLayout.addComponent(form);
+		windowLayout.setSpacing(false);
+		windowLayout.setMargin(false);
+		windowLayout.addComponent(formContainer);
+		windowLayout.addComponent(buttonsBar);
 
 	}
 
 	public void changePassword() {
+		final PasswordField newPassword;
+		final PasswordField newPassword2;
+		final Button okButton = new Button("Change Password");
+
 		secondaryDialog = new DialogWindow("Change Password");
-		// accountTab.getWindow().getParent().addWindow(secondaryDialog);
 		UI.getCurrent().addWindow(secondaryDialog);
 		secondaryDialog.addCloseListener(this);
 
+		final VerticalLayout formContainer = new VerticalLayout();
+		formContainer.setMargin(new MarginInfo(true, true, false, true));
+		formContainer.setSpacing(false);
+
 		final Form form = new Form();
-		form.setDescription("Change Password for user " + userName.getValue() + ".");
-		// form.addField("oldPassword", oldPassword);
-		// oldPassword.focus();
-		newPassword = new PasswordField((currentUserID.equalsIgnoreCase(selectedUserID)) ? "New Password" : "New Password for " + userName.getValue());
-		newPassword2 = new PasswordField((currentUserID.equalsIgnoreCase(selectedUserID)) ? "Verify Password" : "Verify Password for " + userName.getValue());
+		formContainer.addComponent(form);
+		form.setFooter(null);
+		form.setImmediate(false);
+		form.setDescription("Change Password for user " + userInfo.completeNamesByID(selectedUserID));
+
+		newPassword = new PasswordField("New Password");
+		newPassword2 = new PasswordField("Verify Password");
 		form.addField("newPassword", newPassword);
 		form.addField("newPassword2", newPassword2);
 		newPassword.focus();
@@ -345,12 +360,20 @@ public class AccountSettings implements Window.CloseListener {
 		});
 
 		HorizontalLayout buttonsBar = new HorizontalLayout();
+		buttonsBar.setStyleName("buttonsBar");
+		buttonsBar.setSizeFull();
 		buttonsBar.setSpacing(true);
-		buttonsBar.setHeight("25px");
-		form.getFooter().addComponent(buttonsBar);
+		buttonsBar.setMargin(true);
+		buttonsBar.setHeight("49px");
+
+		Label filler = new Label();
+		buttonsBar.addComponent(filler);
+		buttonsBar.setExpandRatio(filler, 1.0f);
 
 		Button cancelButton = new Button("Cancel");
 		buttonsBar.addComponent(cancelButton);
+		buttonsBar.setComponentAlignment(cancelButton, Alignment.MIDDLE_RIGHT);
+
 		cancelButton.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -360,17 +383,18 @@ public class AccountSettings implements Window.CloseListener {
 			}
 		});
 
-		okButton = new Button("Change Password");
 		okButton.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
 				try {
 					form.setComponentError(null);
-					firstPWValidation = false;
 					form.commit();
 					String password = (String) newPassword.getValue();
-					UpdateUser newUser = new UpdateUser(systemID, selectedUserID, null, password);
+					boolean success = userInfo.setUser(selectedUserID, userInfo.findNameByID(selectedUserID), password);
+					if (!success) {
+						return;
+					}
 				} catch (Exception e) {
 					return;
 				}
@@ -378,16 +402,15 @@ public class AccountSettings implements Window.CloseListener {
 			}
 		});
 		buttonsBar.addComponent(okButton);
-		buttonsBar.setComponentAlignment(okButton, Alignment.TOP_RIGHT);
+		buttonsBar.setComponentAlignment(okButton, Alignment.MIDDLE_RIGHT);
 
 		VerticalLayout windowLayout = (VerticalLayout) secondaryDialog.getContent();
-		windowLayout.addComponent(form);
+		windowLayout.setSpacing(false);
+		windowLayout.setMargin(false);
+		windowLayout.addComponent(formContainer);
+		windowLayout.addComponent(buttonsBar);
 
-		// attach the validators
-		Validator passwordValidator = new Password1Validator();
-		newPassword.addValidator(passwordValidator);
-
-		Validator password2Validator = new Password2Validator();
+		Validator password2Validator = new Password2Validator(newPassword);
 		newPassword2.addValidator(password2Validator);
 
 	}
@@ -399,36 +422,20 @@ public class AccountSettings implements Window.CloseListener {
 			if (value == null || !(value instanceof String)) {
 				return false;
 			}
-			return (userInfo.findIDByName((String) value) == null);
+			return (true);
 		}
 
 		// Upon failure, the validate() method throws an exception
 		public void validate(Object value) throws InvalidValueException {
 			if (!isValid(value)) {
-				throw new InvalidValueException("User Name already exists.");
+				throw new InvalidValueException("Username invalid");
 			} else {
-
-			}
-		}
-	}
-
-	class Password1Validator implements Validator {
-		private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-		public boolean isValid(Object value) {
-			if (value == null || !(value instanceof String)) {
-				return false;
-			}
-			return ((String) value).matches((String) newPassword2.getValue());
-		}
-
-		// Upon failure, the validate() method throws an exception
-		public void validate(Object value) throws InvalidValueException {
-			if (!isValid(value)) {
-				firstPWValidation = true;
-				throw new InvalidValueException("Passwords do not match.");
-			} else {
-				firstPWValidation = false;
+				String name = (String) value;
+				if (name.contains(" ")) {
+					throw new InvalidValueException("Username contains illegal characters");
+				} else if (userInfo.findIDByName((String) value) != null) {
+					throw new InvalidValueException("Username already exists");
+				}
 			}
 		}
 	}
@@ -436,16 +443,25 @@ public class AccountSettings implements Window.CloseListener {
 	class Password2Validator implements Validator {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
+		private PasswordField otherPassword;
+
+		public Password2Validator(PasswordField otherPassword) {
+			super();
+			this.otherPassword = otherPassword;
+		}
+
 		public boolean isValid(Object value) {
 			if (value == null || !(value instanceof String)) {
 				return false;
+			} else {
+				boolean match = ((String) value).matches((String) otherPassword.getValue());
+				return match;
 			}
-			return ((String) value).matches((String) newPassword.getValue());
 		}
 
 		// Upon failure, the validate() method throws an exception
 		public void validate(Object value) throws InvalidValueException {
-			if (!isValid(value) && !firstPWValidation) {
+			if (!isValid(value)) {
 				throw new InvalidValueException("Passwords do not match.");
 			}
 		}

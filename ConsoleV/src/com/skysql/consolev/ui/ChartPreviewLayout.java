@@ -1,12 +1,9 @@
 package com.skysql.consolev.ui;
 
-import com.skysql.consolev.SessionData;
-import com.skysql.consolev.api.NodeInfo;
 import com.skysql.consolev.api.UserChart;
 import com.skysql.consolev.ui.components.ChartsLayout;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.HorizontalLayout;
@@ -30,7 +27,6 @@ public class ChartPreviewLayout extends VerticalLayout {
 	private UserChart userChart;
 
 	public ChartPreviewLayout(final UserChart userChart) {
-
 		this.userChart = userChart;
 
 		addStyleName("ChartPreviewLayout");
@@ -162,9 +158,7 @@ public class ChartPreviewLayout extends VerticalLayout {
 		newChartsLayout.addStyleName("chartPreview");
 		userChart.clearMonitorData();
 		newChartsLayout.initializeChart(userChart);
-		SessionData userData = VaadinSession.getCurrent().getAttribute(SessionData.class);
-		NodeInfo nodeInfo = userData.getNodeInfo();
-		newChartsLayout.refresh(nodeInfo, chartTime, chartInterval, String.valueOf(userChart.getPoints()));
+		newChartsLayout.refresh(chartTime, chartInterval, String.valueOf(userChart.getPoints()));
 		return newChartsLayout;
 	}
 

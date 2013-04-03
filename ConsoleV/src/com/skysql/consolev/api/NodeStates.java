@@ -1,11 +1,6 @@
 package com.skysql.consolev.api;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.LinkedHashMap;
 
 import com.google.gson.Gson;
@@ -37,12 +32,9 @@ public class NodeStates {
 		if (nodeStates == null) {
 			String inputLine = null;
 			try {
-				URL url = new URL("http://localhost/consoleAPI/nodestates.php");
-				URLConnection sc = url.openConnection();
-				BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
-				inputLine = in.readLine();
-				in.close();
-			} catch (IOException e) {
+				APIrestful api = new APIrestful();
+				inputLine = api.get("nodestate");
+			} catch (Exception e) {
 				e.printStackTrace();
 				throw new RuntimeException("Could not get response from API");
 			}
@@ -65,7 +57,7 @@ class NodeStatesDeserializer implements JsonDeserializer<NodeStates> {
 	public NodeStates deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		NodeStates nodeStates = new NodeStates();
 
-		JsonElement jsonElement = json.getAsJsonObject().get("nodeStates");
+		JsonElement jsonElement = json.getAsJsonObject().get("nodestates");
 		if (jsonElement == null || jsonElement.isJsonNull()) {
 			nodeStates.setNodeStatesIcons(null);
 			nodeStates.setNodeStatesDescriptions(null);

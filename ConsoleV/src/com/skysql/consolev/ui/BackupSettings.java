@@ -4,24 +4,19 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import com.skysql.consolev.api.SettingsValues;
-import com.skysql.consolev.api.SystemProperties;
+import com.skysql.consolev.api.SystemInfo;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.VerticalLayout;
 
 public class BackupSettings {
 
-	private static final String PROPERTY_MAX_BACKUP_COUNT = "maxBackupCount";
-	private static final String PROPERTY_MAX_BACKUP_SIZE = "maxBackupSize";
-
 	private String maxBackupSize, maxBackupCount;
 
-	BackupSettings(final HorizontalLayout backupTab, final String systemID) {
-
-		// backupTab.setWidth(Sizeable.SIZE_UNDEFINED, 0); // Default
-		// backupTab.setHeight(Sizeable.SIZE_UNDEFINED, 0); // Default
+	BackupSettings(final HorizontalLayout backupTab) {
 
 		backupTab.addStyleName("backupTab");
 		backupTab.setSpacing(true);
@@ -31,17 +26,17 @@ public class BackupSettings {
 		layout.setSpacing(true);
 		layout.setMargin(true);
 
-		final SystemProperties systemProperties = new SystemProperties(systemID);
-		LinkedHashMap<String, String> properties = systemProperties.getProperties();
+		final SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+		LinkedHashMap<String, String> properties = systemInfo.getProperties();
 		if (properties != null) {
-			maxBackupCount = properties.get(PROPERTY_MAX_BACKUP_COUNT);
-			maxBackupSize = properties.get(PROPERTY_MAX_BACKUP_SIZE);
+			maxBackupCount = properties.get(SystemInfo.PROPERTY_DEFAULTMAXBACKUPCOUNT);
+			maxBackupSize = properties.get(SystemInfo.PROPERTY_DEFAULTMAXBACKUPSIZE);
 		}
 
 		NativeSelect selectCount = new NativeSelect("Max number of backups");
 		selectCount.setImmediate(true);
 
-		SettingsValues countValues = new SettingsValues(PROPERTY_MAX_BACKUP_COUNT);
+		SettingsValues countValues = new SettingsValues(SettingsValues.SETTINGS_MAX_BACKUP_COUNT);
 		ArrayList<String> counts = countValues.getValues();
 		for (String value : counts) {
 			selectCount.addItem(value);
@@ -54,14 +49,14 @@ public class BackupSettings {
 
 			public void valueChange(ValueChangeEvent event) {
 				maxBackupCount = (String) ((NativeSelect) event.getProperty()).getValue();
-				systemProperties.setProperty(systemID, PROPERTY_MAX_BACKUP_COUNT, maxBackupCount);
+				systemInfo.setProperty(SystemInfo.PROPERTY_DEFAULTMAXBACKUPCOUNT, maxBackupCount);
 
 			}
 		});
 
 		NativeSelect selectSize = new NativeSelect("Max total backup size");
 		selectSize.setImmediate(true);
-		SettingsValues sizeValues = new SettingsValues(PROPERTY_MAX_BACKUP_SIZE);
+		SettingsValues sizeValues = new SettingsValues(SettingsValues.SETTINGS_MAX_BACKUP_SIZE);
 		ArrayList<String> sizes = sizeValues.getValues();
 		for (String value : sizes) {
 			selectSize.addItem(value + " GB");
@@ -75,7 +70,7 @@ public class BackupSettings {
 			public void valueChange(ValueChangeEvent event) {
 				maxBackupSize = (String) ((NativeSelect) event.getProperty()).getValue();
 				String value = maxBackupSize.substring(0, maxBackupSize.indexOf(" GB"));
-				systemProperties.setProperty(systemID, PROPERTY_MAX_BACKUP_SIZE, value);
+				systemInfo.setProperty(SystemInfo.PROPERTY_DEFAULTMAXBACKUPSIZE, value);
 
 			}
 		});

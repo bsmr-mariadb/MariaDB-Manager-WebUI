@@ -8,17 +8,18 @@ import java.util.List;
 import javax.xml.bind.DatatypeConverter;
 
 import com.skysql.consolev.MonitorRecord;
-import com.skysql.consolev.SessionData;
 import com.skysql.consolev.api.ChartMappings;
+import com.skysql.consolev.api.ClusterComponent;
 import com.skysql.consolev.api.MonitorData;
 import com.skysql.consolev.api.MonitorData3;
 import com.skysql.consolev.api.Monitors;
 import com.skysql.consolev.api.NodeInfo;
+import com.skysql.consolev.api.SystemInfo;
 import com.skysql.consolev.api.UserChart;
-import com.skysql.consolev.api.UserProperties;
+import com.skysql.consolev.api.UserObject;
 import com.skysql.consolev.ui.ChartsDialog;
 import com.skysql.consolev.ui.TimelineDialog;
-import com.sun.xml.internal.bind.DatatypeConverterImpl;
+import com.sun.xml.bind.DatatypeConverterImpl;
 import com.vaadin.addon.charts.Chart;
 import com.vaadin.addon.charts.model.Axis;
 import com.vaadin.addon.charts.model.ChartType;
@@ -48,11 +49,16 @@ import fi.jasoft.dragdroplayouts.events.LayoutBoundTransferable;
 import fi.jasoft.dragdroplayouts.interfaces.DragFilter;
 
 public class ChartsLayout extends DDCssLayout {
+	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
+	private UserObject userObject;
 	private boolean isChartsEditing;
 	private ChartsLayout chartsLayout = this;
 
 	public ChartsLayout(boolean previewMode) {
+
+		userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
+
 		addStyleName("chartsArray");
 		addStyleName("no-vertical-drag-hints");
 		setSizeFull();
@@ -61,6 +67,8 @@ public class ChartsLayout extends DDCssLayout {
 
 		if (previewMode != true) {
 			addLayoutClickListener(new LayoutClickListener() {
+				private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
 				public void layoutClick(LayoutClickEvent event) {
 
 					Component child;
@@ -82,6 +90,8 @@ public class ChartsLayout extends DDCssLayout {
 
 			// Only allow dragging Charts
 			setDragFilter(new DragFilter() {
+				private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
 				public boolean isDraggable(Component component) {
 					return component instanceof Chart;
 				}
@@ -93,16 +103,16 @@ public class ChartsLayout extends DDCssLayout {
 
 	public void initializeCharts() {
 
+		//DatatypeConverterImpl.theInstance);
 		DatatypeConverter.setDatatypeConverter(DatatypeConverterImpl.theInstance);
 
 		// attempt to retrieve UserProperties
-		SessionData sessionData = VaadinSession.getCurrent().getAttribute(SessionData.class);
-		String propertyCharts = sessionData.getUserLogin().getProperty(UserProperties.PROPERTY_CHARTS);
+		String propertyCharts = userObject.getProperty(UserObject.PROPERTY_CHARTS);
 
 		if (propertyCharts == null) {
-			// FUTURE: if missing, attempt to retrieve SystemProperties and create UserProperties
-			UserProperties userProperties = new UserProperties(null);
-			propertyCharts = userProperties.getProperty(UserProperties.PROPERTY_CHARTS);
+			// FUTURE: if missing, attempt to retrieve SystemProperties
+			//			UserProperties userProperties = new UserProperties(null);
+			//			propertyCharts = userProperties.getProperty(UserProperties.PROPERTY_CHARTS);
 		}
 
 		if (propertyCharts == null) {
@@ -118,18 +128,13 @@ public class ChartsLayout extends DDCssLayout {
 			try {
 				saveChartsToProperties();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
 		} else {
 			try {
 				getChartsFromProperties(propertyCharts);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -161,8 +166,7 @@ public class ChartsLayout extends DDCssLayout {
 
 		String encodedMappings = ChartMappings.toString(chartMappings);
 
-		SessionData sessionData = VaadinSession.getCurrent().getAttribute(SessionData.class);
-		sessionData.getUserLogin().setProperty(UserProperties.PROPERTY_CHARTS, encodedMappings);
+		userObject.setProperty(UserObject.PROPERTY_CHARTS, encodedMappings);
 
 	}
 
@@ -234,8 +238,6 @@ public class ChartsLayout extends DDCssLayout {
 
 		userChart.clearMonitorData();
 		Chart newChart = createChart(userChart);
-		SessionData userData = VaadinSession.getCurrent().getAttribute(SessionData.class);
-		NodeInfo nodeInfo = userData.getNodeInfo();
 		newChart.setEnabled(false);
 		Button deleteButton = ((UserChart) oldChart.getData()).getDeleteButton();
 		deleteButton.setData(newChart);
@@ -295,7 +297,6 @@ public class ChartsLayout extends DDCssLayout {
 		try {
 			saveChartsToProperties();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -336,19 +337,35 @@ public class ChartsLayout extends DDCssLayout {
 
 	}
 
-	private NodeInfo nodeInfo;
 	private String time, interval, count;
 
 	public void refresh() {
-		refresh(nodeInfo, time, interval, count);
+		refresh(time, interval, count);
 	}
 
-	public void refresh(NodeInfo nodeInfo, String time, String interval, String count) {
+	public void refresh(String time, String interval, String count) {
 
-		this.nodeInfo = nodeInfo;
 		this.time = time;
 		this.interval = interval;
 		this.count = count;
+
+		String systemID, nodeID;
+		ClusterComponent componentInfo = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
+
+		switch (componentInfo.getType()) {
+		case system:
+			systemID = componentInfo.getID();
+			nodeID = SystemInfo.SYSTEM_NODEID;
+			break;
+
+		case node:
+			systemID = ((NodeInfo) componentInfo).getSystemID();
+			nodeID = componentInfo.getID();
+			break;
+
+		default:
+			return;
+		}
 
 		Iterator<Component> iter = getComponentIterator();
 		while (iter.hasNext()) {
@@ -382,9 +399,9 @@ public class ChartsLayout extends DDCssLayout {
 
 						MonitorData monitorData = (MonitorData) userChart.getMonitorData(monitor.getID());
 						if (monitorData == null) {
-							monitorData = new MonitorData(monitor, nodeInfo.getSystemID(), nodeInfo.getNodeID(), time, interval, count);
+							monitorData = new MonitorData(monitor, systemID, nodeID, time, interval, count);
 							needsRedraw = true;
-						} else if (monitorData.update(nodeInfo.getSystemID(), nodeInfo.getNodeID(), time, interval, count) == true) {
+						} else if (monitorData.update(systemID, nodeID, time, interval, count) == true) {
 							// data in chart needs to be updated
 							needsRedraw = true;
 						} else {
@@ -436,9 +453,9 @@ public class ChartsLayout extends DDCssLayout {
 
 						MonitorData3 monitorData = (MonitorData3) userChart.getMonitorData(monitor.getID());
 						if (monitorData == null) {
-							monitorData = new MonitorData3(monitor, nodeInfo.getSystemID(), nodeInfo.getNodeID(), time, interval, count);
+							monitorData = new MonitorData3(monitor, systemID, nodeID, time, interval, count);
 							needsRedraw = true;
-						} else if (monitorData.update(nodeInfo.getSystemID(), nodeInfo.getNodeID(), time, interval, count) == true) {
+						} else if (monitorData.update(systemID, nodeID, time, interval, count) == true) {
 							// data in chart needs to be updated
 							needsRedraw = true;
 						} else {

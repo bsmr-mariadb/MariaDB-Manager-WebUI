@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 import com.skysql.consolev.TaskRecord;
+import com.skysql.consolev.api.ClusterComponent;
 import com.skysql.consolev.api.CommandStates;
 import com.skysql.consolev.api.Commands;
 import com.skysql.consolev.api.NodeInfo;
@@ -11,6 +12,7 @@ import com.skysql.consolev.api.TaskInfo;
 import com.skysql.consolev.api.UserInfo;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -31,6 +33,7 @@ public class PanelControl {
 	final LinkedHashMap<String, String> names = Commands.getNames();
 
 	PanelControl(HorizontalLayout thisTab) {
+
 		thisTab.setSizeFull();
 		thisTab.addStyleName("controlTab");
 		thisTab.setSpacing(true);
@@ -103,28 +106,28 @@ public class PanelControl {
 		logsTable.addContainerProperty("User", String.class, null);
 		logsTable.addContainerProperty("Status", String.class, null);
 
-		userInfo = new UserInfo("dummy");
+		userInfo = new UserInfo(null);
 
 		logsLayout.addComponent(logsTable);
 		logsLayout.setComponentAlignment(logsTable, Alignment.MIDDLE_CENTER);
 
 	}
 
-	public void refresh(NodeInfo nodeInfo) {
-		this.nodeInfo = nodeInfo;
+	public void refresh() {
+		nodeInfo = (NodeInfo) VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
 
 		String taskID = nodeInfo.getTask();
 		// String taskCommand = nodeInfo.getCommand();
 		RunningTask runningTask = nodeInfo.getCommandTask();
 		String commands[] = nodeInfo.getCommands();
 
-		TaskInfo taskInfo = new TaskInfo(null, null, "control", nodeInfo.getNodeID());
+		TaskInfo taskInfo = new TaskInfo(null, null, "control", nodeInfo.getID());
 		logsTable.removeAllItems();
 		if (taskInfo.getTasksList() != null) {
 			for (TaskRecord taskRecord : taskInfo.getTasksList()) {
 				logsTable.addItem(new Object[] { taskRecord.getStart(), taskRecord.getEnd(), names.get(taskRecord.getCommand()),
 				/* taskRecord.getParams(), */
-				userInfo.findNameByID(taskRecord.getUser()), CommandStates.getDescriptions().get(taskRecord.getStatus()) }, taskRecord.getID());
+				userInfo.findNameByID(taskRecord.getUserID()), CommandStates.getDescriptions().get(taskRecord.getStatus()) }, taskRecord.getID());
 			}
 		}
 

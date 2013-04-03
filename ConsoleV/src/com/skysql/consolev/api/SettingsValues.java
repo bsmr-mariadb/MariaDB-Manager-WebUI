@@ -18,11 +18,16 @@ import com.google.gson.JsonParseException;
 
 public class SettingsValues {
 
+	public static final String SETTINGS_MONITOR_INTERVAL = "MonitorInterval";
+	public static final String SETTINGS_MAX_BACKUP_SIZE = "maxBackupSize";
+	public static final String SETTINGS_MAX_BACKUP_COUNT = "maxBackupCount";
+
 	private ArrayList<String> values;
 
 	public ArrayList<String> getValues() {
 		return values;
 	}
+
 	protected void setValues(ArrayList<String> values) {
 		this.values = values;
 	}
@@ -39,8 +44,8 @@ public class SettingsValues {
 			inputLine = in.readLine();
 			in.close();
 		} catch (IOException e) {
-        	e.printStackTrace();
-        	throw new RuntimeException("Could not get response from API");
+			e.printStackTrace();
+			throw new RuntimeException("Could not get response from API");
 		}
 
 		Gson gson = AppData.getGson();
@@ -48,33 +53,31 @@ public class SettingsValues {
 		this.values = settingsValues.values;
 		settingsValues = null;
 	}
-	
+
 }
 
 class SettingsValuesDeserializer implements JsonDeserializer<SettingsValues> {
-		  public SettingsValues deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-		      throws JsonParseException
-		  {
-			SettingsValues settingsValues = new SettingsValues();
-			
-			JsonElement jsonElement = json.getAsJsonObject().get("settingsValues");
-			if (jsonElement == null || jsonElement.isJsonNull()) {
-				settingsValues.setValues(null);
-			} else {
-		    	JsonArray array = jsonElement.getAsJsonArray();
-		    	int length = array.size();
-		    	
-		    	ArrayList<String> values = new ArrayList<String>(length);
-			    for (int i = 0; i < length; i++) {
-			    	JsonObject valueJson = array.get(i).getAsJsonObject();
-			    	JsonElement element;
-			    	String value = (element = valueJson.get("value")).isJsonNull() ? null : element.getAsString();
-			    	values.add(value);
-			    }
-			    settingsValues.setValues(values);
-		    }
-		    
-		    return settingsValues;
-		  }
+	public SettingsValues deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+		SettingsValues settingsValues = new SettingsValues();
+
+		JsonElement jsonElement = json.getAsJsonObject().get("settingsValues");
+		if (jsonElement == null || jsonElement.isJsonNull()) {
+			settingsValues.setValues(null);
+		} else {
+			JsonArray array = jsonElement.getAsJsonArray();
+			int length = array.size();
+
+			ArrayList<String> values = new ArrayList<String>(length);
+			for (int i = 0; i < length; i++) {
+				JsonObject valueJson = array.get(i).getAsJsonObject();
+				JsonElement element;
+				String value = (element = valueJson.get("value")).isJsonNull() ? null : element.getAsString();
+				values.add(value);
+			}
+			settingsValues.setValues(values);
+		}
+
+		return settingsValues;
+	}
 
 }

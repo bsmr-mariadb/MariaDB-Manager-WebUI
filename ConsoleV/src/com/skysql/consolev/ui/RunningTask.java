@@ -7,13 +7,13 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.vaadin.artur.icepush.ICEPush;
+
 import com.skysql.consolev.BackupRecord;
 import com.skysql.consolev.ExecutorFactory;
-import com.skysql.consolev.SessionData;
 import com.skysql.consolev.StepRecord;
 import com.skysql.consolev.TaskRecord;
 import com.skysql.consolev.api.BackupStates;
@@ -22,8 +22,11 @@ import com.skysql.consolev.api.CommandSteps;
 import com.skysql.consolev.api.Commands;
 import com.skysql.consolev.api.NodeInfo;
 import com.skysql.consolev.api.Steps;
+import com.skysql.consolev.api.SystemInfo;
 import com.skysql.consolev.api.TaskInfo;
 import com.skysql.consolev.api.TaskRun;
+import com.skysql.consolev.api.UserInfo;
+import com.skysql.consolev.api.UserObject;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.ExternalResource;
@@ -40,6 +43,7 @@ import com.vaadin.ui.Link;
 import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
 public final class RunningTask {
@@ -50,16 +54,7 @@ public final class RunningTask {
 	private VerticalLayout containerLayout, scriptingProgressLayout, scriptingControlsLayout, scriptingResultLayout;
 	private HorizontalLayout scriptingLayout, progressIconsLayout;
 	private Label scriptLabel, progressLabel, resultLabel;
-
-	/** If invocations might overlap, you can specify more than a single thread. */
-	private static final int NUM_THREADS = 6;
-	private static final boolean DONT_INTERRUPT_IF_RUNNING = false;
-	private ScheduledExecutorService fScheduler = ExecutorFactory.getScheduler(NUM_THREADS);
-	private long fInitialDelay;
-	private long fDelayBetweenRuns;
-	private long fShutdownAfter;
 	private ScheduledFuture<?> runTimerFuture, cancelTimerFuture;
-
 	private long startTime, runningTime;
 	private Embedded[] taskImages;
 	private LinkedHashMap<String, NativeButton> ctrlButtons = new LinkedHashMap<String, NativeButton>();
@@ -72,14 +67,11 @@ public final class RunningTask {
 	private boolean paramSelected;
 	private GridLayout backupInfoGrid;
 	private Link backupLogLink;
-	private SessionData session;
 	private ListSelect commandSelect;
 
 	RunningTask(String command, NodeInfo nodeInfo, ListSelect commandSelect) {
 		this.command = command;
 		this.nodeInfo = nodeInfo;
-		this.session = VaadinSession.getCurrent().getAttribute(SessionData.class);
-
 		this.commandSelect = commandSelect;
 
 		if (command == null) {
@@ -273,7 +265,9 @@ public final class RunningTask {
 		// observer mode
 		if (observerMode) {
 			// String userName = Users.getUserNames().get(taskRecord.getUser());
-			String userName = taskRecord.getUser();
+			String userID = taskRecord.getUserID();
+			UserInfo userInfo = new UserInfo(userID);
+			String userName = userInfo.findNameByID(userID);
 			String started = taskRecord.getStart();
 
 			final Label label = new Label("The " + commandName + " command<br>was started at " + started + "<br>by " + userName, Label.CONTENT_RAW);
@@ -397,8 +391,9 @@ public final class RunningTask {
 			backupInfoGrid = newBackupInfoGrid;
 		}
 
-		LinkedHashMap<String, String> sysProperties = session.getSystemProperties().getProperties();
-		String EIP = sysProperties.get("EIP");
+		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+		LinkedHashMap<String, String> sysProperties = systemInfo.getProperties();
+		String EIP = sysProperties.get(SystemInfo.PROPERTY_EIP);
 		if (EIP != null) {
 			String url = "http://" + EIP + "/consoleAPI/" + record.getLog();
 			Link newBackupLogLink = new Link("Backup Log", new ExternalResource(url));
@@ -451,7 +446,10 @@ public final class RunningTask {
 		startTime = System.currentTimeMillis();
 		resultLabel.setValue("Running...");
 
-		TaskRun taskRun = new TaskRun(nodeInfo.getSystemID(), nodeInfo.getNodeID(), session.getUserLogin().getUserID(), command, params);
+		UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
+		String userID = userObject.getUserID();
+
+		TaskRun taskRun = new TaskRun(nodeInfo.getSystemID(), nodeInfo.getID(), userID, command, params);
 		nodeInfo.setTask(taskRun.getTask());
 
 		activateTimer();
@@ -473,11 +471,13 @@ public final class RunningTask {
 
 	public void close() {
 		// make sure timers get stopped
-		if (runTimerFuture != null)
-			runTimerFuture.cancel(DONT_INTERRUPT_IF_RUNNING);
+		if (runTimerFuture != null) {
+			ExecutorFactory.removeTimer(runTimerFuture);
+			runTimerFuture = null;
+		}
 
-		if (cancelTimerFuture != null)
-			cancelTimerFuture.cancel(DONT_INTERRUPT_IF_RUNNING);
+		//		if (cancelTimerFuture != null)
+		//			cancelTimerFuture.cancel(DONT_INTERRUPT_IF_RUNNING);
 
 	}
 
@@ -486,13 +486,13 @@ public final class RunningTask {
 		if (runTimerFuture == null) {
 			log(nodeInfo.getTask() + " - activateTimer");
 
-			fInitialDelay = 0;
-			fDelayBetweenRuns = 3;
+			final long fDelayBetweenRuns = 3;
 			Runnable runTimerTask = new RunTimerTask();
-			runTimerFuture = fScheduler.scheduleWithFixedDelay(runTimerTask, fInitialDelay, fDelayBetweenRuns, TimeUnit.SECONDS);
-			fShutdownAfter = 60 * 10;
-			Runnable stopTimer = new StopTimerTask(runTimerFuture);
-			cancelTimerFuture = fScheduler.schedule(stopTimer, fShutdownAfter, TimeUnit.SECONDS);
+			runTimerFuture = ExecutorFactory.addTimer(runTimerTask, fDelayBetweenRuns);
+
+			//			final long fShutdownAfter = 60 * 10;
+			//			Runnable stopTimer = new StopTimerTask(runTimerFuture);
+			//			cancelTimerFuture = fScheduler.schedule(stopTimer, fShutdownAfter, TimeUnit.SECONDS);
 		} else {
 			// cancel StopTimerTask and restart with full timeout
 
@@ -507,114 +507,118 @@ public final class RunningTask {
 			++fCount;
 			log(nodeInfo.getTask() + " - " + fCount);
 
-			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null, null);
-			TaskRecord taskRecord = taskInfo.getTasksList().get(0);
-			int index = Integer.parseInt(taskRecord.getIndex()) - 1;
-			int status = Integer.parseInt(taskRecord.getStatus());
+			VaadinSession vaadinSession = UI.getCurrent().getSession();
+			vaadinSession.lock();
 
-			if (scriptingProgressLayout.isVisible()) {
-				while (lastProgressIndex < index) {
-					log(nodeInfo.getTask() + " - updating last position");
+			try {
 
-					taskImages[lastProgressIndex].setSource(new ThemeResource("img/scripting/done/" + primitives[lastProgressIndex] + ".png"));
-					lastProgressIndex++;
+				TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null, null);
+				TaskRecord taskRecord = taskInfo.getTasksList().get(0);
+				int index = Integer.parseInt(taskRecord.getIndex()) - 1;
+				int status = Integer.parseInt(taskRecord.getStatus());
+
+				if (scriptingProgressLayout.isVisible()) {
+					while (lastProgressIndex < index) {
+						log(nodeInfo.getTask() + " - updating last position");
+
+						taskImages[lastProgressIndex].setSource(new ThemeResource("img/scripting/done/" + primitives[lastProgressIndex] + ".png"));
+						lastProgressIndex++;
+					}
+				} else {
+					log(nodeInfo.getTask() + " - cannot update display");
 				}
-			} else {
-				log(nodeInfo.getTask() + " - cannot update display");
+
+				if ((status == 2) && (index != lastIndex)) {
+					if (scriptingProgressLayout.isVisible()) {
+						log(nodeInfo.getTask() + " - updating running position");
+
+						taskImages[index].setSource(new ThemeResource("img/scripting/active/" + primitives[index] + ".png"));
+						progressLabel.setValue(taskImages[index].getDescription());
+						// progressLabel.setValue(primitives[index]);
+					} else {
+						log(nodeInfo.getTask() + " - cannot update display");
+					}
+					lastIndex = index;
+
+				} else if (status == 5) {
+					runningTime = System.currentTimeMillis() - startTime;
+					if (scriptingProgressLayout.isVisible()) {
+						log(nodeInfo.getTask() + " - updating done position");
+
+						taskImages[index].setSource(new ThemeResource("img/scripting/done/" + primitives[index] + ".png"));
+						taskImages[index + 1].setSource(new ThemeResource("img/scripting/done/done.png"));
+						String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime),
+								TimeUnit.MILLISECONDS.toSeconds(runningTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
+						DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+						Date date = new Date();
+						progressLabel.setValue("Done");
+						resultLabel.setValue("Completed successfully<br><br>on " + dateFormat.format(date) + "<br><br>in " + time);
+
+					} else {
+						log(nodeInfo.getTask() + " - cannot update display");
+					}
+
+					log(nodeInfo.getTask() + " - Canceling Timer (done)");
+					close();
+					lastIndex = -1;
+					lastProgressIndex = 0;
+
+				} else if (status == 6) {
+					if (scriptingProgressLayout.isVisible()) {
+						log(nodeInfo.getTask() + " - updating error position");
+
+						taskImages[taskImages.length - 1].setSource(new ThemeResource("img/scripting/error.png"));
+						progressLabel.setValue("Error!");
+						String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime),
+								TimeUnit.MILLISECONDS.toSeconds(runningTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
+						DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+						Date date = new Date();
+						resultLabel.setValue("Command failed<br><br>on " + dateFormat.format(date) + "<br><br>after " + time);
+					} else {
+						log(nodeInfo.getTask() + " - cannot update display");
+					}
+
+					log(nodeInfo.getTask() + " - Canceling Timer (canceled, error)");
+					close();
+					// lastIndex = 0; lastProgressIndex = 0;
+				}
+
+				// update enable/disabled state of control buttons
+				/***
+				 * if (scriptingControlsLayout.getWindow() != null) { String
+				 * controls[] = taskRecord.getControls(); for (String key :
+				 * ctrlButtons.keySet()) { NativeButton button =
+				 * ctrlButtons.get(key);
+				 * button.setEnabled(Arrays.asList(controls).contains(key) ?
+				 * true : false); } }
+				 ***/
+
+				// Push the changes
+				ICEPush icePush = VaadinSession.getCurrent().getAttribute(ICEPush.class);
+				icePush.push();
+
+			} finally {
+				vaadinSession.unlock();
 			}
-
-			if ((status == 2) && (index != lastIndex)) {
-				if (scriptingProgressLayout.isVisible()) {
-					log(nodeInfo.getTask() + " - updating running position");
-
-					taskImages[index].setSource(new ThemeResource("img/scripting/active/" + primitives[index] + ".png"));
-					progressLabel.setValue(taskImages[index].getDescription());
-					// progressLabel.setValue(primitives[index]);
-				} else {
-					log(nodeInfo.getTask() + " - cannot update display");
-				}
-				lastIndex = index;
-
-			} else if (status == 5) {
-				runningTime = System.currentTimeMillis() - startTime;
-				if (scriptingProgressLayout.isVisible()) {
-					log(nodeInfo.getTask() + " - updating done position");
-
-					taskImages[index].setSource(new ThemeResource("img/scripting/done/" + primitives[index] + ".png"));
-					taskImages[index + 1].setSource(new ThemeResource("img/scripting/done/done.png"));
-					String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime), TimeUnit.MILLISECONDS.toSeconds(runningTime)
-							- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
-					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-					Date date = new Date();
-					progressLabel.setValue("Done");
-					resultLabel.setValue("Completed successfully<br><br>on " + dateFormat.format(date) + "<br><br>in " + time);
-
-				} else {
-					log(nodeInfo.getTask() + " - cannot update display");
-				}
-
-				log(nodeInfo.getTask() + " - Canceling Timer (done)");
-				runTimerFuture.cancel(DONT_INTERRUPT_IF_RUNNING);
-				cancelTimerFuture.cancel(DONT_INTERRUPT_IF_RUNNING);
-				lastIndex = -1;
-				lastProgressIndex = 0;
-
-			} else if (status == 6) {
-				if (scriptingProgressLayout.isVisible()) {
-					log(nodeInfo.getTask() + " - updating error position");
-
-					taskImages[taskImages.length - 1].setSource(new ThemeResource("img/scripting/error.png"));
-					progressLabel.setValue("Error!");
-					String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime), TimeUnit.MILLISECONDS.toSeconds(runningTime)
-							- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
-					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-					Date date = new Date();
-					resultLabel.setValue("Command failed<br><br>on " + dateFormat.format(date) + "<br><br>after " + time);
-				} else {
-					log(nodeInfo.getTask() + " - cannot update display");
-				}
-
-				log(nodeInfo.getTask() + " - Canceling Timer (canceled, error)");
-				runTimerFuture.cancel(DONT_INTERRUPT_IF_RUNNING);
-				cancelTimerFuture.cancel(DONT_INTERRUPT_IF_RUNNING);
-				// lastIndex = 0; lastProgressIndex = 0;
-			}
-
-			// update enable/disabled state of control buttons
-			/***
-			 * if (scriptingControlsLayout.getWindow() != null) { String
-			 * controls[] = taskRecord.getControls(); for (String key :
-			 * ctrlButtons.keySet()) { NativeButton button =
-			 * ctrlButtons.get(key);
-			 * button.setEnabled(Arrays.asList(controls).contains(key) ? true :
-			 * false); } }
-			 ***/
-
-			// Push the changes
-			session.getICEPush().push();
-
 		}
 
 	}
 
-	private final class StopTimerTask implements Runnable {
-		StopTimerTask(ScheduledFuture<?> aSchedFuture) {
-			fSchedFuture = aSchedFuture;
-		}
-
-		public void run() {
-			log(nodeInfo.getTask() + " - Stopping Timer.");
-			fSchedFuture.cancel(DONT_INTERRUPT_IF_RUNNING);
-
-			// cleanup, by asking the scheduler to shutdown gracefully.
-			// fScheduler.shutdown();
-
-			lastIndex = -1;
-
-		}
-
-		private ScheduledFuture<?> fSchedFuture;
-	}
+	//	private final class StopTimerTask implements Runnable {
+	//		StopTimerTask(ScheduledFuture<?> aSchedFuture) {
+	//			fSchedFuture = aSchedFuture;
+	//		}
+	//
+	//		public void run() {
+	//			log(nodeInfo.getTask() + " - Stopping Timer.");
+	//			fSchedFuture.cancel(true);
+	//
+	//			lastIndex = -1;
+	//
+	//		}
+	//
+	//		private ScheduledFuture<?> fSchedFuture;
+	//	}
 
 	private static void log(String aMsg) {
 		// System.out.println(aMsg);

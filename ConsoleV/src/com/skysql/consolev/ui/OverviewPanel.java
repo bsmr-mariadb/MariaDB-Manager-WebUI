@@ -1,0 +1,214 @@
+package com.skysql.consolev.ui;
+
+import java.util.ArrayList;
+
+import com.skysql.consolev.api.ClusterComponent;
+import com.skysql.consolev.api.MonitorData;
+import com.skysql.consolev.api.Monitors;
+import com.skysql.consolev.api.NodeInfo;
+import com.skysql.consolev.api.NodeStates;
+import com.skysql.consolev.api.SystemInfo;
+import com.vaadin.event.LayoutEvents.LayoutClickEvent;
+import com.vaadin.event.LayoutEvents.LayoutClickListener;
+import com.vaadin.server.VaadinSession;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.VerticalLayout;
+
+public class OverviewPanel extends Panel {
+	private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+	private static final String STATE_MASTER = "1";
+	private static final String STATE_ONLINE = "2";
+
+	private SystemInfo systemInfo;
+	private ArrayList<NodeInfo> nodes = new ArrayList<NodeInfo>();
+	private ArrayList<VerticalLayout> buttons = new ArrayList<VerticalLayout>();
+	private VerticalLayout selectedButton;
+
+	public OverviewPanel() {
+
+		setHeight("176px");
+
+		HorizontalLayout strip = new HorizontalLayout();
+		strip.addStyleName("overviewPanel");
+		strip.setMargin(true);
+		strip.setWidth("100%");
+		setContent(strip);
+
+		systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+
+		// initialize System button
+		selectedButton = createButton(strip, systemInfo);
+
+		// initialize Node buttons
+		for (String nodeID : systemInfo.getNodes()) {
+			NodeInfo nodeInfo = new NodeInfo(systemInfo.getID(), nodeID);
+			nodes.add(nodeInfo);
+			createButton(strip, nodeInfo);
+		}
+
+	}
+
+	private VerticalLayout createButton(HorizontalLayout strip, ClusterComponent componentInfo) {
+		final VerticalLayout button_node = new VerticalLayout();
+		button_node.setWidth(componentInfo.getType() == ClusterComponent.CCType.system ? "128px" : "96px");
+		button_node.setHeight("120px");
+		Label nodeName = new Label(componentInfo.getName());
+		nodeName.setSizeUndefined();
+		button_node.addComponent(nodeName);
+		button_node.setComponentAlignment(nodeName, Alignment.BOTTOM_CENTER);
+
+		componentInfo.setButton(button_node);
+
+		button_node.addStyleName(componentInfo.getType().toString());
+		String status = componentInfo.getStatus();
+		String icon = NodeStates.getNodeIcon(status);
+		button_node.addStyleName(icon);
+		button_node.setImmediate(true);
+
+		String description;
+		switch (componentInfo.getType()) {
+		case system:
+			description = ((SystemInfo) componentInfo).ToolTip();
+			break;
+		case node:
+			description = ((NodeInfo) componentInfo).ToolTip();
+			break;
+		default:
+			description = "Unknown component type";
+			break;
+		}
+		button_node.setDescription(description);
+		button_node.setData(componentInfo);
+		strip.addComponent(button_node);
+		buttons.add(button_node);
+
+		button_node.addLayoutClickListener(new LayoutClickListener() {
+			private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+			@Override
+			public void layoutClick(LayoutClickEvent event) {
+				clickLayout(button_node);
+			}
+		});
+
+		return button_node;
+	}
+
+	public void clickLayout(final int buttonIndex) {
+		clickLayout(buttons.get(buttonIndex));
+	}
+
+	private void clickLayout(final VerticalLayout button_node) {
+		if (selectedButton != null) {
+			String styleName = selectedButton.getStyleName();
+			if (styleName.contains("selected")) {
+				selectedButton.setStyleName(styleName.replace("selected", ""));
+			}
+		}
+
+		selectedButton = button_node;
+		button_node.addStyleName("selected");
+		ClusterComponent componentInfo = (ClusterComponent) button_node.getData();
+		VaadinSession.getCurrent().setAttribute(ClusterComponent.class, componentInfo);
+
+		TabbedPanel tabbedPanel = VaadinSession.getCurrent().getAttribute(TabbedPanel.class);
+		tabbedPanel.refresh();
+
+	}
+
+	public void refresh() {
+
+		boolean refresh = false;
+		SystemInfo newSystemInfo = new SystemInfo(systemInfo.getID());
+		VerticalLayout button = systemInfo.getButton();
+
+		String newName;
+		if ((newName = newSystemInfo.getName()) != null && !newName.equals(systemInfo.getID())) {
+			refresh = true;
+			Label buttonLabel = (Label) button.getComponent(0);
+			buttonLabel.setValue(newName);
+		}
+
+		if (refresh) {
+			newSystemInfo.setButton(systemInfo.getButton());
+			systemInfo = newSystemInfo;
+			VaadinSession.getCurrent().setAttribute(SystemInfo.class, systemInfo);
+			button.setData(systemInfo);
+			button.setDescription(systemInfo.ToolTip());
+		}
+
+		refresh = false;
+		for (NodeInfo nodeInfo : nodes) {
+			NodeInfo newInfo = new NodeInfo(nodeInfo.getSystemID(), nodeInfo.getID());
+
+			// copies the Button object to new nodeInfo and replaces old one
+			// with it in the button Data and in the array
+			button = nodeInfo.getButton();
+			newInfo.setButton(button);
+
+			// fetch current capacity from monitor
+			MonitorData monitorData = new MonitorData(Monitors.getMonitor(Monitors.MONITOR_CAPACITY), newInfo.getSystemID(), newInfo.getID(), null, null, "1");
+			String dataPoints[][] = monitorData.getDataPoints();
+			newInfo.setCapacity((dataPoints == null) ? null : dataPoints[0][1]);
+
+			if ((newName = newInfo.getName()) != null && !newName.equals(nodeInfo.getName())) {
+				refresh = true;
+				Label buttonLabel = (Label) button.getComponent(0);
+				buttonLabel.setValue(newName);
+			}
+
+			String newStatus, newCapacity;
+			if (((newStatus = newInfo.getStatus()) != null && !newStatus.equals(nodeInfo.getStatus()))
+					|| ((newStatus != null) && (newCapacity = newInfo.getCapacity()) != null && !newCapacity.equals(nodeInfo.getCapacity()))) {
+				refresh = true;
+
+				String icon = NodeStates.getNodeIcon(newStatus);
+				if ((newCapacity = newInfo.getCapacity()) != null && (newInfo.getStatus().equals(STATE_MASTER) || newInfo.getStatus().equals(STATE_ONLINE))) {
+					int capacity_num = Integer.parseInt(newCapacity);
+					if (capacity_num > 0 && capacity_num < 20)
+						icon += "-20";
+					else if (capacity_num < 40)
+						icon += "-40";
+					else if (capacity_num < 60)
+						icon += "-60";
+					else if (capacity_num < 80)
+						icon += "-80";
+					else if (capacity_num <= 100)
+						icon += "-100";
+				}
+
+				button.setStyleName(icon);
+				button.addStyleName(nodeInfo.getType().toString());
+				if (button == selectedButton) {
+					button.addStyleName("selected");
+				}
+			}
+
+			String newTask = newInfo.getTask();
+			String oldTask = nodeInfo.getTask();
+			if (((newTask == null) && (oldTask != null)) || (newTask != null) && ((oldTask == null) || (!newTask.equals(oldTask)))) {
+				refresh = true;
+			}
+
+			if (refresh) {
+				newInfo.setButton(button);
+				// carry over RunningTask(s)
+				newInfo.setBackupTask(nodeInfo.getBackupTask());
+				newInfo.setCommandTask(nodeInfo.getCommandTask());
+
+				nodes.set(nodes.indexOf(nodeInfo), newInfo);
+				if (nodeInfo == VaadinSession.getCurrent().getAttribute(ClusterComponent.class)) {
+					VaadinSession.getCurrent().setAttribute(ClusterComponent.class, newInfo);
+				}
+				button.setData(newInfo);
+				button.setDescription(newInfo.ToolTip());
+			}
+
+		} // for all nodes
+
+	}
+}
