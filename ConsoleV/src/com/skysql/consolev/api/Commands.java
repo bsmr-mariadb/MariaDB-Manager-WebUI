@@ -22,7 +22,7 @@ public class Commands {
 	private static LinkedHashMap<String, String> icons;
 	private static LinkedHashMap<String, String> descriptions;
 	private static LinkedHashMap<String, String> names;
-	
+
 	public static LinkedHashMap<String, String> getIcons() {
 		GetCommands();
 		return Commands.icons;
@@ -48,15 +48,15 @@ public class Commands {
 				inputLine = in.readLine();
 				in.close();
 			} catch (IOException e) {
-	        	e.printStackTrace();
-	        	throw new RuntimeException("Could not get response from API");
+				e.printStackTrace();
+				throw new RuntimeException("Could not get response from API");
 			}
 
 			Gson gson = AppData.getGson();
 			commands = gson.fromJson(inputLine, Commands.class);
 		}
 	}
-	
+
 	protected void setIcons(LinkedHashMap<String, String> pairs) {
 		Commands.icons = pairs;
 	}
@@ -64,42 +64,40 @@ public class Commands {
 	protected void setDescriptions(LinkedHashMap<String, String> pairs) {
 		Commands.descriptions = pairs;
 	}
-	
+
 	protected void setNames(LinkedHashMap<String, String> pairs) {
 		Commands.names = pairs;
 	}
 }
 
 class CommandsDeserializer implements JsonDeserializer<Commands> {
-		  public Commands deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-		      throws JsonParseException
-		  {
-			Commands commands = new Commands();
-			
-			JsonElement jsonElement = json.getAsJsonObject().get("commands");
-			if (jsonElement == null || jsonElement.isJsonNull()) {
-			    commands.setIcons(null);
-			    commands.setDescriptions(null);
-			    commands.setNames(null);
-			} else {
-		    	JsonArray array = jsonElement.getAsJsonArray();
-		    	int length = array.size();
+	public Commands deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+		Commands commands = new Commands();
 
-		   		LinkedHashMap<String, String> icons = new LinkedHashMap<String, String>(length);
-		   		LinkedHashMap<String, String> descriptions = new LinkedHashMap<String, String>(length);
-		   		LinkedHashMap<String, String> names = new LinkedHashMap<String, String>(length);
-		   		for (int i = 0; i < length; i++) {
-		   		   JsonObject pair = array.get(i).getAsJsonObject();
-		   		   icons.put(pair.get("id").getAsString(), pair.get("icon").getAsString());
-		   		   descriptions.put(pair.get("id").getAsString(), pair.get("description").getAsString());
-		   		   names.put(pair.get("id").getAsString(), pair.get("name").getAsString());
-		   		}
-		   		commands.setIcons(icons);
-		   		commands.setDescriptions(descriptions);
-		   		commands.setNames(names);
-		    }
-		    
-		    return commands;
-		  }
+		JsonElement jsonElement = json.getAsJsonObject().get("commands");
+		if (jsonElement == null || jsonElement.isJsonNull()) {
+			commands.setIcons(null);
+			commands.setDescriptions(null);
+			commands.setNames(null);
+		} else {
+			JsonArray array = jsonElement.getAsJsonArray();
+			int length = array.size();
+
+			LinkedHashMap<String, String> icons = new LinkedHashMap<String, String>(length);
+			LinkedHashMap<String, String> descriptions = new LinkedHashMap<String, String>(length);
+			LinkedHashMap<String, String> names = new LinkedHashMap<String, String>(length);
+			for (int i = 0; i < length; i++) {
+				JsonObject pair = array.get(i).getAsJsonObject();
+				icons.put(pair.get("id").getAsString(), pair.get("icon").getAsString());
+				descriptions.put(pair.get("id").getAsString(), pair.get("description").getAsString());
+				names.put(pair.get("id").getAsString(), pair.get("name").getAsString());
+			}
+			commands.setIcons(icons);
+			commands.setDescriptions(descriptions);
+			commands.setNames(names);
+		}
+
+		return commands;
+	}
 
 }

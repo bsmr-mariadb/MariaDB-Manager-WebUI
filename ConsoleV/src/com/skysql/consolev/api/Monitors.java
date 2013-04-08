@@ -6,7 +6,6 @@ import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import com.google.gson.Gson;
@@ -23,7 +22,6 @@ public class Monitors {
 	public static final String MONITOR_CAPACITY = "5";
 
 	private static LinkedHashMap<String, MonitorRecord> monitorsList;
-	private ArrayList<MonitorRecord> monitorsDisplay;
 
 	public static LinkedHashMap<String, MonitorRecord> getMonitorsList() {
 		if (monitorsList == null) {
@@ -61,7 +59,7 @@ public class Monitors {
 		Gson gson = AppData.getGson();
 		Monitors monitors = gson.fromJson(inputLine, Monitors.class);
 		//		Monitors.monitorsList = monitors.getMonitorsList();
-		monitors = null;
+
 	}
 
 	public static String setMonitor(MonitorRecord monitor) {

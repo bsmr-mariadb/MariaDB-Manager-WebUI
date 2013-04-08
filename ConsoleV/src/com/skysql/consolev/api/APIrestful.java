@@ -73,6 +73,7 @@ public class APIrestful {
 			case PUT:
 			case POST:
 				httpConnection.setDoOutput(true);
+				httpConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 				httpConnection.setRequestMethod(type.toString());
 				OutputStreamWriter out = new OutputStreamWriter(httpConnection.getOutputStream());
 				out.write(value);

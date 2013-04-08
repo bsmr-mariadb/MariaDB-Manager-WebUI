@@ -28,6 +28,14 @@
 
 }
 
+.v-horizontallayout-newLayout {
+	/* background: yellow; */
+}
+
+.v-horizontallayout-logsLayout {
+	/* background: orange; */
+}
+
 .v-verticallayout-infoLayout {
 }
 
@@ -182,8 +190,10 @@
 	
 }
 
-.v-verticallayout-instructions {
-    font-size: 16px;
+.separator {
+	border-top-style:solid;
+	border-top-width:1px;
+	border-top-color:lightgray;
 }
 
 .v-label-warning, warning {
@@ -191,21 +201,11 @@
 }
 
 .v-label-instructions {
-	/*background: yellow;*/
     font-size: 16px;
 }
 
 .icon-after-caption img {
     float: right;
-}
-
-.v-verticallayout-placeholderLayout {
-    /*font-size: 18px;*/
-}
-
-.v-label-placeholder {
-	/*background: yellow;*/
-    font-size: 18px;
 }
 
 .v-verticallayout-externalsLayout {
@@ -243,8 +243,9 @@
 	/* background: blue; */
 }
 
-.v-horizontallayout-controlTab {
-	/*background: blue;*/
+.v-verticallayout-controlTab {
+	/* background: red; */
+	font-size: 16px !important;
 }
 
 .v-verticallayout-containerLayout {

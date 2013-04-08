@@ -21,11 +21,10 @@ public class ExecutorFactory {
 			fScheduler = Executors.newScheduledThreadPool(NUM_THREADS);
 		}
 
-		log("timer added - " + runningTimers);
-
 		ScheduledFuture<?> newTimerHandle = fScheduler.scheduleWithFixedDelay(timerTask, fDelayBetweenRuns, fDelayBetweenRuns, TimeUnit.SECONDS);
 		if (newTimerHandle != null) {
 			runningTimers++;
+			log("timer added - " + runningTimers);
 		}
 
 		return newTimerHandle;
@@ -34,12 +33,14 @@ public class ExecutorFactory {
 
 	public static void removeTimer(ScheduledFuture<?> timerHandle) {
 		if (timerHandle != null) {
-			System.out.println("timer cancel");
 			timerHandle.cancel(MAY_INTERRUPT_IF_RUNNING);
-			runningTimers--;
+			System.out.println("timer cancel: " + runningTimers);
+			if (runningTimers > 0) {
+				runningTimers--;
+			}
 		}
 
-		if (runningTimers == 0) {
+		if (runningTimers == 0 && fScheduler != null) {
 			List<Runnable> pendingTasks = fScheduler.shutdownNow();
 			fScheduler = null;
 			log("timer shutdown - pending: " + pendingTasks.size());
@@ -47,7 +48,7 @@ public class ExecutorFactory {
 	}
 
 	private static void log(String aMsg) {
-		// System.out.println(aMsg);
+		System.out.println(aMsg);
 	}
 
 }

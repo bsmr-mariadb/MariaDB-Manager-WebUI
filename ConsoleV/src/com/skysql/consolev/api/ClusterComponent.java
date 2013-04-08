@@ -13,6 +13,9 @@ public class ClusterComponent {
 	protected VerticalLayout button;
 	protected CCType type;
 	protected String status;
+	protected String health;
+	protected String connections;
+	protected String packets;
 
 	public String getID() {
 		return ID;
@@ -52,6 +55,30 @@ public class ClusterComponent {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public String getHealth() {
+		return health;
+	}
+
+	public void setHealth(String health) {
+		this.health = health;
+	}
+
+	public String getConnections() {
+		return connections;
+	}
+
+	public void setConnections(String connections) {
+		this.connections = connections;
+	}
+
+	public String getPackets() {
+		return packets;
+	}
+
+	public void setPackets(String packets) {
+		this.packets = packets;
 	}
 
 }

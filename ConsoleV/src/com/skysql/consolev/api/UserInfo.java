@@ -50,11 +50,19 @@ public class UserInfo {
 	}
 
 	public String findNameByID(String id) {
-		return usersList.get(id).getName();
+		UserObject userObject = usersList.get(id);
+		if (userObject == null) {
+			return null;
+		}
+		return userObject.getName();
 	}
 
 	public String completeNamesByID(String id) {
-		String name = usersList.get(id).getName();
+		UserObject userObject = usersList.get(id);
+		if (userObject == null) {
+			return null;
+		}
+		String name = userObject.getName();
 		return id + ((name == null || name.isEmpty()) ? "" : " (" + name + ")");
 	}
 
@@ -81,12 +89,7 @@ public class UserInfo {
 			throw new RuntimeException("Could not get response from API");
 		}
 
-		Gson gson = AppData.getGson();
-		RestfulResponse response = gson.fromJson(inputLine, RestfulResponse.class);
-		if (!response.isSuccess()) {
-			Notification.show(response.getErrors());
-			return false;
-		}
+		// returns record
 
 		// if we added a user, versus modified it
 		if (!usersList.containsKey(userID)) {
@@ -111,10 +114,8 @@ public class UserInfo {
 			throw new RuntimeException("Could not get response from API");
 		}
 
-		Gson gson = AppData.getGson();
-		RestfulResponse response = gson.fromJson(inputLine, RestfulResponse.class);
-		if (!response.isSuccess()) {
-			Notification.show(response.getErrors());
+		if (!inputLine.contains("HTTP\\/1.1 200 OK")) {
+			Notification.show(inputLine);
 			return false;
 		}
 

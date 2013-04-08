@@ -18,7 +18,7 @@ public class TabbedPanel implements Serializable {
 	private PanelControl panelControl;
 	private PanelBackup panelBackup;
 	private PanelTools panelTools;
-	private HorizontalLayout controlTab, backupTab, toolsTab;
+	private HorizontalLayout backupTab, toolsTab;
 
 	public TabbedPanel() {
 
@@ -29,13 +29,12 @@ public class TabbedPanel implements Serializable {
 
 		// INFO TAB
 		panelInfo = new PanelInfo();
+		tabsheet.addTab(panelInfo).setCaption("Info");
 		currentTab = panelInfo;
-		tabsheet.addTab(currentTab).setCaption("Info");
 
 		// CONTROL TAB
-		controlTab = new HorizontalLayout();
-		panelControl = new PanelControl(controlTab);
-		tabsheet.addTab(controlTab).setCaption("Control");
+		panelControl = new PanelControl();
+		tabsheet.addTab(panelControl).setCaption("Control");
 
 		// BACKUP TAB
 		backupTab = new HorizontalLayout();
@@ -74,11 +73,11 @@ public class TabbedPanel implements Serializable {
 		ClusterComponent componentInfo = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
 
 		tabsheet.getTab(backupTab).setVisible(componentInfo.getType() == ClusterComponent.CCType.system ? false : true);
-		tabsheet.getTab(controlTab).setVisible(componentInfo.getType() == ClusterComponent.CCType.system ? false : true);
+		tabsheet.getTab(panelControl).setVisible(componentInfo.getType() == ClusterComponent.CCType.system ? false : true);
 
 		if (currentTab == panelInfo) {
 			panelInfo.refresh();
-		} else if (currentTab == controlTab) {
+		} else if (currentTab == panelControl) {
 			panelControl.refresh();
 		} else if (currentTab == backupTab) {
 			panelBackup.refresh();

@@ -16,9 +16,6 @@ import com.skysql.consolev.ui.RunningTask;
 public class NodeInfo extends ClusterComponent {
 
 	private String systemID;
-	private String health;
-	private String connections;
-	private String packets;
 	private String[] commands;
 	private String task;
 	private String command;
@@ -35,30 +32,6 @@ public class NodeInfo extends ClusterComponent {
 
 	public void setSystemID(String systemID) {
 		this.systemID = systemID;
-	}
-
-	public String getHealth() {
-		return health;
-	}
-
-	public void setHealth(String health) {
-		this.health = health;
-	}
-
-	public String getConnections() {
-		return connections;
-	}
-
-	public void setConnections(String connections) {
-		this.connections = connections;
-	}
-
-	public String getPackets() {
-		return packets;
-	}
-
-	public void setPackets(String packets) {
-		this.packets = packets;
 	}
 
 	public String[] getCommands() {
@@ -146,12 +119,6 @@ public class NodeInfo extends ClusterComponent {
 			throw new RuntimeException("Could not get response from API");
 		}
 
-		//		Gson gson = AppData.getGson();
-		//		RestfulResponse response = gson.fromJson(inputLine, RestfulResponse.class);
-		//		if (!response.isSuccess()) {
-		//			Notification.show(response.getErrors());
-		//		}
-
 	}
 
 	public NodeInfo() {
@@ -221,17 +188,29 @@ class NodeInfoDeserializer implements JsonDeserializer<NodeInfo> {
 			return null;
 		} else {
 
-			JsonObject jsonObject = element.getAsJsonObject();
+			JsonObject jsonObject = (JsonObject) element.getAsJsonArray().get(0);
 			nodeInfo.setName(((element = jsonObject.get("name")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setStatus(((element = jsonObject.get("status")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setHealth(((element = jsonObject.get("health")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setConnections(((element = jsonObject.get("connections")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setPackets(((element = jsonObject.get("packets")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setTask(((element = jsonObject.get("task")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setCommand(((element = jsonObject.get("command")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setPrivateIP(((element = jsonObject.get("privateIP")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setPublicIP(((element = jsonObject.get("publicIP")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setInstanceID(((element = jsonObject.get("instanceID")) == null || element.isJsonNull()) ? null : element.getAsString());
+			if ((element = jsonObject.get("health")) != null) {
+				if ((element = element.getAsJsonArray()) != null && ((element = ((JsonArray) element).get(0)) != null) && !element.isJsonNull()) {
+					nodeInfo.setHealth(element.getAsString());
+				}
+			}
+			if ((element = jsonObject.get("connections")) != null) {
+				if ((element = element.getAsJsonArray()) != null && ((element = ((JsonArray) element).get(0)) != null) && !element.isJsonNull()) {
+					nodeInfo.setConnections(element.getAsString());
+				}
+			}
+			if ((element = jsonObject.get("packets")) != null) {
+				if ((element = element.getAsJsonArray()) != null && ((element = ((JsonArray) element).get(0)) != null) && !element.isJsonNull()) {
+					nodeInfo.setPackets(element.getAsString());
+				}
+			}
 
 			element = jsonObject.get("commands");
 			if (element == null || element.isJsonNull()) {
@@ -248,5 +227,4 @@ class NodeInfoDeserializer implements JsonDeserializer<NodeInfo> {
 		}
 		return nodeInfo;
 	}
-
 }

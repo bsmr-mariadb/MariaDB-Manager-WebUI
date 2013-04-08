@@ -43,8 +43,8 @@ public class ConsoleUI extends UI {
 		// use system without user authentication
 		if (properties.containsKey(SystemInfo.PROPERTY_SKIPLOGIN)) {
 			String skipLogin = properties.get(SystemInfo.PROPERTY_SKIPLOGIN);
-			if (skipLogin.equalsIgnoreCase("true")) {
-				UserObject userObject = new UserObject();
+			if (skipLogin != null && skipLogin.equalsIgnoreCase("true")) {
+				UserObject userObject = new UserObject("0", "Debugging");
 				VaadinSession.getCurrent().setAttribute(UserObject.class, userObject);
 			}
 		}

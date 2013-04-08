@@ -13,6 +13,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.vaadin.ui.Notification;
 
 public class UserObject {
 
@@ -37,7 +38,7 @@ public class UserObject {
 			return null;
 	}
 
-	public String setProperty(String key, String value) {
+	public boolean setProperty(String key, String value) {
 		if (properties == null) {
 			properties = new LinkedHashMap<String, String>();
 		}
@@ -54,9 +55,13 @@ public class UserObject {
 			throw new RuntimeException("Could not get response from API");
 		}
 
-		Gson gson = AppData.getGson();
-		Response response = gson.fromJson(inputLine, Response.class);
-		return response.getResponse();
+		if (!inputLine.contains("HTTP\\/1.1 200 OK")) {
+			Notification.show(inputLine);
+			return false;
+		}
+
+		return true;
+
 	}
 
 	protected void setUserID(String userID) {
@@ -122,8 +127,7 @@ class UserObjectDeserializer implements JsonDeserializer<UserObject> {
 		JsonObject jsonObject = json.getAsJsonObject();
 		JsonElement element;
 
-		if (jsonObject.has("result")) {
-			jsonObject = jsonObject.get("result").getAsJsonObject();
+		if (jsonObject.has("username")) {
 			userObject.setUserID(((element = jsonObject.get("username")) == null || element.isJsonNull()) ? null : element.getAsString());
 			userObject.setName(((element = jsonObject.get("name")) == null || element.isJsonNull()) ? null : element.getAsString());
 			element = jsonObject.get("properties");

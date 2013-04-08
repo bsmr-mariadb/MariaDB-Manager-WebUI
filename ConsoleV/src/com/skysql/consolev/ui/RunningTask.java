@@ -208,16 +208,10 @@ public final class RunningTask {
 		scriptingLayout.addComponent(scriptingControlsLayout);
 		scriptingLayout.setComponentAlignment(scriptingControlsLayout, Alignment.MIDDLE_LEFT);
 
-		{
-			Label label = new Label("");
-			scriptingControlsLayout.addComponent(label);
-			scriptingControlsLayout.setComponentAlignment(label, Alignment.TOP_CENTER);
-		}
-
 		// COLUMN 3. PROGRESS
 		scriptingProgressLayout = new VerticalLayout();
 		scriptingProgressLayout.addStyleName("scriptingProgressLayout");
-		scriptingProgressLayout.setSizeFull();
+		//scriptingProgressLayout.setSizeFull();
 		scriptingProgressLayout.setSpacing(true);
 		scriptingProgressLayout.setMargin(true);
 		scriptingLayout.addComponent(scriptingProgressLayout);
@@ -231,11 +225,12 @@ public final class RunningTask {
 		progressIconsLayout = new HorizontalLayout();
 		progressIconsLayout.addStyleName("progressIconsLayout");
 		scriptingProgressLayout.addComponent(progressIconsLayout);
+		scriptingProgressLayout.setComponentAlignment(progressIconsLayout, Alignment.MIDDLE_CENTER);
 
 		progressLabel = new Label("");
 		progressLabel.setImmediate(true);
 		scriptingProgressLayout.addComponent(progressLabel);
-		scriptingProgressLayout.setComponentAlignment(progressLabel, Alignment.MIDDLE_CENTER);
+		scriptingProgressLayout.setComponentAlignment(progressLabel, Alignment.BOTTOM_CENTER);
 
 		// COLUMN 4. RESULT
 		scriptingResultLayout = new VerticalLayout();
@@ -246,18 +241,11 @@ public final class RunningTask {
 		scriptingLayout.addComponent(scriptingResultLayout);
 		scriptingLayout.setComponentAlignment(scriptingResultLayout, Alignment.MIDDLE_LEFT);
 
-		{
-			Label label = new Label("");
-			label.addStyleName("instructions");
-			scriptingResultLayout.addComponent(label);
-			scriptingResultLayout.setComponentAlignment(label, Alignment.TOP_CENTER);
-		}
-
 		resultLabel = new Label("Has not run yet", Label.CONTENT_RAW);
 		resultLabel.addStyleName("instructions");
 		resultLabel.setImmediate(true);
 		scriptingResultLayout.addComponent(resultLabel);
-		scriptingResultLayout.setComponentAlignment(resultLabel, Alignment.TOP_CENTER);
+		scriptingResultLayout.setComponentAlignment(resultLabel, Alignment.MIDDLE_CENTER);
 
 		// ******* BUILD COLUMN 2 - CONTROL
 		String commandName = Commands.getNames().get(command);
@@ -290,7 +278,7 @@ public final class RunningTask {
 												// description
 				button.setData(control);
 				scriptingControlsLayout.addComponent(button);
-				scriptingControlsLayout.setComponentAlignment(button, Alignment.TOP_CENTER);
+				scriptingControlsLayout.setComponentAlignment(button, Alignment.MIDDLE_CENTER);
 				ctrlButtons.put(control, button);
 				button.addClickListener(new Button.ClickListener() {
 					private static final long serialVersionUID = 0x4C656F6E6172646FL;

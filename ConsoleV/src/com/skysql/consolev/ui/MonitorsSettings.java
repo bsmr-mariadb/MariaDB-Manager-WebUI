@@ -322,6 +322,7 @@ public class MonitorsSettings implements Window.CloseListener {
 			monitorSQL.setValue(value);
 		}
 		monitorSQL.setWidth("24em");
+		monitorSQL.addValidator(new SQLValidator());
 		form.addField("monitorSQL", monitorSQL);
 
 		monitorDelta.setValue(monitor.isDelta());
@@ -383,8 +384,6 @@ public class MonitorsSettings implements Window.CloseListener {
 				String monitorID = null;
 				try {
 					form.setComponentError(null);
-					Validator sqlValidator = new SQLValidator();
-					monitorSQL.addValidator(sqlValidator);
 					form.commit();
 					monitor.setName(monitorName.getValue());
 					monitor.setDescription(monitorDescription.getValue());

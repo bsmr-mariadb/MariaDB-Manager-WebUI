@@ -36,7 +36,7 @@ public class PanelInfo extends HorizontalLayout {
 	private VerticalLayout infoLayout, chartsLayout;
 	private DDCssLayout chartsArray;
 	private String chartTime, chartInterval = "1800", chartPoints = "15";
-	private String systemLabelsStrings[] = { "Status", "Last Backup", "Start Date", "Last Access" };
+	private String systemLabelsStrings[] = { "Status", "Availability", "Connections", "Data Transfer", "Last Backup", "Start Date", "Last Access" };
 	private String nodeLabelsStrings[] = { "Status", "Availability", "Connections", "Data Transfer", "Commands Running", "Public IP", "Private IP",
 			"Instance ID", };
 	private Label systemLabels[], nodeLabels[];
@@ -290,6 +290,9 @@ public class PanelInfo extends HorizontalLayout {
 			currentLabels = systemLabels;
 			String systemValues[] = {
 					((value = systemInfo.getStatus()) != null) && (value = NodeStates.getNodeStatesDescriptions().get(value)) != null ? value : "Invalid",
+					(value = systemInfo.getHealth()) != null ? value + "%" : NOT_AVAILABLE,
+					(value = systemInfo.getConnections()) != null ? value : NOT_AVAILABLE,
+					(value = systemInfo.getPackets()) != null ? value + " KB" : NOT_AVAILABLE,
 					(value = systemInfo.getLastBackup()) != null ? value : NOT_AVAILABLE, (value = systemInfo.getStartDate()) != null ? value : NOT_AVAILABLE,
 					(value = systemInfo.getLastAccess()) != null ? value : NOT_AVAILABLE };
 			values = systemValues;

@@ -118,7 +118,10 @@ public class TimelineLayout extends VerticalLayout {
 		// Set the date range
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MONTH, -1);
-		timeline.setVisibleDateRange(cal.getTime(), new Date());
+		Date endTime = cal.getTime();
+		cal.add(Calendar.MONTH, -1);
+		Date startTime = cal.getTime();
+		timeline.setVisibleDateRange(startTime, endTime);
 		return timeline;
 	}
 

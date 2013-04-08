@@ -17,11 +17,11 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ListSelect;
-import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
-public class PanelControl {
+public class PanelControl extends VerticalLayout {
+	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private NodeInfo nodeInfo;
 	private VerticalLayout commandsLayout, runningContainerLayout, placeholderLayout;
@@ -32,33 +32,29 @@ public class PanelControl {
 	private Table logsTable;
 	final LinkedHashMap<String, String> names = Commands.getNames();
 
-	PanelControl(HorizontalLayout thisTab) {
+	PanelControl() {
 
-		thisTab.setSizeFull();
-		thisTab.addStyleName("controlTab");
-		thisTab.setSpacing(true);
+		setSizeFull();
+		addStyleName("controlTab");
 
-		TabSheet tabsheet = new TabSheet();
-		tabsheet.setSizeFull();
+		createNewLayout();
+		createLogsLayout();
+
+	}
+
+	private void createNewLayout() {
 
 		newLayout = new HorizontalLayout();
-		logsLayout = new HorizontalLayout();
-		logsLayout.setSpacing(true);
-		logsLayout.setMargin(true);
-
-		// Add the components as tabs in the Accordion.
-		tabsheet.addTab(newLayout).setCaption("New");
-		tabsheet.addTab(logsLayout).setCaption("Logs");
-		thisTab.addComponent(tabsheet);
-
-		/*** NEW **********************************************/
+		newLayout.addStyleName("newLayout");
+		//newLayout.setHeight("210px");
+		newLayout.setMargin(true);
+		newLayout.setSpacing(true);
+		addComponent(newLayout);
 
 		// COMMANDS
 		commandsLayout = new VerticalLayout();
 		commandsLayout.addStyleName("instructions");
 		commandsLayout.setSizeUndefined();
-		commandsLayout.setSpacing(true);
-		commandsLayout.setMargin(true);
 		newLayout.addComponent(commandsLayout);
 
 		commandSelect = new ListSelect("Commands");
@@ -84,11 +80,10 @@ public class PanelControl {
 		// Scripting layout placeholder
 		placeholderLayout = new VerticalLayout();
 		placeholderLayout.addStyleName("placeholderLayout");
-		// placeholderLayout.setWidth(Sizeable.SIZE_UNDEFINED, 0); // Default
-		placeholderLayout.setHeight("200px");
 
 		Label placeholderLabel = new Label("No Command is currently running for this node");
-		placeholderLabel.addStyleName("placeholder");
+		placeholderLabel.addStyleName("instructions");
+		placeholderLabel.setSizeUndefined();
 		placeholderLayout.addComponent(placeholderLabel);
 		placeholderLayout.setComponentAlignment(placeholderLabel, Alignment.MIDDLE_CENTER);
 
@@ -96,9 +91,23 @@ public class PanelControl {
 		newLayout.setComponentAlignment(placeholderLayout, Alignment.MIDDLE_CENTER);
 		runningContainerLayout = placeholderLayout;
 
-		/*** LOGS **********************************************/
+	}
 
-		logsTable = new Table(null);
+	private void createLogsLayout() {
+		Label separator = new Label();
+		separator.addStyleName("separator");
+		//separator.setHeight(Sizeable.SIZE_UNDEFINED, Unit.PIXELS);
+		addComponent(separator);
+
+		logsLayout = new HorizontalLayout();
+		logsLayout.addStyleName("logsLayout");
+		logsLayout.setSpacing(true);
+		logsLayout.setMargin(true);
+		addComponent(logsLayout);
+		setExpandRatio(logsLayout, 1.0f);
+
+		logsTable = new Table("Previously run Commands");
+		logsTable.setPageLength(0);
 		logsTable.addContainerProperty("Started", String.class, null);
 		logsTable.addContainerProperty("Completed", String.class, null);
 		logsTable.addContainerProperty("Command", String.class, null);
