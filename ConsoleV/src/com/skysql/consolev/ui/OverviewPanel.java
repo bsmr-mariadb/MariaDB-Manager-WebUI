@@ -197,7 +197,6 @@ public class OverviewPanel extends Panel {
 			if (refresh) {
 				newInfo.setButton(button);
 				// carry over RunningTask(s)
-				newInfo.setBackupTask(nodeInfo.getBackupTask());
 				newInfo.setCommandTask(nodeInfo.getCommandTask());
 
 				nodes.set(nodes.indexOf(nodeInfo), newInfo);

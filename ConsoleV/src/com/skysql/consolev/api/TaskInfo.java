@@ -32,12 +32,11 @@ public class TaskInfo {
 	public TaskInfo() {
 	}
 
-	public TaskInfo(String taskID, String status, String group, String node) {
+	public TaskInfo(String taskID, String status, String node) {
 
 		String inputLine = null;
 		try {
-			URL url = new URI("http", "localhost", "/consoleAPI/taskinfo.php", "task=" + taskID + "&status=" + status + "&group=" + group + "&node=" + node,
-					null).toURL();
+			URL url = new URI("http", "localhost", "/consoleAPI/taskinfo.php", "task=" + taskID + "&status=" + status + "&node=" + node, null).toURL();
 			URLConnection sc = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			inputLine = in.readLine();
@@ -50,7 +49,6 @@ public class TaskInfo {
 		Gson gson = AppData.getGson();
 		TaskInfo taskInfo = gson.fromJson(inputLine, TaskInfo.class);
 		this.tasksList = taskInfo.tasksList;
-		taskInfo = null;
 
 	}
 

@@ -23,7 +23,6 @@ public class NodeInfo extends ClusterComponent {
 	private String publicIP;
 	private String instanceID;
 	private RunningTask commandTask;
-	private RunningTask backupTask;
 	private String capacity;
 
 	public String getSystemID() {
@@ -88,14 +87,6 @@ public class NodeInfo extends ClusterComponent {
 
 	public void setCommandTask(RunningTask commandTask) {
 		this.commandTask = commandTask;
-	}
-
-	public RunningTask getBackupTask() {
-		return backupTask;
-	}
-
-	public void setBackupTask(RunningTask backupTask) {
-		this.backupTask = backupTask;
 	}
 
 	public String getCapacity() {

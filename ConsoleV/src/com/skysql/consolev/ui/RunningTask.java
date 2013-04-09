@@ -51,6 +51,8 @@ public final class RunningTask {
 	private static final String NOT_AVAILABLE = "n/a";
 	private static final String CMD_BACKUP = "7";
 	private static final String CMD_RESTORE = "8";
+	private static final String CMD_BACKUP2 = "9";
+	private static final String CMD_RESTORE2 = "10";
 	private VerticalLayout containerLayout, scriptingProgressLayout, scriptingControlsLayout, scriptingResultLayout;
 	private HorizontalLayout scriptingLayout, progressIconsLayout;
 	private Label scriptLabel, progressLabel, resultLabel;
@@ -68,6 +70,12 @@ public final class RunningTask {
 	private GridLayout backupInfoGrid;
 	private Link backupLogLink;
 	private ListSelect commandSelect;
+	private OptionGroup backupLevel;
+	private HorizontalLayout prevBackupsLayout;
+	private HorizontalLayout parameterLayout;
+	private ListSelect selectPrevBackup;
+	private String firstItem;
+	private ValueChangeListener listener;
 
 	RunningTask(String command, NodeInfo nodeInfo, ListSelect commandSelect) {
 		this.command = command;
@@ -76,16 +84,12 @@ public final class RunningTask {
 
 		if (command == null) {
 			observerMode = true;
-			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null, null);
+			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null);
 			taskRecord = taskInfo.getTasksList().get(0);
 			command = taskRecord.getCommand();
 		}
 
-		if (command.equalsIgnoreCase(CMD_BACKUP) || command.equalsIgnoreCase(CMD_RESTORE)) {
-			nodeInfo.setBackupTask(this);
-		} else {
-			nodeInfo.setCommandTask(this);
-		}
+		nodeInfo.setCommandTask(this);
 
 		containerLayout = new VerticalLayout();
 		containerLayout.addStyleName("containerLayout");
@@ -96,107 +100,121 @@ public final class RunningTask {
 		scriptingLayout.setSizeFull();
 		containerLayout.addComponent(scriptingLayout);
 
-		if (command.equalsIgnoreCase(CMD_BACKUP) || command.equalsIgnoreCase(CMD_RESTORE)) {
+		if (command.equalsIgnoreCase(CMD_BACKUP) || command.equalsIgnoreCase(CMD_RESTORE) || command.equalsIgnoreCase(CMD_BACKUP2)
+				|| command.equalsIgnoreCase(CMD_RESTORE2)) {
 
 			// add PARAMETER layout
-			final VerticalLayout parameterLayout = new VerticalLayout();
+			parameterLayout = new HorizontalLayout();
 			parameterLayout.setSizeFull();
 			parameterLayout.setSpacing(true);
 			parameterLayout.setMargin(true);
 			scriptingLayout.addComponent(parameterLayout);
 			scriptingLayout.setComponentAlignment(parameterLayout, Alignment.MIDDLE_LEFT);
 
-			Label commandsLabel = new Label("", Label.CONTENT_PREFORMATTED);
-			commandsLabel.addStyleName("instructions");
-			parameterLayout.addComponent(commandsLabel);
-			parameterLayout.setComponentAlignment(commandsLabel, Alignment.TOP_CENTER);
-
 			// COLUMN 1. PARAMETERS
-			if (command.equalsIgnoreCase(CMD_BACKUP)) {
-				OptionGroup group = new OptionGroup("Backup Level");
-				group.setImmediate(true);
-				group.addItem("Full");
-				group.addItem("Incremental");
-				parameterLayout.addComponent(group);
+			if (command.equalsIgnoreCase(CMD_BACKUP) || command.equalsIgnoreCase(CMD_BACKUP2)) {
+				backupLevel = new OptionGroup("Backup Level");
+				backupLevel.setImmediate(true);
+				backupLevel.addItem("Full");
+				backupLevel.addItem("Incremental");
+				parameterLayout.addComponent(backupLevel);
+				parameterLayout.setComponentAlignment(backupLevel, Alignment.MIDDLE_LEFT);
+				backupLevel.addValueChangeListener(new ValueChangeListener() {
+					private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-				// *** temporary
-				group.setValue("Full");
-				group.setEnabled(false);
+					public void valueChange(ValueChangeEvent event) {
+						String level = (String) event.getProperty().getValue();
+						selectParameter(level);
+						if (level.equalsIgnoreCase("Incremental")) {
+							parameterLayout.addComponent(prevBackupsLayout);
+							selectPrevBackup.select(firstItem);
 
-				/***
-				 * temporary group.addListener(new ValueChangeListener() {
-				 * public void valueChange(ValueChangeEvent event) {
-				 * selectParameter((String)event.getProperty().getValue()); }
-				 * });
-				 ***/
-
-			} else if (command.equalsIgnoreCase(CMD_RESTORE)) {
-				final HorizontalLayout restoreLayout = new HorizontalLayout();
-				parameterLayout.addComponent(restoreLayout);
-
-				String firstItem = null;
-				ListSelect select = new ListSelect("Backups");
-				select.setImmediate(true);
-				final Backups backups = new Backups(nodeInfo.getSystemID(), null);
-				final LinkedHashMap<String, BackupRecord> backupsList = backups.getBackupsList();
-				if (backupsList != null) {
-					Collection<BackupRecord> set = backupsList.values();
-					Iterator<BackupRecord> iter = set.iterator();
-					while (iter.hasNext()) {
-						BackupRecord backupRecord = iter.next();
-						String started = backupRecord.getStarted();
-						select.addItem(started);
-						if (firstItem == null) {
-							firstItem = started;
+						} else {
+							if (parameterLayout.getComponentIndex(prevBackupsLayout) != -1) {
+								parameterLayout.removeComponent(prevBackupsLayout);
+							}
 						}
 					}
-					select.setNullSelectionAllowed(false);
-					select.setRows(8); // Show a few items and a scrollbar if
-										// there are more
-					restoreLayout.addComponent(select);
+				});
 
-					final VerticalLayout backupInfoLayout = new VerticalLayout();
-					backupInfoLayout.setMargin(true);
-					restoreLayout.addComponent(backupInfoLayout);
-
-					select.addValueChangeListener(new ValueChangeListener() {
-						private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-						public void valueChange(ValueChangeEvent event) {
-							String date = (String) event.getProperty().getValue();
-							Collection<BackupRecord> set = backupsList.values();
-							Iterator<BackupRecord> iter = set.iterator();
-							while (iter.hasNext()) {
-								BackupRecord backupRecord = iter.next();
-								String started = backupRecord.getStarted();
-								if (date.equalsIgnoreCase(started)) {
-									displayBackupInfo(backupInfoLayout, backupRecord);
-									selectParameter(backupRecord.getID());
-									break;
-								}
-							}
-
-						}
-					});
-
-					select.select(firstItem);
-
-					// final DisplayBackupRecord displayRecord = new
-					// DisplayBackupRecord(parameterLayout);
-				} else {
-					VerticalLayout messageLayout = new VerticalLayout();
-					messageLayout.addStyleName("placeholderLayout");
-					messageLayout.setSizeUndefined();
-
-					Label placeholderLabel = new Label("No Backups are available for Restore");
-					placeholderLabel.addStyleName("placeholder");
-					messageLayout.addComponent(placeholderLabel);
-
-					scriptingLayout.addComponent(messageLayout);
-					scriptingLayout.setComponentAlignment(messageLayout, Alignment.MIDDLE_CENTER);
-				}
+				backupLevel.setValue("Full");
 
 			}
+
+			prevBackupsLayout = new HorizontalLayout();
+
+			selectPrevBackup = new ListSelect("Backups");
+			selectPrevBackup.setImmediate(true);
+			final Backups backups = new Backups(nodeInfo.getSystemID(), null);
+			final LinkedHashMap<String, BackupRecord> backupsList = backups.getBackupsList();
+			if (backupsList != null) {
+				Collection<BackupRecord> set = backupsList.values();
+				Iterator<BackupRecord> iter = set.iterator();
+				while (iter.hasNext()) {
+					BackupRecord backupRecord = iter.next();
+					String started = backupRecord.getStarted();
+					selectPrevBackup.addItem(started);
+					if (firstItem == null) {
+						firstItem = started;
+					}
+				}
+				selectPrevBackup.setNullSelectionAllowed(false);
+				selectPrevBackup.setRows(8); // Show a few items and a scrollbar if there are more
+				prevBackupsLayout.addComponent(selectPrevBackup);
+
+				final VerticalLayout backupInfoLayout = new VerticalLayout();
+				backupInfoLayout.setMargin(true);
+				prevBackupsLayout.addComponent(backupInfoLayout);
+
+				selectPrevBackup.addValueChangeListener(new ValueChangeListener() {
+					private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+					public void valueChange(ValueChangeEvent event) {
+						String date = (String) event.getProperty().getValue();
+						Collection<BackupRecord> set = backupsList.values();
+						Iterator<BackupRecord> iter = set.iterator();
+						while (iter.hasNext()) {
+							BackupRecord backupRecord = iter.next();
+							String started = backupRecord.getStarted();
+							if (date.equalsIgnoreCase(started)) {
+								displayBackupInfo(backupInfoLayout, backupRecord);
+								if (backupLevel != null) {
+									selectParameter("Incremental " + backupRecord.getID());
+								} else {
+									selectParameter(backupRecord.getID());
+								}
+								break;
+							}
+						}
+
+					}
+				});
+
+				// final DisplayBackupRecord displayRecord = new
+				// DisplayBackupRecord(parameterLayout);
+
+				if (command.equalsIgnoreCase(CMD_BACKUP) || command.equalsIgnoreCase(CMD_BACKUP2)) {
+
+				} else if (command.equalsIgnoreCase(CMD_RESTORE) || command.equalsIgnoreCase(CMD_RESTORE2)) {
+					parameterLayout.addComponent(prevBackupsLayout);
+					selectPrevBackup.select(firstItem);
+
+				}
+
+			} else { // no previous backups
+				if (command.equalsIgnoreCase(CMD_BACKUP) || command.equalsIgnoreCase(CMD_BACKUP2)) {
+					backupLevel.setEnabled(false);
+
+				} else if (command.equalsIgnoreCase(CMD_RESTORE) || command.equalsIgnoreCase(CMD_RESTORE2)) {
+
+					Label placeholderLabel = new Label("No Backups are available for Restore");
+					placeholderLabel.addStyleName("instructions");
+					placeholderLabel.setSizeUndefined();
+					containerLayout.replaceComponent(scriptingLayout, placeholderLabel);
+					containerLayout.setComponentAlignment(placeholderLabel, Alignment.MIDDLE_CENTER);
+				}
+			}
+
 		}
 
 		// COLUMN 2. CONTROLS
@@ -341,11 +359,6 @@ public final class RunningTask {
 		progressIconsLayout.addComponent(image);
 		taskImages[stepsIDs.length] = image;
 
-		// *** Temporary
-		if (command.equalsIgnoreCase(CMD_BACKUP)) {
-			selectParameter("Full");
-		}
-
 	}
 
 	public VerticalLayout getLayout() {
@@ -428,8 +441,8 @@ public final class RunningTask {
 	}
 
 	void start() {
-		commandSelect.setEnabled(false); // disable command selection
-											// immediately
+		commandSelect.setEnabled(false); // disable command selection immediately
+		parameterLayout.setEnabled(false);
 
 		startTime = System.currentTimeMillis();
 		resultLabel.setValue("Running...");
@@ -467,6 +480,12 @@ public final class RunningTask {
 		//		if (cancelTimerFuture != null)
 		//			cancelTimerFuture.cancel(DONT_INTERRUPT_IF_RUNNING);
 
+		listener.valueChange(null);
+
+	}
+
+	public void addRefreshListener(ValueChangeListener listener) {
+		this.listener = listener;
 	}
 
 	public void activateTimer() {
@@ -500,7 +519,7 @@ public final class RunningTask {
 
 			try {
 
-				TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null, null);
+				TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null);
 				TaskRecord taskRecord = taskInfo.getTasksList().get(0);
 				int index = Integer.parseInt(taskRecord.getIndex()) - 1;
 				int status = Integer.parseInt(taskRecord.getStatus());

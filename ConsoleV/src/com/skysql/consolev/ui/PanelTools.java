@@ -14,17 +14,18 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
 
-public class PanelTools {
+public class PanelTools extends HorizontalLayout {
+	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private Link phpLink, monyogLink;
 	private String phpUrl;
 
-	PanelTools(HorizontalLayout thisTab) {
+	PanelTools() {
 
 		// thisTab.setSizeFull();
 		// thisTab.setWidth(Sizeable.SIZE_UNDEFINED, 0); // Default
-		thisTab.setHeight("200px");
-		thisTab.setSpacing(true);
+		setHeight("200px");
+		setSpacing(true);
 
 		// External Tools Vertical Module
 		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
@@ -59,15 +60,15 @@ public class PanelTools {
 				externalsLayout.setComponentAlignment(phpLink, Alignment.BOTTOM_CENTER);
 			}
 
-			thisTab.addComponent(externalsLayout);
-			thisTab.setComponentAlignment(externalsLayout, Alignment.MIDDLE_CENTER);
+			addComponent(externalsLayout);
+			setComponentAlignment(externalsLayout, Alignment.MIDDLE_CENTER);
 
 		}
 
 		{
 			Label spacer = new Label();
 			spacer.setWidth("40px");
-			thisTab.addComponent(spacer);
+			addComponent(spacer);
 		}
 
 		// Scripting layout placeholder
@@ -76,11 +77,11 @@ public class PanelTools {
 		placeholderLayout.setSizeUndefined();
 
 		Label placeholderLabel = new Label("Links to external tools");
-		placeholderLabel.addStyleName("placeholder");
+		placeholderLabel.addStyleName("instructions");
 		placeholderLayout.addComponent(placeholderLabel);
 
-		thisTab.addComponent(placeholderLayout);
-		thisTab.setComponentAlignment(placeholderLayout, Alignment.MIDDLE_CENTER);
+		addComponent(placeholderLayout);
+		setComponentAlignment(placeholderLayout, Alignment.MIDDLE_CENTER);
 
 	}
 

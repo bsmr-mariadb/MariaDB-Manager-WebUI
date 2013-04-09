@@ -42,7 +42,7 @@ public class Commands {
 		if (commands == null) {
 			String inputLine = null;
 			try {
-				URL url = new URL("http://localhost/consoleAPI/commands.php?group=control");
+				URL url = new URL("http://localhost/consoleAPI/commands.php");
 				URLConnection sc = url.openConnection();
 				BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 				inputLine = in.readLine();

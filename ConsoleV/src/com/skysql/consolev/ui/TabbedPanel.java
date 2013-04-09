@@ -5,7 +5,6 @@ import java.io.Serializable;
 import com.skysql.consolev.api.ClusterComponent;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 
@@ -18,7 +17,6 @@ public class TabbedPanel implements Serializable {
 	private PanelControl panelControl;
 	private PanelBackup panelBackup;
 	private PanelTools panelTools;
-	private HorizontalLayout backupTab, toolsTab;
 
 	public TabbedPanel() {
 
@@ -37,16 +35,14 @@ public class TabbedPanel implements Serializable {
 		tabsheet.addTab(panelControl).setCaption("Control");
 
 		// BACKUP TAB
-		backupTab = new HorizontalLayout();
-		backupTab.setImmediate(true);
-		panelBackup = new PanelBackup(backupTab);
-		tabsheet.addTab(backupTab).setCaption("Backup");
+		panelBackup = new PanelBackup();
+		panelBackup.setImmediate(true);
+		tabsheet.addTab(panelBackup).setCaption("Backups");
 
 		// TOOLS TAB
-		toolsTab = new HorizontalLayout();
-		toolsTab.setImmediate(true);
-		panelTools = new PanelTools(toolsTab);
-		tabsheet.addTab(toolsTab).setCaption("Tools");
+		panelTools = new PanelTools();
+		panelTools.setImmediate(true);
+		tabsheet.addTab(panelTools).setCaption("Tools");
 
 		// ADD LISTENERS TO TABS
 		tabsheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
@@ -72,16 +68,16 @@ public class TabbedPanel implements Serializable {
 	public void refresh() {
 		ClusterComponent componentInfo = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
 
-		tabsheet.getTab(backupTab).setVisible(componentInfo.getType() == ClusterComponent.CCType.system ? false : true);
+		tabsheet.getTab(panelBackup).setVisible(componentInfo.getType() == ClusterComponent.CCType.system ? true : false);
 		tabsheet.getTab(panelControl).setVisible(componentInfo.getType() == ClusterComponent.CCType.system ? false : true);
 
 		if (currentTab == panelInfo) {
 			panelInfo.refresh();
 		} else if (currentTab == panelControl) {
 			panelControl.refresh();
-		} else if (currentTab == backupTab) {
+		} else if (currentTab == panelBackup) {
 			panelBackup.refresh();
-		} else if (currentTab == toolsTab) {
+		} else if (currentTab == panelTools) {
 			panelTools.refresh();
 		}
 

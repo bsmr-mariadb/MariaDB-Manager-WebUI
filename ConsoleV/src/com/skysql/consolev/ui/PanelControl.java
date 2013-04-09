@@ -30,7 +30,18 @@ public class PanelControl extends VerticalLayout {
 	private String[] oldcommands;
 	private UserInfo userInfo;
 	private Table logsTable;
+	private String lastNodeID;
 	final LinkedHashMap<String, String> names = Commands.getNames();
+
+	private ValueChangeListener refreshListener = new ValueChangeListener() {
+		private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+		public void valueChange(ValueChangeEvent event) {
+
+			lastNodeID = null;
+			refresh();
+		}
+	};
 
 	PanelControl() {
 
@@ -81,7 +92,7 @@ public class PanelControl extends VerticalLayout {
 		placeholderLayout = new VerticalLayout();
 		placeholderLayout.addStyleName("placeholderLayout");
 
-		Label placeholderLabel = new Label("No Command is currently running for this node");
+		Label placeholderLabel = new Label("No Command is currently running on this node");
 		placeholderLabel.addStyleName("instructions");
 		placeholderLabel.setSizeUndefined();
 		placeholderLayout.addComponent(placeholderLabel);
@@ -107,11 +118,11 @@ public class PanelControl extends VerticalLayout {
 		setExpandRatio(logsLayout, 1.0f);
 
 		logsTable = new Table("Previously run Commands");
-		logsTable.setPageLength(0);
+		logsTable.setPageLength(10);
 		logsTable.addContainerProperty("Started", String.class, null);
 		logsTable.addContainerProperty("Completed", String.class, null);
 		logsTable.addContainerProperty("Command", String.class, null);
-		// logsTable.addContainerProperty("Parameters", String.class, null);
+		logsTable.addContainerProperty("Parameters", String.class, null);
 		logsTable.addContainerProperty("User", String.class, null);
 		logsTable.addContainerProperty("Status", String.class, null);
 
@@ -124,19 +135,23 @@ public class PanelControl extends VerticalLayout {
 
 	public void refresh() {
 		nodeInfo = (NodeInfo) VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
+		String newNodeID = nodeInfo.getID();
 
 		String taskID = nodeInfo.getTask();
 		// String taskCommand = nodeInfo.getCommand();
 		RunningTask runningTask = nodeInfo.getCommandTask();
 		String commands[] = nodeInfo.getCommands();
 
-		TaskInfo taskInfo = new TaskInfo(null, null, "control", nodeInfo.getID());
-		logsTable.removeAllItems();
-		if (taskInfo.getTasksList() != null) {
-			for (TaskRecord taskRecord : taskInfo.getTasksList()) {
-				logsTable.addItem(new Object[] { taskRecord.getStart(), taskRecord.getEnd(), names.get(taskRecord.getCommand()),
-				/* taskRecord.getParams(), */
-				userInfo.findNameByID(taskRecord.getUserID()), CommandStates.getDescriptions().get(taskRecord.getStatus()) }, taskRecord.getID());
+		if (!newNodeID.equalsIgnoreCase(lastNodeID)) {
+			lastNodeID = newNodeID;
+
+			TaskInfo taskInfo = new TaskInfo(null, null, nodeInfo.getID());
+			logsTable.removeAllItems();
+			if (taskInfo.getTasksList() != null) {
+				for (TaskRecord taskRecord : taskInfo.getTasksList()) {
+					logsTable.addItem(new Object[] { taskRecord.getStart(), taskRecord.getEnd(), names.get(taskRecord.getCommand()), taskRecord.getParams(),
+							userInfo.findNameByID(taskRecord.getUserID()), CommandStates.getDescriptions().get(taskRecord.getStatus()) }, taskRecord.getID());
+				}
 			}
 		}
 
@@ -146,7 +161,9 @@ public class PanelControl extends VerticalLayout {
 			/**
 			 * if (runningTask == null &&
 			 * !taskCommand.equalsIgnoreCase(CMD_BACKUP) ||
-			 * !taskCommand.equalsIgnoreCase(CMD_RESTORE)) { runningTask = new
+			 * !taskCommand.equalsIgnoreCase(CMD_BACKUP2) ||
+			 * !taskCommand.equalsIgnoreCase(CMD_RESTORE) ||
+			 * !taskCommand.equalsIgnoreCase(CMD_RESTORE2)) { runningTask = new
 			 * RunningTask(null, nodeInfo); runningTask.activateTimer(); }
 			 **/
 
@@ -194,6 +211,7 @@ public class PanelControl extends VerticalLayout {
 			runningTask.close();
 
 		runningTask = new RunningTask(command, nodeInfo, commandSelect);
+		runningTask.addRefreshListener(refreshListener);
 
 		// add SCRIPTING layout
 		VerticalLayout newScriptingLayout = runningTask.getLayout();
