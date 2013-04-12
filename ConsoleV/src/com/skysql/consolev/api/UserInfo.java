@@ -114,14 +114,14 @@ public class UserInfo {
 			throw new RuntimeException("Could not get response from API");
 		}
 
-		if (!inputLine.contains("HTTP\\/1.1 200 OK")) {
-			Notification.show(inputLine);
+		if (inputLine == null) {
 			return false;
 		}
 
 		usersList.remove(userID);
 
 		return true;
+
 	}
 
 	protected void setUsersList(LinkedHashMap<String, UserObject> usersList) {

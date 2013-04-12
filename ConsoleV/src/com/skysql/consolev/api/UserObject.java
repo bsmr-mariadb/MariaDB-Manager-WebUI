@@ -13,7 +13,6 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.vaadin.ui.Notification;
 
 public class UserObject {
 
@@ -55,12 +54,7 @@ public class UserObject {
 			throw new RuntimeException("Could not get response from API");
 		}
 
-		if (!inputLine.contains("HTTP\\/1.1 200 OK")) {
-			Notification.show(inputLine);
-			return false;
-		}
-
-		return true;
+		return (inputLine == null) ? false : true;
 
 	}
 

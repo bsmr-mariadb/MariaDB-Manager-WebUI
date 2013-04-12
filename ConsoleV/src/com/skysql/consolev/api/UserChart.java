@@ -8,6 +8,24 @@ import com.vaadin.ui.Button;
 public class UserChart extends ChartMappings {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
+	public static final Integer COUNT_15 = 15;
+	public static final Integer COUNT_30 = 30;
+	public static final Integer COUNT_45 = 45;
+	public static final Integer COUNT_60 = 60;
+
+	public static Integer[] chartPoints() {
+		Integer[] array = { COUNT_15, COUNT_30, COUNT_45, COUNT_60 };
+		return array;
+	}
+
+	public static final String LINECHART = "LineChart";
+	public static final String AREACHART = "AreaChart";
+
+	public static String[] chartTypes() {
+		String[] array = { LINECHART, AREACHART };
+		return array;
+	}
+
 	private HashMap<String, Object> monitorsData;
 	private Button deleteButton;
 

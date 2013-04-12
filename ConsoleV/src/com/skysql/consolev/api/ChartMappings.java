@@ -12,14 +12,6 @@ import javax.xml.bind.DatatypeConverter;
 
 public class ChartMappings implements Serializable {
 
-	public static final String LINECHART = "LineChart";
-	public static final String AREACHART = "AreaChart";
-
-	public static String[] chartTypes() {
-		String[] array = { LINECHART, AREACHART };
-		return array;
-	}
-
 	private String name;
 	private String description;
 	private String unit;

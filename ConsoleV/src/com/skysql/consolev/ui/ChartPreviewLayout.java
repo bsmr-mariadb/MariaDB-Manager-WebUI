@@ -15,16 +15,10 @@ import com.vaadin.ui.VerticalLayout;
 public class ChartPreviewLayout extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	private static final Integer COUNT_15 = 15;
-	private static final Integer COUNT_30 = 30;
-	private static final Integer COUNT_45 = 45;
-	private static final Integer COUNT_60 = 60;
-	private static final Integer COUNT_75 = 75;
-	private static final Integer COUNT_90 = 90;
-
 	private String chartTime, chartInterval = "1800";
 	private ChartsLayout chartLayout;
 	private UserChart userChart;
+	private String chartName;
 
 	public ChartPreviewLayout(final UserChart userChart) {
 		this.userChart = userChart;
@@ -55,8 +49,8 @@ public class ChartPreviewLayout extends VerticalLayout {
 
 			public void valueChange(ValueChangeEvent event) {
 
-				String value = (String) (event.getProperty()).getValue();
-				userChart.setName(value);
+				String chartName = (String) (event.getProperty()).getValue();
+				userChart.setName(chartName);
 				refresh();
 
 			}
@@ -99,8 +93,10 @@ public class ChartPreviewLayout extends VerticalLayout {
 		// chartInfo.addComponent(formLayout);
 		NativeSelect chartSelectType = new NativeSelect("Type");
 		chartSelectType.setImmediate(true);
-		chartSelectType.addItem(UserChart.LINECHART);
-		chartSelectType.addItem(UserChart.AREACHART);
+		for (String type : UserChart.chartTypes()) {
+			chartSelectType.addItem(type);
+		}
+		chartSelectType.setNullSelectionAllowed(false);
 		chartSelectType.setValue(userChart.getType());
 		formLayout.addComponent(chartSelectType);
 		chartSelectType.addValueChangeListener(new ValueChangeListener() {
@@ -117,24 +113,12 @@ public class ChartPreviewLayout extends VerticalLayout {
 
 		NativeSelect selectCount = new NativeSelect("Points");
 		selectCount.setImmediate(true);
-
-		selectCount.addItem(COUNT_15);
-		selectCount.addItem(COUNT_30);
-		selectCount.addItem(COUNT_45);
-		selectCount.addItem(COUNT_60);
-		selectCount.addItem(COUNT_75);
-		selectCount.addItem(COUNT_90);
-
-		selectCount.setItemCaption(COUNT_15, "15");
-		selectCount.setItemCaption(COUNT_30, "30");
-		selectCount.setItemCaption(COUNT_45, "45");
-		selectCount.setItemCaption(COUNT_60, "60");
-		selectCount.setItemCaption(COUNT_75, "75");
-		selectCount.setItemCaption(COUNT_90, "90");
-
-		selectCount.select(COUNT_15);
+		for (int points : UserChart.chartPoints()) {
+			selectCount.addItem(points);
+			selectCount.setItemCaption(points, String.valueOf(points));
+		}
 		selectCount.setNullSelectionAllowed(false);
-		selectCount.setValue(userChart.getType());
+		selectCount.setValue(userChart.getPoints());
 		formLayout.addComponent(selectCount);
 		selectCount.addValueChangeListener(new ValueChangeListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;

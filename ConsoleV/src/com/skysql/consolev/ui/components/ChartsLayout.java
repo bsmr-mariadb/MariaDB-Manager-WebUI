@@ -212,7 +212,8 @@ public class ChartsLayout extends DDCssLayout {
 		MonitorRecord monitor = (MonitorRecord) Monitors.getMonitorsList().values().toArray()[0];
 		ArrayList<String> monitorsForChart = new ArrayList<String>();
 		monitorsForChart.add(monitor.getID());
-		UserChart userChart = new UserChart(monitor.getName(), monitor.getDescription(), monitor.getUnit(), monitor.getChartType(), 15, monitorsForChart);
+		UserChart userChart = new UserChart(monitor.getName(), monitor.getDescription(), monitor.getUnit(), monitor.getChartType(), UserChart.COUNT_15,
+				monitorsForChart);
 		Chart chart = (Chart) initializeChart(userChart);
 		chart.setEnabled(false);
 		Button deleteButton = new Button("X");

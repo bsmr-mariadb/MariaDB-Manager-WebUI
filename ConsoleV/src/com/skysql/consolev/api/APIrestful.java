@@ -14,6 +14,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import com.vaadin.ui.Notification;
+
 public class APIrestful {
 
 	private static final String AUTHORIZATION_ID_SKYSQL_API = "1";
@@ -104,7 +106,8 @@ public class APIrestful {
 			case 400:
 			case 404:
 			case 409:
-				return inputLine;
+				Notification.show(inputLine);
+				return null;
 			}
 			throw new RuntimeException(e + " - " + inputLine);
 
@@ -113,5 +116,4 @@ public class APIrestful {
 		}
 
 	}
-
 }

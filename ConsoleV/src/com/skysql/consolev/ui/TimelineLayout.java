@@ -1,6 +1,8 @@
 package com.skysql.consolev.ui;
 
 import java.awt.Color;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -27,9 +29,12 @@ public class TimelineLayout extends VerticalLayout {
 			new Color(0x00, 0x7E, 0xA8), new Color(0xA7, 0x57, 0x06), new Color(0x2D, 0x7F, 0x1B), new Color(0x66, 0x33, 0x00), new Color(0xCC, 0x00, 0x66),
 			new Color(0x99, 0x66, 0xFF), new Color(0x99, 0x66, 0x00) };
 
+	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
 	private Timeline timeline;
 	private LinkedHashMap<MonitorRecord, IndexedContainer> containers;
 	private String name;
+	private Calendar latestCal;
 
 	public TimelineLayout(String name, ArrayList<String> monitorIDs) {
 		this.name = name;
@@ -65,6 +70,19 @@ public class TimelineLayout extends VerticalLayout {
 			MonitorData2 monitorData = new MonitorData2(monitor, systemID, nodeID, null, MAX_TIMESPAN);
 			monitorData.fillDataSource(container);
 			containers.put(monitor, container);
+
+			String latestTime = monitorData.getLatestTime();
+			Calendar cal = Calendar.getInstance();
+			try {
+				cal.setTime(sdf.parse(latestTime));
+				if (latestCal == null || cal.after(latestCal)) {
+					latestCal = cal;
+				}
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
 		}
 
 	}
@@ -116,11 +134,9 @@ public class TimelineLayout extends VerticalLayout {
 		}
 
 		// Set the date range
-		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.MONTH, -1);
-		Date endTime = cal.getTime();
-		cal.add(Calendar.MONTH, -1);
-		Date startTime = cal.getTime();
+		Date endTime = latestCal.getTime();
+		latestCal.add(Calendar.MONTH, -1);
+		Date startTime = latestCal.getTime();
 		timeline.setVisibleDateRange(startTime, endTime);
 		return timeline;
 	}

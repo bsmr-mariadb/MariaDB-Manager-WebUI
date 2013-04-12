@@ -25,7 +25,7 @@ public class MonitorData {
 		return dataPoints;
 	}
 
-	public void setDataPoints(String[][] dataPoints) {
+	protected void setDataPoints(String[][] dataPoints) {
 		this.dataPoints = dataPoints;
 	}
 
@@ -82,7 +82,9 @@ class MonitorDataDeserializer implements JsonDeserializer<MonitorData> {
 	public MonitorData deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		MonitorData monitorData = new MonitorData();
 
-		JsonElement jsonElement = json.getAsJsonObject().get("monitor_data");
+		JsonElement jsonElement;
+
+		jsonElement = json.getAsJsonObject().get("monitor_data");
 		if (jsonElement == null || jsonElement.isJsonNull()) {
 			monitorData.setDataPoints(null);
 		} else {

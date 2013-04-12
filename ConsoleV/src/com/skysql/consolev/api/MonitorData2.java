@@ -23,6 +23,9 @@ import com.vaadin.data.util.IndexedContainer;
 
 public class MonitorData2 {
 
+	protected static int INDEX_TIME = 0;
+	protected static int INDEX_VALUE = 1;
+
 	private MonitorRecord monitor;
 	private String system;
 	private String node;
@@ -36,6 +39,10 @@ public class MonitorData2 {
 
 	public void setDataPoints(String[][] dataPoints) {
 		this.dataPoints = dataPoints;
+	}
+
+	public String getLatestTime() {
+		return (dataPoints == null) ? null : dataPoints[dataPoints.length - 1][INDEX_TIME];
 	}
 
 	public boolean equals(Object ob) {
@@ -71,14 +78,14 @@ public class MonitorData2 {
 
 		for (int i = 0; i < dataPoints.length; i++) {
 			try {
-				cal.setTime(sdf.parse(dataPoints[i][0]));
+				cal.setTime(sdf.parse(dataPoints[i][INDEX_TIME]));
 
 				// Create a point in time
 				Item item = container.addItem(cal.getTime());
 				// Set the timestamp property
 				item.getItemProperty(Timeline.PropertyId.TIMESTAMP).setValue(cal.getTime());
 				// Set the value property
-				item.getItemProperty(Timeline.PropertyId.VALUE).setValue(Float.valueOf(dataPoints[i][1]));
+				item.getItemProperty(Timeline.PropertyId.VALUE).setValue(Float.valueOf(dataPoints[i][INDEX_VALUE]));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -133,8 +140,8 @@ class MonitorDataDeserializer2 implements JsonDeserializer<MonitorData2> {
 			for (int i = 0; i < length; i++) {
 				JsonObject jsonObject = array.get(i).getAsJsonObject();
 				JsonElement element;
-				points[i][0] = (element = jsonObject.get("time")).isJsonNull() ? null : element.getAsString();
-				points[i][1] = (element = jsonObject.get("value")).isJsonNull() ? null : element.getAsString();
+				points[i][MonitorData2.INDEX_TIME] = (element = jsonObject.get("time")).isJsonNull() ? null : element.getAsString();
+				points[i][MonitorData2.INDEX_VALUE] = (element = jsonObject.get("value")).isJsonNull() ? null : element.getAsString();
 			}
 			monitorData.setDataPoints(points);
 		}

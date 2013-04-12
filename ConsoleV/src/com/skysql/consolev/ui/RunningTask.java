@@ -72,7 +72,7 @@ public final class RunningTask {
 	private ListSelect commandSelect;
 	private OptionGroup backupLevel;
 	private HorizontalLayout prevBackupsLayout;
-	private HorizontalLayout parameterLayout;
+	private HorizontalLayout parameterLayout = new HorizontalLayout();
 	private ListSelect selectPrevBackup;
 	private String firstItem;
 	private ValueChangeListener listener;
@@ -104,7 +104,6 @@ public final class RunningTask {
 				|| command.equalsIgnoreCase(CMD_RESTORE2)) {
 
 			// add PARAMETER layout
-			parameterLayout = new HorizontalLayout();
 			parameterLayout.setSizeFull();
 			parameterLayout.setSpacing(true);
 			parameterLayout.setMargin(true);
