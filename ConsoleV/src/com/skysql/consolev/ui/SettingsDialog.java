@@ -1,3 +1,26 @@
+/*
+ * This file is distributed asimport com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComponentContainer;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TabSheet.Tab;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
+import com.vaadin.ui.Window.CloseEvent;
+SS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Copyright SkySQL Ab
+ */
+
 package com.skysql.consolev.ui;
 
 import com.vaadin.ui.Button;

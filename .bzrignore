@@ -3,3 +3,4 @@ RE:\.?[^.]+
 ./ConsoleV/.settings/org.eclipse.m2e.core.prefs
 ./SCDS.dev
 ./ConsoleV/WebContent/VAADIN/widgetsets/com.skysql.consolev.widgetset.Consolev7Widgetset
+./ConsoleV/.settings/com.vaadin.integration.eclipse.prefs

@@ -1,3 +1,21 @@
+/*
+ * This file is distributed as part of the SkySQL Cloud Data Suite.  It is free
+ * software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation,
+ * version 2.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Copyright SkySQL Ab
+ */
+
 package com.skysql.consolev.api;
 
 import java.io.BufferedReader;
@@ -22,7 +40,7 @@ public class BackupCommands {
 	private static LinkedHashMap<String, String> icons;
 	private static LinkedHashMap<String, String> descriptions;
 	private static LinkedHashMap<String, String> names;
-	
+
 	public static LinkedHashMap<String, String> getIcons() {
 		GetCommands();
 		return BackupCommands.icons;
@@ -48,15 +66,15 @@ public class BackupCommands {
 				inputLine = in.readLine();
 				in.close();
 			} catch (IOException e) {
-	        	e.printStackTrace();
-	        	throw new RuntimeException("Could not get response from API");
+				e.printStackTrace();
+				throw new RuntimeException("Could not get response from API");
 			}
 
 			Gson gson = AppData.getGson();
 			backupCommands = gson.fromJson(inputLine, BackupCommands.class);
 		}
 	}
-	
+
 	protected void setIcons(LinkedHashMap<String, String> pairs) {
 		BackupCommands.icons = pairs;
 	}
@@ -64,42 +82,40 @@ public class BackupCommands {
 	protected void setDescriptions(LinkedHashMap<String, String> pairs) {
 		BackupCommands.descriptions = pairs;
 	}
-	
+
 	protected void setNames(LinkedHashMap<String, String> pairs) {
 		BackupCommands.names = pairs;
 	}
 }
 
 class BackupCommandsDeserializer implements JsonDeserializer<BackupCommands> {
-	  public BackupCommands deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-	      throws JsonParseException
-	  {
+	public BackupCommands deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		BackupCommands commands = new BackupCommands();
-		
+
 		JsonElement jsonElement = json.getAsJsonObject().get("commands");
 		if (jsonElement == null || jsonElement.isJsonNull()) {
-		    commands.setIcons(null);
-		    commands.setDescriptions(null);
-		    commands.setNames(null);
+			commands.setIcons(null);
+			commands.setDescriptions(null);
+			commands.setNames(null);
 		} else {
-	    	JsonArray array = jsonElement.getAsJsonArray();
-	    	int length = array.size();
+			JsonArray array = jsonElement.getAsJsonArray();
+			int length = array.size();
 
-	   		LinkedHashMap<String, String> icons = new LinkedHashMap<String, String>(length);
-	   		LinkedHashMap<String, String> descriptions = new LinkedHashMap<String, String>(length);
-	   		LinkedHashMap<String, String> names = new LinkedHashMap<String, String>(length);
-	   		for (int i = 0; i < length; i++) {
-	   		   JsonObject pair = array.get(i).getAsJsonObject();
-	   		   icons.put(pair.get("id").getAsString(), pair.get("icon").getAsString());
-	   		   descriptions.put(pair.get("id").getAsString(), pair.get("description").getAsString());
-	   		   names.put(pair.get("id").getAsString(), pair.get("name").getAsString());
-	   		}
-	   		commands.setIcons(icons);
-	   		commands.setDescriptions(descriptions);
-	   		commands.setNames(names);
-	    }
-	    
-	    return commands;
-	  }
+			LinkedHashMap<String, String> icons = new LinkedHashMap<String, String>(length);
+			LinkedHashMap<String, String> descriptions = new LinkedHashMap<String, String>(length);
+			LinkedHashMap<String, String> names = new LinkedHashMap<String, String>(length);
+			for (int i = 0; i < length; i++) {
+				JsonObject pair = array.get(i).getAsJsonObject();
+				icons.put(pair.get("id").getAsString(), pair.get("icon").getAsString());
+				descriptions.put(pair.get("id").getAsString(), pair.get("description").getAsString());
+				names.put(pair.get("id").getAsString(), pair.get("name").getAsString());
+			}
+			commands.setIcons(icons);
+			commands.setDescriptions(descriptions);
+			commands.setNames(names);
+		}
+
+		return commands;
+	}
 
 }
