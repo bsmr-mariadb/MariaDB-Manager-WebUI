@@ -18,7 +18,7 @@ SS
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright SkySQL Ab
+ * Copyright 2012-2013 SkySQL Ab
  */
 
 package com.skysql.consolev.ui;
