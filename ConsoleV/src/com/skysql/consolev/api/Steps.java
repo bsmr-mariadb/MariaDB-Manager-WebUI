@@ -55,7 +55,7 @@ public class Steps {
 
 		String inputLine = null;
 		try {
-			URL url = new URI("http", "localhost", "/consoleAPI/steps.php", null, null).toURL();
+			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/steps.php", null, null).toURL();
 			URLConnection sc = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			inputLine = in.readLine();

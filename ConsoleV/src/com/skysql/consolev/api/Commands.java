@@ -60,7 +60,7 @@ public class Commands {
 		if (commands == null) {
 			String inputLine = null;
 			try {
-				URL url = new URL("http://localhost/consoleAPI/commands.php");
+				URL url = new URL("http://" + AppData.oldAPIurl + "/consoleAPI/commands.php");
 				URLConnection sc = url.openConnection();
 				BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 				inputLine = in.readLine();

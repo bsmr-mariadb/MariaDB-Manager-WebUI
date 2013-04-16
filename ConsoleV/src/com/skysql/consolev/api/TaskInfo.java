@@ -54,7 +54,7 @@ public class TaskInfo {
 
 		String inputLine = null;
 		try {
-			URL url = new URI("http", "localhost", "/consoleAPI/taskinfo.php", "task=" + taskID + "&status=" + status + "&node=" + node, null).toURL();
+			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/taskinfo.php", "task=" + taskID + "&status=" + status + "&node=" + node, null).toURL();
 			URLConnection sc = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			inputLine = in.readLine();

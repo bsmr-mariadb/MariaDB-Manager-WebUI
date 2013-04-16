@@ -52,18 +52,20 @@ public class Monitors {
 		if (monitorsList == null) {
 			reloadMonitors();
 		}
-		return monitorsList.get(ID);
+		LinkedHashMap<String, MonitorRecord> pippo = monitorsList;
+		MonitorRecord monitor = pippo.get(ID);
+		return monitor;
 	}
 
 	public Monitors() {
 
 	}
 
-	public static void reloadMonitors() {
+	public synchronized static void reloadMonitors() {
 
 		String inputLine = null;
 		try {
-			URL url = new URI("http", "localhost", "/consoleAPI/monitors.php", null, null).toURL();
+			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/monitors.php", null, null).toURL();
 
 			URLConnection sc = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
@@ -76,15 +78,15 @@ public class Monitors {
 
 		Gson gson = AppData.getGson();
 		Monitors monitors = gson.fromJson(inputLine, Monitors.class);
-		//		Monitors.monitorsList = monitors.getMonitorsList();
+		Monitors.monitorsList = monitors.getMonitorsList();
 
 	}
 
-	public static String setMonitor(MonitorRecord monitor) {
+	public synchronized static String setMonitor(MonitorRecord monitor) {
 
 		String inputLine = null;
 		try {
-			URL url = new URI("http", "localhost", "/consoleAPI/setmonitor.php", "id=" + monitor.getID() + "&name=" + monitor.getName() + "&description="
+			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/setmonitor.php", "id=" + monitor.getID() + "&name=" + monitor.getName() + "&description="
 					+ monitor.getDescription() + "&unit=" + monitor.getUnit() + "&sql=" + monitor.getSql() + "&delta=" + monitor.isDelta() + "&average="
 					+ monitor.isAverage() + "&interval=" + monitor.getInterval() + "&chartType=" + monitor.getChartType(), null).toURL();
 			URLConnection sc = url.openConnection();
@@ -107,11 +109,11 @@ public class Monitors {
 		return (monitorID);
 	}
 
-	public static String deleteMonitor(MonitorRecord monitor) {
+	public synchronized static String deleteMonitor(MonitorRecord monitor) {
 
 		String inputLine = null;
 		try {
-			URL url = new URI("http", "localhost", "/consoleAPI/deletemonitor.php", "id=" + monitor.getID(), null).toURL();
+			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/deletemonitor.php", "id=" + monitor.getID(), null).toURL();
 			URLConnection sc = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			inputLine = in.readLine();

@@ -56,7 +56,7 @@ public class SettingsValues {
 	public SettingsValues(String property) {
 		String inputLine = null;
 		try {
-			URL url = new URL("http://localhost/consoleAPI/settingsvalues.php?property=" + property);
+			URL url = new URL("http://" + AppData.oldAPIurl + "/consoleAPI/settingsvalues.php?property=" + property);
 			URLConnection sc = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			inputLine = in.readLine();

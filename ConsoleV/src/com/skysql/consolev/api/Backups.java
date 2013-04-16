@@ -55,7 +55,7 @@ public class Backups {
 
 		String inputLine = null;
 		try {
-			URL url = new URI("http", "localhost", "/consoleAPI/backups.php", "system=" + system + "&date=" + date, null).toURL();
+			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/backups.php", "system=" + system + "&date=" + date, null).toURL();
 			URLConnection sc = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			inputLine = in.readLine();

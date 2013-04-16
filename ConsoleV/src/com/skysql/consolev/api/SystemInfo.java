@@ -128,6 +128,10 @@ public class SystemInfo extends ClusterComponent {
 			throw new RuntimeException("Could not get response from API");
 		}
 
+		if (inputLine == null) {
+			return null;
+		}
+
 		Gson gson = AppData.getGson();
 		Response response = gson.fromJson(inputLine, Response.class);
 		return response.getResponse();
@@ -142,6 +146,10 @@ public class SystemInfo extends ClusterComponent {
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not get response from API");
+		}
+
+		if (inputLine == null) {
+			return null;
 		}
 
 		Gson gson = AppData.getGson();
@@ -162,6 +170,10 @@ public class SystemInfo extends ClusterComponent {
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not get response from API");
+		}
+
+		if (inputLine == null) {
+			return;
 		}
 
 		Gson gson = AppData.getGson();

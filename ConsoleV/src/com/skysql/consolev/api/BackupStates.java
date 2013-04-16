@@ -48,7 +48,7 @@ public class BackupStates {
 		if (backupStates == null) {
 			String inputLine = null;
 			try {
-				URL url = new URL("http://localhost/consoleAPI/backupstates.php");
+				URL url = new URL("http://" + AppData.oldAPIurl + "/consoleAPI/backupstates.php");
 				URLConnection sc = url.openConnection();
 				BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 				inputLine = in.readLine();

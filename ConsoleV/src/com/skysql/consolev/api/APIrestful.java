@@ -36,6 +36,7 @@ import com.vaadin.ui.Notification;
 
 public class APIrestful {
 
+	public static String newAPIurl = "http://localhost/consoleAPI/api/";
 	private static final String AUTHORIZATION_ID_SKYSQL_API = "1";
 	private static final String AUTHORIZATION_CODE_SKYSQL_API = "1f8d9e040e65d7b105538b1ed0231770";
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
@@ -70,7 +71,7 @@ public class APIrestful {
 
 	private String call(String uri, CallType type, String value) throws IOException {
 
-		URL url = new URL("http://localhost/consoleAPI/api/" + uri);
+		URL url = new URL(newAPIurl + uri);
 		URLConnection sc = url.openConnection();
 		HttpURLConnection httpConnection = (HttpURLConnection) sc;
 		String date = sdf.format(new Date());
@@ -114,13 +115,18 @@ public class APIrestful {
 			throw new RuntimeException("Could not use MD5 to encode HTTP request header");
 
 		} catch (ConnectException e) {
+			//			UI.getCurrent().getSession().close();
+			//			UI.getCurrent().getPage().setLocation("/error/noapi.html");
 			throw new RuntimeException("Could not get response from API");
 
 		} catch (IOException e) {
 			BufferedReader in = new BufferedReader(new InputStreamReader(httpConnection.getErrorStream()));
 			String inputLine = in.readLine();
 			in.close();
-			switch (httpConnection.getResponseCode()) {
+			int errorCode = httpConnection.getResponseCode();
+			String logString = "API returned HTTP error code: " + errorCode + " with error stream: " + inputLine;
+			System.out.println(logString);
+			switch (errorCode) {
 			case 400:
 			case 404:
 			case 409:

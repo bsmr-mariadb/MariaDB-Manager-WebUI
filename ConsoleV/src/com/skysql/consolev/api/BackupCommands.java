@@ -60,7 +60,7 @@ public class BackupCommands {
 		if (backupCommands == null) {
 			String inputLine = null;
 			try {
-				URL url = new URL("http://localhost/consoleAPI/commands.php?group=backup");
+				URL url = new URL("http://" + AppData.oldAPIurl + "/consoleAPI/commands.php?group=backup");
 				URLConnection sc = url.openConnection();
 				BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 				inputLine = in.readLine();

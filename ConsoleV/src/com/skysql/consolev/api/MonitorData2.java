@@ -26,6 +26,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -90,8 +91,8 @@ public class MonitorData2 {
 	}
 
 	public void fillDataSource(IndexedContainer container) {
-		Calendar cal = Calendar.getInstance();
-		// Calendar cal = new GregorianCalendar();
+		//Calendar cal = Calendar.getInstance();
+		Calendar cal = new GregorianCalendar();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
 		for (int i = 0; i < dataPoints.length; i++) {
@@ -100,10 +101,14 @@ public class MonitorData2 {
 
 				// Create a point in time
 				Item item = container.addItem(cal.getTime());
-				// Set the timestamp property
-				item.getItemProperty(Timeline.PropertyId.TIMESTAMP).setValue(cal.getTime());
-				// Set the value property
-				item.getItemProperty(Timeline.PropertyId.VALUE).setValue(Float.valueOf(dataPoints[i][INDEX_VALUE]));
+				if (item == null) {
+					System.out.println("point in time is null");
+				} else {
+					// Set the timestamp property
+					item.getItemProperty(Timeline.PropertyId.TIMESTAMP).setValue(cal.getTime());
+					// Set the value property
+					item.getItemProperty(Timeline.PropertyId.VALUE).setValue(Float.valueOf(dataPoints[i][INDEX_VALUE]));
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -123,7 +128,7 @@ public class MonitorData2 {
 
 		String inputLine = null;
 		try {
-			URL url = new URI("http", "localhost", "/consoleAPI/monitorinfo2.php", "monitor=" + monitor.getID() + "&system=" + system + "&node=" + node
+			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/monitorinfo2.php", "monitor=" + monitor.getID() + "&system=" + system + "&node=" + node
 					+ "&time=" + time + "&interval=" + interval, null).toURL();
 			// System.out.println(url.toString());
 			URLConnection sc = url.openConnection();

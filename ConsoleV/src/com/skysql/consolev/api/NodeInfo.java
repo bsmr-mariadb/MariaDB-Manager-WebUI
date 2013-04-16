@@ -144,6 +144,10 @@ public class NodeInfo extends ClusterComponent {
 			throw new RuntimeException("Could not get response from API");
 		}
 
+		if (inputLine == null) {
+			return;
+		}
+
 		Gson gson = AppData.getGson();
 		NodeInfo nodeInfo = gson.fromJson(inputLine, NodeInfo.class);
 		this.type = ClusterComponent.CCType.node;
@@ -199,7 +203,7 @@ class NodeInfoDeserializer implements JsonDeserializer<NodeInfo> {
 
 			JsonObject jsonObject = (JsonObject) element.getAsJsonArray().get(0);
 			nodeInfo.setName(((element = jsonObject.get("name")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setStatus(((element = jsonObject.get("status")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setStatus(((element = jsonObject.get("state")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setTask(((element = jsonObject.get("task")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setCommand(((element = jsonObject.get("command")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setPrivateIP(((element = jsonObject.get("privateIP")) == null || element.isJsonNull()) ? null : element.getAsString());

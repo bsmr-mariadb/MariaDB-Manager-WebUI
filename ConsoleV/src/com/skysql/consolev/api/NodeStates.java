@@ -57,8 +57,13 @@ public class NodeStates {
 				throw new RuntimeException("Could not get response from API");
 			}
 
+			if (inputLine == null) {
+				return;
+			}
+
 			Gson gson = AppData.getGson();
 			nodeStates = gson.fromJson(inputLine, NodeStates.class);
+
 		}
 	}
 

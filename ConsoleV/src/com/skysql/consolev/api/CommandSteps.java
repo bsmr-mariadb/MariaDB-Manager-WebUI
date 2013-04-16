@@ -53,7 +53,7 @@ public class CommandSteps {
 		if (commandSteps == null) {
 			String inputLine = null;
 			try {
-				URL url = new URL("http://localhost/consoleAPI/commandsteps.php");
+				URL url = new URL("http://" + AppData.oldAPIurl + "/consoleAPI/commandsteps.php");
 				URLConnection sc = url.openConnection();
 				BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 				inputLine = in.readLine();

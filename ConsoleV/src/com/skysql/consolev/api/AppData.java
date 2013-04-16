@@ -22,6 +22,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 public class AppData {
+
+	public static String oldAPIurl = "localhost";
+
 	private static Gson gson;
 
 	public static Gson getGson() {

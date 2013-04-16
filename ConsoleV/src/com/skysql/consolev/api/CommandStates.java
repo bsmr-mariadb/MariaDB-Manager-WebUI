@@ -59,7 +59,7 @@ public class CommandStates {
 		if (commandStates == null) {
 			String inputLine = null;
 			try {
-				URL url = new URL("http://localhost/consoleAPI/commandstates.php");
+				URL url = new URL("http://" + AppData.oldAPIurl + "/consoleAPI/commandstates.php");
 				URLConnection sc = url.openConnection();
 				BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 				inputLine = in.readLine();

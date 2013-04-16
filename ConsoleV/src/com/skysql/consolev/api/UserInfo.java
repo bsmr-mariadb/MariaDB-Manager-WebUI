@@ -57,6 +57,10 @@ public class UserInfo {
 			throw new RuntimeException(error);
 		}
 
+		if (inputLine == null) {
+			return;
+		}
+
 		Gson gson = AppData.getGson();
 		UserInfo userInfo = gson.fromJson(inputLine, UserInfo.class);
 		this.usersList = userInfo.usersList;

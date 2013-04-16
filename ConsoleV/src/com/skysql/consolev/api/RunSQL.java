@@ -70,7 +70,7 @@ public class RunSQL {
 	public RunSQL(String SQL) {
 		String inputLine = null;
 		try {
-			URL url = new URI("http", "localhost", "/consoleAPI/runsql.php", "node=" + 1 + "&sql=" + SQL, null).toURL();
+			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/runsql.php", "node=" + 1 + "&sql=" + SQL, null).toURL();
 			URLConnection sc = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			inputLine = in.readLine();

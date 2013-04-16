@@ -108,6 +108,10 @@ public class UserObject {
 			throw new RuntimeException("Could not get response from API");
 		}
 
+		if (inputLine == null) {
+			return false;
+		}
+
 		Gson gson = AppData.getGson();
 		UserObject login = gson.fromJson(inputLine, UserObject.class);
 		if (login.getUserID() == null) {
@@ -122,6 +126,10 @@ public class UserObject {
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not get response from API");
+		}
+
+		if (inputLine == null) {
+			return false;
 		}
 
 		UserObject user = gson.fromJson(inputLine, UserObject.class);

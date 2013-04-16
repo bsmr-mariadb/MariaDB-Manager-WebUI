@@ -78,7 +78,7 @@ public class MonitorData3 {
 
 		String inputLine = null;
 		try {
-			URL url = new URI("http", "localhost", "/consoleAPI/monitorinfo3.php", "monitor=" + monitor.getID() + "&system=" + system + "&node=" + node
+			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/monitorinfo3.php", "monitor=" + monitor.getID() + "&system=" + system + "&node=" + node
 					+ "&time=" + time + "&interval=" + interval + "&count=" + count, null).toURL();
 			// System.out.println(url.toString());
 			URLConnection sc = url.openConnection();

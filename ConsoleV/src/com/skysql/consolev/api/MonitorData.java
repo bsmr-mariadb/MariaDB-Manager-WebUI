@@ -77,7 +77,7 @@ public class MonitorData {
 
 		String inputLine = null;
 		try {
-			URL url = new URI("http", "localhost", "/consoleAPI/monitorinfo.php", "monitor=" + monitor.getID() + "&system=" + system + "&node=" + node
+			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/monitorinfo.php", "monitor=" + monitor.getID() + "&system=" + system + "&node=" + node
 					+ "&time=" + time + "&interval=" + interval + "&count=" + count, null).toURL();
 			URLConnection sc = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
@@ -91,7 +91,7 @@ public class MonitorData {
 		Gson gson = AppData.getGson();
 		MonitorData monitorData = gson.fromJson(inputLine, MonitorData.class);
 		this.dataPoints = monitorData.dataPoints;
-		monitorData = null;
+
 	}
 
 }

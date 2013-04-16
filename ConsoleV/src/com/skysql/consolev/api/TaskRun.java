@@ -50,7 +50,7 @@ public class TaskRun {
 
 		String inputLine = null;
 		try {
-			URL url = new URI("http", "localhost", "/consoleAPI/taskrun.php", "system=" + systemID + "&node=" + nodeID + "&user=" + userID + "&command="
+			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/taskrun.php", "system=" + systemID + "&node=" + nodeID + "&user=" + userID + "&command="
 					+ command + "&params=" + params, null).toURL();
 			URLConnection sc = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
