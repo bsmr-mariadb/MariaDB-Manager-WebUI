@@ -27,7 +27,7 @@ SkySQL Administration Console
 
 %install
 mkdir -p $RPM_BUILD_ROOT%{install_path}
-mkdir -i $RPM_BUILD_ROOT/etc/httpd/conf.d
+mkdir -p $RPM_BUILD_ROOT/etc/httpd/conf.d
 cp ConsoleV.war $RPM_BUILD_ROOT%{install_path}
 cp skysql_rewrite.conf $RPM_BUILD_ROOT/etc/httpd/conf.d/skysql_rewrite.conf
 
