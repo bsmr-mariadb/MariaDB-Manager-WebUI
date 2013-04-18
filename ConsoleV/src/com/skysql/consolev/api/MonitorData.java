@@ -37,13 +37,13 @@ import com.skysql.consolev.MonitorRecord;
 public class MonitorData {
 
 	private MonitorRecord monitor;
-	private String[][] dataPoints;
+	private float[] dataPoints;
 
-	public String[][] getDataPoints() {
+	public float[] getDataPoints() {
 		return dataPoints;
 	}
 
-	protected void setDataPoints(String[][] dataPoints) {
+	protected void setDataPoints(float[] dataPoints) {
 		this.dataPoints = dataPoints;
 	}
 
@@ -51,7 +51,7 @@ public class MonitorData {
 		if (!(ob instanceof MonitorData))
 			return false;
 		MonitorData other = (MonitorData) ob;
-		if (!java.util.Arrays.deepEquals(dataPoints, other.dataPoints))
+		if (!java.util.Arrays.equals(dataPoints, other.dataPoints))
 			return false;
 
 		return true;
@@ -109,11 +109,15 @@ class MonitorDataDeserializer implements JsonDeserializer<MonitorData> {
 			JsonArray array = jsonElement.getAsJsonArray();
 			int length = array.size();
 
-			String[][] points = new String[length][2];
+			float[] points = new float[length];
 			for (int i = 0; i < length; i++) {
 				JsonObject point = array.get(i).getAsJsonObject();
-				points[i][0] = point.get("time").getAsString();
-				points[i][1] = point.get("value").getAsString();
+				//points[i][0] = point.get("time").getAsString();
+				String value = point.get("value").getAsString();
+				//				if (value.contains(".")) {
+				//					value.indexOf(".");
+				//				}
+				points[i] = Float.valueOf(value);
 			}
 			monitorData.setDataPoints(points);
 		}

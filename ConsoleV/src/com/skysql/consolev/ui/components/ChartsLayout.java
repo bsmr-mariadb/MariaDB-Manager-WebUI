@@ -95,7 +95,7 @@ public class ChartsLayout extends DDCssLayout {
 						Chart chart = (Chart) child;
 						UserChart userChart = (UserChart) chart.getData();
 						if (isChartsEditing) {
-							new ChartsDialog(chartsLayout, chart);
+							new ChartsDialog(chartsLayout, chart, false);
 						} else {
 							new TimelineDialog(userChart);
 						}
@@ -300,9 +300,11 @@ public class ChartsLayout extends DDCssLayout {
 	public void enableCharts() {
 		isChartsEditing = false;
 
-		for (int index = getComponentCount(); index > 0; index -= 2) {
-			Component component = getComponent(index - 1);
-			removeComponent(component);
+		for (int index = getComponentCount() - 1; index >= 0; index--) {
+			Component component = getComponent(index);
+			if (component instanceof Button) {
+				removeComponent(component);
+			}
 		}
 		Iterator<Component> iter = getComponentIterator();
 		while (iter.hasNext()) {
@@ -430,12 +432,12 @@ public class ChartsLayout extends DDCssLayout {
 						userChart.setMonitorData(monitor.getID(), monitorData);
 
 						ArrayList<Number> dataList = new ArrayList<Number>();
-						String dataPoints[][] = monitorData.getDataPoints();
+						float dataPoints[] = monitorData.getDataPoints();
 						if (dataPoints != null) {
-							timeStamps = new String[dataPoints.length];
+							//timeStamps = new String[dataPoints.length];
 							for (int x = 0; x < dataPoints.length; x++) {
-								timeStamps[x] = dataPoints[x][0].substring(11, 16);
-								dataList.add(Float.valueOf(dataPoints[x][1]));
+								//timeStamps[x] = dataPoints[x][0].substring(11, 16);
+								dataList.add(Float.valueOf(dataPoints[x]));
 							}
 						}
 						ls.setData(dataList);

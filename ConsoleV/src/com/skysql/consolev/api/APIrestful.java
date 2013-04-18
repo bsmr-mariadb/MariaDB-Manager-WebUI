@@ -120,17 +120,17 @@ public class APIrestful {
 			throw new RuntimeException("Could not get response from API");
 
 		} catch (IOException e) {
+			int errorCode = httpConnection.getResponseCode();
 			BufferedReader in = new BufferedReader(new InputStreamReader(httpConnection.getErrorStream()));
 			String inputLine = in.readLine();
 			in.close();
-			int errorCode = httpConnection.getResponseCode();
-			String logString = "API returned HTTP error code: " + errorCode + " with error stream: " + inputLine;
-			System.out.println(logString);
 			switch (errorCode) {
 			case 400:
 			case 404:
 			case 409:
 				Notification.show(inputLine);
+				String logString = "API returned HTTP error code: " + errorCode + " with error stream: " + inputLine;
+				System.out.println(logString);
 				return null;
 			}
 			throw new RuntimeException(e + " - " + inputLine);

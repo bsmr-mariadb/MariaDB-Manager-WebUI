@@ -26,8 +26,10 @@ import com.vaadin.addon.charts.Chart;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -40,18 +42,22 @@ public class ChartsDialog implements Window.CloseListener {
 	Button openButton;
 	Button closebutton;
 	UserChart newUserChart;
-	Chart chart;
-	ChartsLayout chartsLayout;
+	final Chart chart;
+	final ChartsLayout chartsLayout;
+	final boolean isCreate;
 
-	public ChartsDialog(ChartsLayout chartsLayout, Chart chart) {
+	public ChartsDialog(final ChartsLayout chartsLayout, final Chart chart, final boolean isCreate) {
 
 		this.chart = chart;
 		this.chartsLayout = chartsLayout;
+		this.isCreate = isCreate;
 
 		dialogWindow = new ChartWindow("Monitors to Chart mapping");
 		dialogWindow.addCloseListener(this);
-		HorizontalLayout windowLayout = new HorizontalLayout();
-		dialogWindow.setContent(windowLayout);
+
+		HorizontalLayout wrapper = new HorizontalLayout();
+		//wrapper.setWidth("100%");
+		wrapper.setMargin(true);
 
 		UI.getCurrent().addWindow(dialogWindow);
 
@@ -60,24 +66,78 @@ public class ChartsDialog implements Window.CloseListener {
 
 		ArrayList<String> monitorIDs = newUserChart.getMonitorIDs();
 		MonitorsLayout monitorsLayout = new MonitorsLayout(monitorIDs);
-		windowLayout.addComponent(monitorsLayout);
+		wrapper.addComponent(monitorsLayout);
 
 		VerticalLayout separator = new VerticalLayout();
 		separator.setSizeFull();
 		Embedded rightArrow = new Embedded(null, new ThemeResource("img/right_arrow.png"));
 		separator.addComponent(rightArrow);
 		separator.setComponentAlignment(rightArrow, Alignment.MIDDLE_CENTER);
-		windowLayout.addComponent(separator);
+		wrapper.addComponent(separator);
 
 		ChartPreviewLayout chartPreviewLayout = new ChartPreviewLayout(newUserChart);
-		windowLayout.addComponent(chartPreviewLayout);
+		wrapper.addComponent(chartPreviewLayout);
 		monitorsLayout.addChartPreview(chartPreviewLayout);
+
+		HorizontalLayout buttonsBar = new HorizontalLayout();
+		buttonsBar.setStyleName("buttonsBar");
+		buttonsBar.setSizeFull();
+		buttonsBar.setSpacing(true);
+		buttonsBar.setMargin(true);
+		buttonsBar.setHeight("49px");
+
+		Label filler = new Label();
+		buttonsBar.addComponent(filler);
+		buttonsBar.setExpandRatio(filler, 1.0f);
+
+		Button cancelButton = new Button("Cancel");
+		buttonsBar.addComponent(cancelButton);
+		buttonsBar.setComponentAlignment(cancelButton, Alignment.MIDDLE_RIGHT);
+
+		cancelButton.addClickListener(new Button.ClickListener() {
+			private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+			public void buttonClick(ClickEvent event) {
+				windowClose(null);
+			}
+		});
+
+		Button okButton = new Button("Save Chart");
+		okButton.addClickListener(new Button.ClickListener() {
+			private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+			public void buttonClick(ClickEvent event) {
+				String monitorID = null;
+				try {
+					chartsLayout.replaceChart(chart, newUserChart);
+					chartsLayout.refresh();
+
+				} catch (Exception e) {
+					return;
+				}
+
+				dialogWindow.close();
+
+			}
+		});
+		buttonsBar.addComponent(okButton);
+		buttonsBar.setComponentAlignment(okButton, Alignment.MIDDLE_RIGHT);
+
+		VerticalLayout windowLayout = (VerticalLayout) dialogWindow.getContent();
+		windowLayout.setSpacing(false);
+		windowLayout.setMargin(false);
+		windowLayout.addComponent(wrapper);
+		windowLayout.addComponent(buttonsBar);
+
 	}
 
-	/** Save data when window is closed */
 	public void windowClose(CloseEvent e) {
-		chartsLayout.replaceChart(chart, newUserChart);
-		chartsLayout.refresh();
+		if (isCreate) {
+			UserChart userChart = (UserChart) chart.getData();
+			Button deleteButton = userChart.getDeleteButton();
+			chartsLayout.removeComponent(deleteButton);
+			chartsLayout.removeComponent(chart);
+		}
 		dialogWindow.close();
 	}
 }

@@ -221,7 +221,7 @@ public class PanelInfo extends HorizontalLayout {
 
 			public void buttonClick(ClickEvent event) {
 				Chart chart = (Chart) chartsArrayLayout.addChart();
-				new ChartsDialog(chartsArrayLayout, chart);
+				new ChartsDialog(chartsArrayLayout, chart, true);
 			}
 		});
 

@@ -109,14 +109,18 @@ public class PanelTools extends HorizontalLayout {
 
 		switch (componentInfo.getType()) {
 		case system:
-			phpLink.setVisible(false);
+			if (phpLink != null) {
+				phpLink.setVisible(false);
+			}
 			break;
 
 		case node:
-			NodeInfo nodeInfo = (NodeInfo) componentInfo;
-			String url = "http://" + nodeInfo.getPublicIP() + phpUrl;
-			phpLink.setResource(new ExternalResource(url));
-			phpLink.setVisible(true);
+			if (phpLink != null) {
+				NodeInfo nodeInfo = (NodeInfo) componentInfo;
+				String url = "http://" + nodeInfo.getPublicIP() + phpUrl;
+				phpLink.setResource(new ExternalResource(url));
+				phpLink.setVisible(true);
+			}
 			break;
 		}
 
