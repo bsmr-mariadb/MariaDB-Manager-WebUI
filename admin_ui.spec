@@ -1,7 +1,7 @@
 %define _topdir	 	%(echo $PWD)/
 %define name		admin_ui
 %define release		1
-%define version 	1.1
+%define version 	1.2
 %define buildroot %{_topdir}/%{name}-%{version}-%{release}-root
 %define install_path	/usr/local/tomcat7/webapps/
 
@@ -27,8 +27,9 @@ SkySQL Administration Console
 
 %install
 mkdir -p $RPM_BUILD_ROOT%{install_path}
+mkdir -i $RPM_BUILD_ROOT/etc/httpd/conf.d
 cp ConsoleV.war $RPM_BUILD_ROOT%{install_path}
-cp skysql_rewrite.conf $RPM_BUILD_ROOT%/etc/httpd/conf.d/skysql_rewrite.conf
+cp skysql_rewrite.conf $RPM_BUILD_ROOT/etc/httpd/conf.d/skysql_rewrite.conf
 
 %clean
 
