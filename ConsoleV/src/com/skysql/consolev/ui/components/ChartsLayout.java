@@ -498,17 +498,14 @@ public class ChartsLayout extends DDCssLayout {
 								if (value % 1.0 > 0) {
 									int index = strValue.indexOf(".");
 									int strlen = strValue.length();
-									if (value > 100.0 || value < -100.0) {
+									if (value >= 100.0 || value <= -100.0) {
 										strValue = strValue.substring(0, index);
 										value = Double.valueOf(strValue);
-									} else if (value > 10.0 || value < -10.0) {
+									} else if (value >= 10.0 || value <= -10.0) {
 										strValue = strValue.substring(0, (index + 2) >= strlen ? strlen : index + 2);
 										value = Double.valueOf(strValue);
-									} else if (value > 1.0 || value < -1.0) {
-										strValue = strValue.substring(0, (index + 3) >= strlen ? strlen : index + 3);
-										value = Double.valueOf(strValue);
 									} else {
-										strValue = strValue.substring(0, (index + 4) >= strlen ? strlen : index + 4);
+										strValue = strValue.substring(0, (index + 3) >= strlen ? strlen : index + 3);
 										value = Double.valueOf(strValue);
 									}
 								}
@@ -520,17 +517,14 @@ public class ChartsLayout extends DDCssLayout {
 								if (value % 1.0 > 0) {
 									int index = strValue.indexOf(".");
 									int strlen = strValue.length();
-									if (value > 100.0 || value < -100.0) {
+									if (value >= 100.0 || value <= -100.0) {
 										strValue = strValue.substring(0, index);
 										value = Double.valueOf(strValue);
-									} else if (value > 10.0 || value < -10.0) {
+									} else if (value >= 10.0 || value <= -10.0) {
 										strValue = strValue.substring(0, (index + 2) >= strlen ? strlen : index + 2);
 										value = Double.valueOf(strValue);
-									} else if (value > 1.0 || value < -1.0) {
-										strValue = strValue.substring(0, (index + 3) >= strlen ? strlen : index + 3);
-										value = Double.valueOf(strValue);
 									} else {
-										strValue = strValue.substring(0, (index + 4) >= strlen ? strlen : index + 4);
+										strValue = strValue.substring(0, (index + 3) >= strlen ? strlen : index + 3);
 										value = Double.valueOf(strValue);
 									}
 								}
