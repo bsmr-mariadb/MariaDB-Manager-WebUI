@@ -170,7 +170,7 @@ public class OverviewPanel extends Panel {
 
 			// fetch current capacity from monitor
 			MonitorData monitorData = new MonitorData(Monitors.getMonitor(Monitors.MONITOR_CAPACITY), newInfo.getSystemID(), newInfo.getID(), null, null, "1");
-			float dataPoints[] = monitorData.getDataPoints();
+			double dataPoints[] = monitorData.getDataPoints();
 			newInfo.setCapacity((dataPoints == null) ? null : String.valueOf(dataPoints[0]));
 
 			if ((newName = newInfo.getName()) != null && !newName.equals(nodeInfo.getName())) {

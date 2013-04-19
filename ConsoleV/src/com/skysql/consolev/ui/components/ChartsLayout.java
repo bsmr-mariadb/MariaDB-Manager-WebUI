@@ -432,12 +432,12 @@ public class ChartsLayout extends DDCssLayout {
 						userChart.setMonitorData(monitor.getID(), monitorData);
 
 						ArrayList<Number> dataList = new ArrayList<Number>();
-						float dataPoints[] = monitorData.getDataPoints();
+						double dataPoints[] = monitorData.getDataPoints();
 						if (dataPoints != null) {
 							//timeStamps = new String[dataPoints.length];
 							for (int x = 0; x < dataPoints.length; x++) {
 								//timeStamps[x] = dataPoints[x][0].substring(11, 16);
-								dataList.add(Float.valueOf(dataPoints[x]));
+								dataList.add(Double.valueOf(dataPoints[x]));
 							}
 						}
 						ls.setData(dataList);
@@ -490,12 +490,52 @@ public class ChartsLayout extends DDCssLayout {
 							Number[][] dataList = new Number[dataPoints.length][2];
 							String[] timeStamps = new String[dataPoints.length];
 							for (int x = 0; x < dataPoints.length; x++) {
-								dataList[x][0] = (Float.valueOf(dataPoints[x][0]));
-								dataList[x][1] = (Float.valueOf(dataPoints[x][1]));
 								timeStamps[x] = dataPoints[x][2].substring(11, 16);
-								// timeStamps[x] =
-								// dataPoints[x][3].substring(11,
-								// 16);
+
+								//								dataList[x][0] = (Double.valueOf(dataPoints[x][0]));
+								String strValue = dataPoints[x][0];
+								double value = Double.valueOf(strValue);
+								if (value % 1.0 > 0) {
+									int index = strValue.indexOf(".");
+									int strlen = strValue.length();
+									if (value > 100.0 || value < -100.0) {
+										strValue = strValue.substring(0, index);
+										value = Double.valueOf(strValue);
+									} else if (value > 10.0 || value < -10.0) {
+										strValue = strValue.substring(0, (index + 2) >= strlen ? strlen : index + 2);
+										value = Double.valueOf(strValue);
+									} else if (value > 1.0 || value < -1.0) {
+										strValue = strValue.substring(0, (index + 3) >= strlen ? strlen : index + 3);
+										value = Double.valueOf(strValue);
+									} else {
+										strValue = strValue.substring(0, (index + 4) >= strlen ? strlen : index + 4);
+										value = Double.valueOf(strValue);
+									}
+								}
+								dataList[x][0] = value;
+
+								//								dataList[x][1] = (Float.valueOf(dataPoints[x][1]));
+								strValue = dataPoints[x][1];
+								value = Double.valueOf(strValue);
+								if (value % 1.0 > 0) {
+									int index = strValue.indexOf(".");
+									int strlen = strValue.length();
+									if (value > 100.0 || value < -100.0) {
+										strValue = strValue.substring(0, index);
+										value = Double.valueOf(strValue);
+									} else if (value > 10.0 || value < -10.0) {
+										strValue = strValue.substring(0, (index + 2) >= strlen ? strlen : index + 2);
+										value = Double.valueOf(strValue);
+									} else if (value > 1.0 || value < -1.0) {
+										strValue = strValue.substring(0, (index + 3) >= strlen ? strlen : index + 3);
+										value = Double.valueOf(strValue);
+									} else {
+										strValue = strValue.substring(0, (index + 4) >= strlen ? strlen : index + 4);
+										value = Double.valueOf(strValue);
+									}
+								}
+								dataList[x][1] = value;
+
 							}
 							rs.setRangeData(dataList);
 						} else {

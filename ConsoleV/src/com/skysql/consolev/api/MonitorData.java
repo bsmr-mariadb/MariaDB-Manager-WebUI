@@ -37,13 +37,13 @@ import com.skysql.consolev.MonitorRecord;
 public class MonitorData {
 
 	private MonitorRecord monitor;
-	private float[] dataPoints;
+	private double[] dataPoints;
 
-	public float[] getDataPoints() {
+	public double[] getDataPoints() {
 		return dataPoints;
 	}
 
-	protected void setDataPoints(float[] dataPoints) {
+	protected void setDataPoints(double[] dataPoints) {
 		this.dataPoints = dataPoints;
 	}
 
@@ -109,15 +109,30 @@ class MonitorDataDeserializer implements JsonDeserializer<MonitorData> {
 			JsonArray array = jsonElement.getAsJsonArray();
 			int length = array.size();
 
-			float[] points = new float[length];
+			double[] points = new double[length];
 			for (int i = 0; i < length; i++) {
 				JsonObject point = array.get(i).getAsJsonObject();
 				//points[i][0] = point.get("time").getAsString();
-				String value = point.get("value").getAsString();
-				//				if (value.contains(".")) {
-				//					value.indexOf(".");
-				//				}
-				points[i] = Float.valueOf(value);
+				String strValue = point.get("value").getAsString();
+				double value = Double.valueOf(strValue);
+				if (value % 1.0 > 0) {
+					int index = strValue.indexOf(".");
+					int strlen = strValue.length();
+					if (value > 100.0 || value < -100.0) {
+						strValue = strValue.substring(0, index);
+						value = Double.valueOf(strValue);
+					} else if (value > 10.0 || value < -10.0) {
+						strValue = strValue.substring(0, (index + 2) >= strlen ? strlen : index + 2);
+						value = Double.valueOf(strValue);
+					} else if (value > 1.0 || value < -1.0) {
+						strValue = strValue.substring(0, (index + 3) >= strlen ? strlen : index + 3);
+						value = Double.valueOf(strValue);
+					} else {
+						strValue = strValue.substring(0, (index + 4) >= strlen ? strlen : index + 4);
+						value = Double.valueOf(strValue);
+					}
+				}
+				points[i] = value;
 			}
 			monitorData.setDataPoints(points);
 		}
