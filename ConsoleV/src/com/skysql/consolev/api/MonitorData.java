@@ -32,12 +32,14 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.consolev.ConsoleUI;
 import com.skysql.consolev.MonitorRecord;
 
 public class MonitorData {
 
 	private MonitorRecord monitor;
 	private double[] dataPoints;
+	private String latest;
 
 	public double[] getDataPoints() {
 		return dataPoints;
@@ -45,6 +47,14 @@ public class MonitorData {
 
 	protected void setDataPoints(double[] dataPoints) {
 		this.dataPoints = dataPoints;
+	}
+
+	public String getLatest() {
+		return latest;
+	}
+
+	protected void setLatest(String latest) {
+		this.latest = latest;
 	}
 
 	public boolean equals(Object ob) {
@@ -59,8 +69,8 @@ public class MonitorData {
 
 	public boolean update(String system, String node, String time, String interval, String count) {
 
-		MonitorData newMonitorData = new MonitorData(monitor, system, node, time, interval, count);
-		if (!this.equals(newMonitorData)) {
+		MonitorData newMonitorData = new MonitorData(monitor, system, node, getLatest(), interval, count);
+		if (newMonitorData.getDataPoints() != null) {
 			dataPoints = newMonitorData.getDataPoints();
 			return true;
 		} else {
@@ -74,6 +84,8 @@ public class MonitorData {
 	public MonitorData(MonitorRecord monitor, String system, String node, String time, String interval, String count) {
 
 		this.monitor = monitor;
+
+		ConsoleUI.log("API MonitorRecord node: " + node + ", monitor: " + monitor.getID() + ", count: " + count);
 
 		String inputLine = null;
 		try {
@@ -91,6 +103,7 @@ public class MonitorData {
 		Gson gson = AppData.getGson();
 		MonitorData monitorData = gson.fromJson(inputLine, MonitorData.class);
 		this.dataPoints = monitorData.dataPoints;
+		this.latest = monitorData.latest;
 
 	}
 
@@ -109,10 +122,12 @@ class MonitorDataDeserializer implements JsonDeserializer<MonitorData> {
 			JsonArray array = jsonElement.getAsJsonArray();
 			int length = array.size();
 
+			JsonObject element = array.get(length - 1).getAsJsonObject();
+			monitorData.setLatest(element.get("latest").getAsString());
+
 			double[] points = new double[length];
 			for (int i = 0; i < length; i++) {
 				JsonObject point = array.get(i).getAsJsonObject();
-				//points[i][0] = point.get("time").getAsString();
 				String strValue = point.get("value").getAsString();
 				double value = Double.valueOf(strValue);
 				if (value % 1.0 > 0) {

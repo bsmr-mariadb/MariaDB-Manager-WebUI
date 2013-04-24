@@ -160,6 +160,8 @@ public class OverviewPanel extends Panel {
 		}
 
 		refresh = false;
+		int i = 0;
+
 		for (NodeInfo nodeInfo : nodes) {
 			NodeInfo newInfo = new NodeInfo(nodeInfo.getSystemID(), nodeInfo.getID());
 
@@ -186,7 +188,8 @@ public class OverviewPanel extends Panel {
 
 				String icon = NodeStates.getNodeIcon(newStatus);
 				if ((newCapacity = newInfo.getCapacity()) != null && (newInfo.getStatus().equals(STATE_MASTER) || newInfo.getStatus().equals(STATE_ONLINE))) {
-					int capacity_num = Integer.parseInt(newCapacity);
+
+					double capacity_num = Double.parseDouble(newCapacity);
 					if (capacity_num > 0 && capacity_num < 20)
 						icon += "-20";
 					else if (capacity_num < 40)

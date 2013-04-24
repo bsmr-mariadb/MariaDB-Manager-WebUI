@@ -75,6 +75,7 @@ public class APIrestful {
 		URLConnection sc = url.openConnection();
 		HttpURLConnection httpConnection = (HttpURLConnection) sc;
 		String date = sdf.format(new Date());
+
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
 			byte[] mdbytes = md.digest((uri + AUTHORIZATION_CODE_SKYSQL_API + date).getBytes("UTF-8"));
@@ -127,8 +128,8 @@ public class APIrestful {
 			switch (errorCode) {
 			case 400:
 			case 404:
-			case 409:
 				Notification.show(inputLine);
+			case 409:
 				String logString = "API returned HTTP error code: " + errorCode + " with error stream: " + inputLine;
 				System.out.println(logString);
 				return null;

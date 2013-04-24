@@ -37,12 +37,15 @@ public class ExecutorFactory {
 
 		if (runningTimers == 0) {
 			fScheduler = Executors.newScheduledThreadPool(NUM_THREADS);
+			ConsoleUI.log("timer startup");
 		}
 
-		ScheduledFuture<?> newTimerHandle = fScheduler.scheduleWithFixedDelay(timerTask, fDelayBetweenRuns, fDelayBetweenRuns, TimeUnit.SECONDS);
+		ScheduledFuture<?> newTimerHandle = fScheduler.scheduleWithFixedDelay(timerTask, 0L, fDelayBetweenRuns, TimeUnit.SECONDS);
 		if (newTimerHandle != null) {
 			runningTimers++;
-			log("timer added - " + runningTimers);
+			ConsoleUI.log("timer added - " + runningTimers);
+		} else {
+			ConsoleUI.log("cannot get new timer handle");
 		}
 
 		return newTimerHandle;
@@ -52,7 +55,7 @@ public class ExecutorFactory {
 	public static void removeTimer(ScheduledFuture<?> timerHandle) {
 		if (timerHandle != null) {
 			timerHandle.cancel(MAY_INTERRUPT_IF_RUNNING);
-			System.out.println("timer cancel: " + runningTimers);
+			ConsoleUI.log("timer cancel: " + runningTimers);
 			if (runningTimers > 0) {
 				runningTimers--;
 			}
@@ -61,12 +64,8 @@ public class ExecutorFactory {
 		if (runningTimers == 0 && fScheduler != null) {
 			List<Runnable> pendingTasks = fScheduler.shutdownNow();
 			fScheduler = null;
-			log("timer shutdown - pending: " + pendingTasks.size());
+			ConsoleUI.log("timer shutdown - pending: " + pendingTasks.size());
 		}
-	}
-
-	private static void log(String aMsg) {
-		System.out.println(aMsg);
 	}
 
 }

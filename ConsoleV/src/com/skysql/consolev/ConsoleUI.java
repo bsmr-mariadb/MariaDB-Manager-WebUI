@@ -39,7 +39,6 @@ import com.vaadin.ui.VerticalLayout;
 @Theme("skystyle1")
 @Title("SkySQL Console")
 public class ConsoleUI extends UI {
-	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private ScheduledFuture<?> mainTimerFuture;
 
@@ -145,6 +144,9 @@ public class ConsoleUI extends UI {
 				overviewPanel.refresh();
 				tabbedPanel.refresh();
 				icePush.push();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+
 			} finally {
 				vaadinSession.unlock();
 			}
@@ -152,8 +154,8 @@ public class ConsoleUI extends UI {
 		}
 	}
 
-	private static void log(String aMsg) {
-		// System.out.println(aMsg);
+	public static void log(String aMsg) {
+		System.out.println(aMsg);
 	}
 
 }

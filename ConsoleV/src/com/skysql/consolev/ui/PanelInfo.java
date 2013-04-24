@@ -69,7 +69,6 @@ public class PanelInfo extends HorizontalLayout {
 		public void valueChange(ValueChangeEvent event) {
 
 			Integer value = (Integer) (event.getProperty()).getValue();
-			// value = value / Integer.parseInt(chartPoints);
 			chartInterval = Integer.toString(value);
 			refresh();
 		}

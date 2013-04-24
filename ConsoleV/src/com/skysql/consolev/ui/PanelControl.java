@@ -152,6 +152,7 @@ public class PanelControl extends VerticalLayout {
 	}
 
 	public void refresh() {
+
 		nodeInfo = (NodeInfo) VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
 		String newNodeID = nodeInfo.getID();
 
@@ -202,9 +203,6 @@ public class PanelControl extends VerticalLayout {
 					if (selected != null) {
 						commandSelect.select(names.get(selected));
 					}
-					commandSelect.setVisible(true);
-				} else {
-					commandSelect.setVisible(false);
 				}
 			}
 
