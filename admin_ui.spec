@@ -25,6 +25,9 @@ SkySQL Administration Console
 
 %build
 
+%post
+chown tomcat:tomcat %{install_path}ConsoleV.war
+
 %install
 mkdir -p $RPM_BUILD_ROOT%{install_path}
 mkdir -p $RPM_BUILD_ROOT/etc/httpd/conf.d
