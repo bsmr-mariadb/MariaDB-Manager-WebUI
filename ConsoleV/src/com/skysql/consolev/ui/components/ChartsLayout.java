@@ -25,10 +25,13 @@ import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
+import com.skysql.consolev.ConsoleUI;
+import com.skysql.consolev.DateConversion;
 import com.skysql.consolev.MonitorRecord;
 import com.skysql.consolev.api.ChartMappings;
 import com.skysql.consolev.api.ClusterComponent;
 import com.skysql.consolev.api.MonitorData;
+import com.skysql.consolev.api.MonitorData2;
 import com.skysql.consolev.api.MonitorData3;
 import com.skysql.consolev.api.Monitors;
 import com.skysql.consolev.api.NodeInfo;
@@ -42,6 +45,7 @@ import com.vaadin.addon.charts.Chart;
 import com.vaadin.addon.charts.model.Axis;
 import com.vaadin.addon.charts.model.ChartType;
 import com.vaadin.addon.charts.model.Configuration;
+import com.vaadin.addon.charts.model.HorizontalAlign;
 import com.vaadin.addon.charts.model.Labels;
 import com.vaadin.addon.charts.model.ListSeries;
 import com.vaadin.addon.charts.model.PlotOptionsLine;
@@ -49,6 +53,7 @@ import com.vaadin.addon.charts.model.RangeSeries;
 import com.vaadin.addon.charts.model.Series;
 import com.vaadin.addon.charts.model.Title;
 import com.vaadin.addon.charts.model.VerticalAlign;
+import com.vaadin.addon.charts.model.XAxis;
 import com.vaadin.event.LayoutEvents.LayoutClickEvent;
 import com.vaadin.event.LayoutEvents.LayoutClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -336,7 +341,10 @@ public class ChartsLayout extends DDCssLayout {
 			chartType = ChartType.LINE;
 		} else if (UserChart.AREACHART.equalsIgnoreCase(userChart.getType())) {
 			chartType = ChartType.AREARANGE;
+		} else if (UserChart.TESTCHART.equalsIgnoreCase(userChart.getType())) {
+			chartType = ChartType.LINE;
 		}
+
 		configuration.getChart().setType(chartType);
 		configuration.getTitle().setText(userChart.getName());
 		configuration.getSubTitle().setText(userChart.getDescription());
@@ -396,7 +404,7 @@ public class ChartsLayout extends DDCssLayout {
 				UserChart userChart = (UserChart) chart.getData();
 				boolean needsRedraw = false;
 
-				if (UserChart.LINECHART.equalsIgnoreCase(userChart.getType())) {
+				if (UserChart.TESTCHART.equalsIgnoreCase(userChart.getType())) {
 					Configuration configuration = chart.getConfiguration();
 					String[] timeStamps = null;
 
@@ -511,7 +519,7 @@ public class ChartsLayout extends DDCssLayout {
 								}
 								dataList[x][0] = value;
 
-								//								dataList[x][1] = (Float.valueOf(dataPoints[x][1]));
+								//								dataList[x][1] = (Double.valueOf(dataPoints[x][1]));
 								strValue = dataPoints[x][1];
 								value = Double.valueOf(strValue);
 								if (value % 1.0 > 0) {
@@ -544,9 +552,147 @@ public class ChartsLayout extends DDCssLayout {
 						chart.drawChart(configuration);
 					}
 
+				} else if (UserChart.LINECHART.equalsIgnoreCase(userChart.getType())) {
+					Configuration configuration = chart.getConfiguration();
+
+					for (String monitorID : userChart.getMonitorIDs()) {
+						MonitorRecord monitor = Monitors.getMonitor(monitorID);
+
+						RangeSeries rs = null, testRS;
+						List<Series> lsList = configuration.getSeries();
+						Iterator seriesIter = lsList.iterator();
+						while (seriesIter.hasNext()) {
+							testRS = (RangeSeries) seriesIter.next();
+							if (testRS.getName().equalsIgnoreCase(monitor.getName())) {
+								rs = testRS;
+								break;
+							}
+						}
+						if (rs == null) {
+							rs = new RangeSeries(monitor.getName());
+							configuration.addSeries(rs);
+						}
+
+						MonitorData2 monitorData = (MonitorData2) userChart.getMonitorData(monitor.getID());
+						if (monitorData == null) {
+							monitorData = new MonitorData2(monitor, systemID, nodeID, time, interval);
+							needsRedraw = true;
+						} else if (monitorData.update(systemID, nodeID, time, interval) == true) {
+							// data in chart needs to be updated
+							needsRedraw = true;
+						} else {
+							continue; // no update needed
+						}
+
+						userChart.setMonitorData(monitor.getID(), monitorData);
+
+						String dataPoints[][] = monitorData.getDataPoints();
+						DateConversion dateConversion = new DateConversion(dataPoints[0][0], dataPoints[dataPoints.length - 1][0]);
+						if (dataPoints != null) {
+							Number[][] dataList = new Number[dataPoints.length][2];
+							String[] timeStamps = new String[dataPoints.length];
+							for (int x = 0; x < dataPoints.length; x++) {
+								timeStamps[x] = dataPoints[x][0].substring(11, 16);
+								dataList[x][0] = dateConversion.convert(dataPoints[x][0]);
+								dataList[x][1] = (Double.valueOf(dataPoints[x][1]));
+							}
+
+							int pointsTotal = dataList[dataPoints.length - 1][0].intValue();
+							String[] expandedTimeStamps = new String[pointsTotal + 1];
+							for (int t = 0, x = 0, index = dataList[x][0].intValue(); t <= pointsTotal; t++) {
+								if (t == index) {
+									expandedTimeStamps[t] = timeStamps[x];
+									if (++x < dataPoints.length) {
+										index = dataList[x][0].intValue();
+									}
+								} else {
+									expandedTimeStamps[t] = "";
+								}
+							}
+							rs.setRangeData(dataList);
+							XAxis xAxis = configuration.getxAxis();
+							Labels labels = new Labels();
+							labels.setRotation(-45);
+							labels.setAlign(HorizontalAlign.RIGHT);
+							xAxis.setLabels(labels);
+							xAxis.setCategories(expandedTimeStamps);
+						} else {
+							rs.setRangeData(new Number[0][0]);
+						}
+					}
+
+					if (needsRedraw) {
+						chart.drawChart(configuration);
+					}
+
+				} else if (UserChart.TESTCHART2.equalsIgnoreCase(userChart.getType())) {
+					Configuration configuration = chart.getConfiguration();
+					String[] timeStamps = null;
+
+					for (String monitorID : userChart.getMonitorIDs()) {
+						MonitorRecord monitor = Monitors.getMonitor(monitorID);
+
+						ListSeries ls = null, testLS;
+						List<Series> lsList = configuration.getSeries();
+						Iterator seriesIter = lsList.iterator();
+						while (seriesIter.hasNext()) {
+							testLS = (ListSeries) seriesIter.next();
+							if (testLS.getName().equalsIgnoreCase(monitor.getName())) {
+								ls = testLS;
+								break;
+							}
+						}
+						if (ls == null) {
+							ls = new ListSeries(monitor.getName());
+							configuration.addSeries(ls);
+						}
+
+						MonitorData2 monitorData = (MonitorData2) userChart.getMonitorData(monitor.getID());
+						if (monitorData == null) {
+							monitorData = new MonitorData2(monitor, systemID, nodeID, time, interval);
+							needsRedraw = true;
+						} else if (monitorData.update(systemID, nodeID, time, interval) == true) {
+							// data in chart needs to be updated
+							needsRedraw = true;
+						} else {
+							continue; // no update needed
+						}
+
+						userChart.setMonitorData(monitor.getID(), monitorData);
+
+						String dataPoints[][] = monitorData.getDataPoints();
+						ConsoleUI.log("monitorData2 = length: " + dataPoints.length);
+						//Number times[] = { 10, 20, 25, 30, 35 };
+						DateConversion dateConversion = new DateConversion();
+						if (dataPoints != null) {
+							Number[][] dataList = new Number[dataPoints.length][2];
+							for (int x = 0; x < dataPoints.length; x++) {
+								ConsoleUI.log("[0]: " + dataPoints[x][0] + ", [1]: " + dataPoints[x][1]);
+
+								//timeStamps[x] = dataPoints[x][2].substring(11, 16);
+								//dataList[x][0] = times[x]; //(Double.valueOf(dataPoints[x][0]));
+								dataList[x][0] = dateConversion.convert(dataPoints[x][0]);
+								dataList[x][1] = (Double.valueOf(dataPoints[x][1]));
+
+							}
+							//ls.setData(dataList);
+						} else {
+							//ls.setData(new Number[0][0]);
+						}
+
+					}
+
+					// if (timeStamps != null) {
+					// configuration.getxAxis().setCategories(timeStamps);
+					// }
+					if (needsRedraw) {
+						chart.drawChart(configuration);
+					}
+
 				}
 
 			}
+
 		}
 
 	}

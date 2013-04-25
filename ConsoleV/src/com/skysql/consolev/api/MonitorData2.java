@@ -91,7 +91,6 @@ public class MonitorData2 {
 	}
 
 	public void fillDataSource(IndexedContainer container) {
-		//Calendar cal = Calendar.getInstance();
 		Calendar cal = new GregorianCalendar();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 

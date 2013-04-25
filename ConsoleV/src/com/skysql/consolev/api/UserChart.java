@@ -38,6 +38,8 @@ public class UserChart extends ChartMappings {
 
 	public static final String LINECHART = "LineChart";
 	public static final String AREACHART = "AreaChart";
+	public static final String TESTCHART = "TestChart";
+	public static final String TESTCHART2 = "TestChart2";
 
 	public static String[] chartTypes() {
 		String[] array = { LINECHART, AREACHART };

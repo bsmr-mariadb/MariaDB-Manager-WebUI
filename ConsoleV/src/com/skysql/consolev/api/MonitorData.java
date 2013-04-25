@@ -32,7 +32,6 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.skysql.consolev.ConsoleUI;
 import com.skysql.consolev.MonitorRecord;
 
 public class MonitorData {
@@ -85,7 +84,7 @@ public class MonitorData {
 
 		this.monitor = monitor;
 
-		ConsoleUI.log("API MonitorRecord node: " + node + ", monitor: " + monitor.getID() + ", count: " + count);
+		//ConsoleUI.log("API MonitorRecord node: " + node + ", monitor: " + monitor.getID() + ", count: " + count);
 
 		String inputLine = null;
 		try {
