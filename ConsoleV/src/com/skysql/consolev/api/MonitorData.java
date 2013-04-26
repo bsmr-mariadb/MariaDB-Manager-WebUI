@@ -84,8 +84,6 @@ public class MonitorData {
 
 		this.monitor = monitor;
 
-		//ConsoleUI.log("API MonitorRecord node: " + node + ", monitor: " + monitor.getID() + ", count: " + count);
-
 		String inputLine = null;
 		try {
 			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/monitorinfo.php", "monitor=" + monitor.getID() + "&system=" + system + "&node=" + node

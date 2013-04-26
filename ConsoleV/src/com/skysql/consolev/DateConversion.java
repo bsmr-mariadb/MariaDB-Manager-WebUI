@@ -7,20 +7,28 @@ import java.util.GregorianCalendar;
 public class DateConversion {
 
 	long start, end;
-	long delta, count = 15;
+	long delta, count;
+	long last = -1;
 
 	public DateConversion() {
 	}
 
-	public DateConversion(String start, String end) {
+	public DateConversion(String start, String end, String interval) {
 		this.start = dateToCal(start);
 		this.end = dateToCal(end);
+		count = Long.valueOf(interval) / 60;
 		delta = (this.end - this.start) / count;
 	}
 
 	public long convert(String date) {
 		if (delta != 0) {
-			return (dateToCal(date) - start) / delta;
+			long value = (dateToCal(date) - start) / delta;
+			if (value > last) {
+			} else {
+				value++;
+			}
+			last = value;
+			return value;
 		} else {
 			return 0;
 		}

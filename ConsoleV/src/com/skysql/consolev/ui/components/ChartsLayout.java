@@ -587,14 +587,31 @@ public class ChartsLayout extends DDCssLayout {
 						userChart.setMonitorData(monitor.getID(), monitorData);
 
 						String dataPoints[][] = monitorData.getDataPoints();
-						DateConversion dateConversion = new DateConversion(dataPoints[0][0], dataPoints[dataPoints.length - 1][0]);
+						DateConversion dateConversion = new DateConversion(dataPoints[0][0], dataPoints[dataPoints.length - 1][0], interval);
 						if (dataPoints != null) {
 							Number[][] dataList = new Number[dataPoints.length][2];
 							String[] timeStamps = new String[dataPoints.length];
 							for (int x = 0; x < dataPoints.length; x++) {
 								timeStamps[x] = dataPoints[x][0].substring(11, 16);
 								dataList[x][0] = dateConversion.convert(dataPoints[x][0]);
-								dataList[x][1] = (Double.valueOf(dataPoints[x][1]));
+								// dataList[x][1] = (Double.valueOf(dataPoints[x][1]));
+								String strValue = dataPoints[x][1];
+								double value = Double.valueOf(strValue);
+								if (value % 1.0 > 0) {
+									int index = strValue.indexOf(".");
+									int strlen = strValue.length();
+									if (value >= 100.0 || value <= -100.0) {
+										strValue = strValue.substring(0, index);
+										value = Double.valueOf(strValue);
+									} else if (value >= 10.0 || value <= -10.0) {
+										strValue = strValue.substring(0, (index + 2) >= strlen ? strlen : index + 2);
+										value = Double.valueOf(strValue);
+									} else {
+										strValue = strValue.substring(0, (index + 3) >= strlen ? strlen : index + 3);
+										value = Double.valueOf(strValue);
+									}
+								}
+								dataList[x][1] = value;
 							}
 
 							int pointsTotal = dataList[dataPoints.length - 1][0].intValue();

@@ -128,7 +128,7 @@ public class ConsoleUI extends UI {
 
 		// setup scheduler that will keep refreshing the UI until the end of the session
 		log("init");
-		final long fDelayBetweenRuns = 10;
+		final long fDelayBetweenRuns = 15;
 		Runnable runTimerTask = new RunMainTimerTask();
 		mainTimerFuture = ExecutorFactory.addTimer(runTimerTask, fDelayBetweenRuns);
 

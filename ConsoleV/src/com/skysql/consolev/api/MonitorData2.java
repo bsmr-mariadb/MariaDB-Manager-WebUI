@@ -46,11 +46,9 @@ public class MonitorData2 {
 	protected static int INDEX_VALUE = 1;
 
 	private MonitorRecord monitor;
-	private String system;
-	private String node;
-	private String time;
-	private String interval;
 	private String[][] dataPoints;
+	private String latest;
+	private String interval;
 
 	public String[][] getDataPoints() {
 		return dataPoints;
@@ -58,6 +56,14 @@ public class MonitorData2 {
 
 	public void setDataPoints(String[][] dataPoints) {
 		this.dataPoints = dataPoints;
+	}
+
+	public String getLatest() {
+		return latest;
+	}
+
+	protected void setLatest(String latest) {
+		this.latest = latest;
 	}
 
 	public String getLatestTime() {
@@ -76,14 +82,16 @@ public class MonitorData2 {
 
 	public boolean update(String system, String node, String time, String interval) {
 
-		this.system = system;
-		this.node = node;
-		this.time = time;
-		this.interval = interval;
-
-		MonitorData2 newMonitorData = new MonitorData2(monitor, system, node, time, interval);
-		if (!this.equals(newMonitorData)) {
-			dataPoints = newMonitorData.getDataPoints();
+		MonitorData2 newMonitorData;
+		if (interval != this.interval) {
+			this.interval = interval;
+			newMonitorData = new MonitorData2(monitor, system, node, null, interval);
+		} else {
+			newMonitorData = new MonitorData2(monitor, system, node, getLatest(), interval);
+		}
+		if (newMonitorData.getDataPoints() != null) {
+			dataPoints = newMonitorData.dataPoints;
+			latest = newMonitorData.latest;
 			return true;
 		} else {
 			return false;
@@ -120,16 +128,15 @@ public class MonitorData2 {
 	public MonitorData2(MonitorRecord monitor, String system, String node, String time, String interval) {
 
 		this.monitor = monitor;
-		this.system = system;
-		this.node = node;
-		this.time = time;
 		this.interval = interval;
 
 		String inputLine = null;
 		try {
 			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/monitorinfo2.php", "monitor=" + monitor.getID() + "&system=" + system + "&node=" + node
 					+ "&time=" + time + "&interval=" + interval, null).toURL();
-			// System.out.println(url.toString());
+
+			//ConsoleUI.log("MonitorData2 - " + url.toString());
+
 			URLConnection sc = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			inputLine = in.readLine();
@@ -142,7 +149,8 @@ public class MonitorData2 {
 		Gson gson = AppData.getGson();
 		MonitorData2 monitorData = gson.fromJson(inputLine, MonitorData2.class);
 		this.dataPoints = monitorData.dataPoints;
-		monitorData = null;
+		this.latest = monitorData.latest;
+
 	}
 
 }
@@ -158,11 +166,14 @@ class MonitorDataDeserializer2 implements JsonDeserializer<MonitorData2> {
 			JsonArray array = jsonElement.getAsJsonArray();
 			int length = array.size();
 
+			JsonObject object = array.get(length - 1).getAsJsonObject();
+			monitorData.setLatest(object.get("latest").getAsString());
+
 			String[][] points = new String[length][2];
 			for (int i = 0; i < length; i++) {
 				JsonObject jsonObject = array.get(i).getAsJsonObject();
 				JsonElement element;
-				points[i][MonitorData2.INDEX_TIME] = (element = jsonObject.get("time")).isJsonNull() ? null : element.getAsString();
+				points[i][MonitorData2.INDEX_TIME] = (element = jsonObject.get("start")).isJsonNull() ? null : element.getAsString();
 				points[i][MonitorData2.INDEX_VALUE] = (element = jsonObject.get("value")).isJsonNull() ? null : element.getAsString();
 			}
 			monitorData.setDataPoints(points);

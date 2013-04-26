@@ -20,6 +20,7 @@ package com.skysql.consolev.ui;
 
 import java.util.ArrayList;
 
+import com.skysql.consolev.MonitorRecord;
 import com.skysql.consolev.api.ClusterComponent;
 import com.skysql.consolev.api.MonitorData;
 import com.skysql.consolev.api.Monitors;
@@ -171,9 +172,12 @@ public class OverviewPanel extends Panel {
 			newInfo.setButton(button);
 
 			// fetch current capacity from monitor
-			MonitorData monitorData = new MonitorData(Monitors.getMonitor(Monitors.MONITOR_CAPACITY), newInfo.getSystemID(), newInfo.getID(), null, null, "1");
-			double dataPoints[] = monitorData.getDataPoints();
-			newInfo.setCapacity((dataPoints == null) ? null : String.valueOf(dataPoints[0]));
+			MonitorRecord capacityMonitor = Monitors.getMonitor(Monitors.MONITOR_CAPACITY);
+			if (capacityMonitor != null) {
+				MonitorData monitorData = new MonitorData(capacityMonitor, newInfo.getSystemID(), newInfo.getID(), null, null, "1");
+				double dataPoints[] = monitorData.getDataPoints();
+				newInfo.setCapacity((dataPoints == null) ? null : String.valueOf(dataPoints[0]));
+			}
 
 			if ((newName = newInfo.getName()) != null && !newName.equals(nodeInfo.getName())) {
 				refresh = true;
