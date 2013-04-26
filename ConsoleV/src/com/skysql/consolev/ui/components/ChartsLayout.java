@@ -587,8 +587,8 @@ public class ChartsLayout extends DDCssLayout {
 						userChart.setMonitorData(monitor.getID(), monitorData);
 
 						String dataPoints[][] = monitorData.getDataPoints();
-						DateConversion dateConversion = new DateConversion(dataPoints[0][0], dataPoints[dataPoints.length - 1][0], interval);
-						if (dataPoints != null) {
+						if (dataPoints != null && dataPoints.length > 0) {
+							DateConversion dateConversion = new DateConversion(dataPoints[0][0], dataPoints[dataPoints.length - 1][0], interval);
 							Number[][] dataList = new Number[dataPoints.length][2];
 							String[] timeStamps = new String[dataPoints.length];
 							for (int x = 0; x < dataPoints.length; x++) {
@@ -633,9 +633,8 @@ public class ChartsLayout extends DDCssLayout {
 							labels.setAlign(HorizontalAlign.RIGHT);
 							xAxis.setLabels(labels);
 							xAxis.setCategories(expandedTimeStamps);
-						} else {
-							rs.setRangeData(new Number[0][0]);
 						}
+
 					}
 
 					if (needsRedraw) {

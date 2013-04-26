@@ -166,13 +166,16 @@ class MonitorDataDeserializer2 implements JsonDeserializer<MonitorData2> {
 			JsonArray array = jsonElement.getAsJsonArray();
 			int length = array.size();
 
-			JsonObject object = array.get(length - 1).getAsJsonObject();
-			monitorData.setLatest(object.get("latest").getAsString());
+			JsonElement element;
+			if (length > 0) {
+				JsonObject object = array.get(length - 1).getAsJsonObject();
+				String latest = (element = object.get("latest")).isJsonNull() ? null : element.getAsString();
+				monitorData.setLatest(latest);
+			}
 
 			String[][] points = new String[length][2];
 			for (int i = 0; i < length; i++) {
 				JsonObject jsonObject = array.get(i).getAsJsonObject();
-				JsonElement element;
 				points[i][MonitorData2.INDEX_TIME] = (element = jsonObject.get("start")).isJsonNull() ? null : element.getAsString();
 				points[i][MonitorData2.INDEX_VALUE] = (element = jsonObject.get("value")).isJsonNull() ? null : element.getAsString();
 			}
