@@ -555,8 +555,10 @@ public class ChartsLayout extends DDCssLayout {
 				} else if (UserChart.LINECHART.equalsIgnoreCase(userChart.getType())) {
 					Configuration configuration = chart.getConfiguration();
 
+					int monitorsCount = 0;
 					for (String monitorID : userChart.getMonitorIDs()) {
 						MonitorRecord monitor = Monitors.getMonitor(monitorID);
+						monitorsCount++;
 
 						RangeSeries rs = null, testRS;
 						List<Series> lsList = configuration.getSeries();
@@ -627,12 +629,14 @@ public class ChartsLayout extends DDCssLayout {
 								}
 							}
 							rs.setRangeData(dataList);
-							XAxis xAxis = configuration.getxAxis();
-							Labels labels = new Labels();
-							labels.setRotation(-45);
-							labels.setAlign(HorizontalAlign.RIGHT);
-							xAxis.setLabels(labels);
-							xAxis.setCategories(expandedTimeStamps);
+							if (monitorsCount == 1) {
+								XAxis xAxis = configuration.getxAxis();
+								Labels labels = new Labels();
+								labels.setRotation(-45);
+								labels.setAlign(HorizontalAlign.RIGHT);
+								xAxis.setLabels(labels);
+								xAxis.setCategories(expandedTimeStamps);
+							}
 						}
 
 					}

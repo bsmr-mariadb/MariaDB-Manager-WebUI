@@ -356,7 +356,10 @@ public class MonitorsSettings implements Window.CloseListener {
 		}
 		if (monitor.getInterval() == 0) {
 			SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
-			monitorInterval.select(Integer.parseInt(systemInfo.getProperties().get(SystemInfo.PROPERTY_DEFAULTMONITORINTERVAL)));
+			String defaultInterval = systemInfo.getProperties().get(SystemInfo.PROPERTY_DEFAULTMONITORINTERVAL);
+			if (defaultInterval != null) {
+				monitorInterval.select(Integer.parseInt(defaultInterval));
+			}
 		} else {
 			monitorInterval.select(monitor.getInterval());
 		}
