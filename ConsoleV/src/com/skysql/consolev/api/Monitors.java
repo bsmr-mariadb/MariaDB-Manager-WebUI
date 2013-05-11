@@ -18,15 +18,12 @@
 
 package com.skysql.consolev.api;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.LinkedHashMap;
 
-import com.google.gson.Gson;
+import org.json.JSONObject;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -52,9 +49,12 @@ public class Monitors {
 		if (monitorsList == null) {
 			reloadMonitors();
 		}
-		LinkedHashMap<String, MonitorRecord> pippo = monitorsList;
-		MonitorRecord monitor = pippo.get(ID);
-		return monitor;
+
+		if (monitorsList != null) {
+			return monitorsList.get(ID);
+		} else {
+			return null;
+		}
 	}
 
 	public Monitors() {
@@ -63,74 +63,86 @@ public class Monitors {
 
 	public synchronized static void reloadMonitors() {
 
-		String inputLine = null;
-		try {
-			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/monitors.php", null, null).toURL();
-
-			URLConnection sc = url.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
-			inputLine = in.readLine();
-			in.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+		APIrestful api = new APIrestful();
+		if (api.get("monitorclass")) {
+			Monitors monitors = AppData.getGson().fromJson(api.getResult(), Monitors.class);
+			Monitors.monitorsList = monitors.monitorsList;
 		}
-
-		Gson gson = AppData.getGson();
-		Monitors monitors = gson.fromJson(inputLine, Monitors.class);
-		Monitors.monitorsList = monitors.getMonitorsList();
 
 	}
 
 	public synchronized static String setMonitor(MonitorRecord monitor) {
 
-		String inputLine = null;
+		APIrestful api = new APIrestful();
+
 		try {
-			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/setmonitor.php", "id=" + monitor.getID() + "&name=" + monitor.getName() + "&description="
-					+ monitor.getDescription() + "&unit=" + monitor.getUnit() + "&sql=" + monitor.getSql() + "&delta=" + monitor.isDelta() + "&average="
-					+ monitor.isAverage() + "&interval=" + monitor.getInterval() + "&chartType=" + monitor.getChartType(), null).toURL();
-			URLConnection sc = url.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
-			inputLine = in.readLine();
-			in.close();
+			boolean success;
+			if (monitor.getID() != null) {
+
+				JSONObject jsonParam = new JSONObject();
+				jsonParam.put("name", monitor.getName());
+				jsonParam.put("description", monitor.getDescription());
+				jsonParam.put("sql", monitor.getSql());
+				jsonParam.put("unit", monitor.getUnit());
+				jsonParam.put("delta", monitor.isDelta() ? "1" : "0");
+				jsonParam.put("systemaverage", monitor.isAverage() ? "1" : "0");
+				jsonParam.put("monitortype", "SQL");
+
+				// type needs to indicate int/float/string etc. instead of LineChart/AreaChart
+				jsonParam.put("type", monitor.getChartType());
+				int interval = monitor.getInterval();
+				jsonParam.put("interval", String.valueOf(interval));
+
+				success = api.put("monitorclass/" + monitor.getID(), jsonParam.toString());
+			} else {
+
+				StringBuffer regParam = new StringBuffer();
+				regParam.append("name=" + URLEncoder.encode(monitor.getName(), "UTF-8"));
+				regParam.append("&description=" + URLEncoder.encode(monitor.getDescription(), "UTF-8"));
+				regParam.append("&sql=" + URLEncoder.encode(monitor.getSql(), "UTF-8"));
+				regParam.append("&unit=" + URLEncoder.encode(monitor.getUnit(), "UTF-8"));
+				regParam.append("&delta=" + (monitor.isDelta() ? "1" : "0"));
+				regParam.append("&systemaverage=" + (monitor.isAverage() ? "1" : "0"));
+				regParam.append("&monitortype=" + "SQL");
+
+				// type needs to indicate int/float/string etc. instead of LineChart/AreaChart
+				regParam.append("&type=" + URLEncoder.encode(monitor.getChartType(), "UTF-8"));
+				int interval = monitor.getInterval();
+				regParam.append("&interval=" + String.valueOf(interval));
+
+				success = api.post("monitorclass", regParam.toString());
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+			throw new RuntimeException("Error encoding API request");
 		}
 
-		Gson gson = AppData.getGson();
-		Response response = gson.fromJson(inputLine, Response.class);
-		String monitorID = response.getResponse();
-		if (monitor.getID() == null && monitorID != null) {
+		WriteResponse writeResponse = AppData.getGson().fromJson(api.getResult(), WriteResponse.class);
+		if (writeResponse != null && !writeResponse.getInsertKey().isEmpty()) {
+			String monitorID = writeResponse.getInsertKey();
 			monitor.setID(monitorID);
 			monitorsList.put(monitorID, monitor);
+			return monitorID;
+		} else if (writeResponse != null && writeResponse.getUpdateCount() > 0) {
+			return monitor.getID();
+		} else {
+			return null;
 		}
 
-		return (monitorID);
 	}
 
-	public synchronized static String deleteMonitor(MonitorRecord monitor) {
+	public synchronized static boolean deleteMonitor(MonitorRecord monitor) {
 
-		String inputLine = null;
-		try {
-			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/deletemonitor.php", "id=" + monitor.getID(), null).toURL();
-			URLConnection sc = url.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
-			inputLine = in.readLine();
-			in.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+		APIrestful api = new APIrestful();
+		if (api.delete("monitorclass/" + monitor.getID())) {
+			WriteResponse writeResponse = AppData.getGson().fromJson(api.getResult(), WriteResponse.class);
+			if (writeResponse != null && writeResponse.getDeleteCount() > 0) {
+				monitorsList.remove(monitor.getID());
+				return true;
+			}
 		}
-
-		Gson gson = AppData.getGson();
-		Response response = gson.fromJson(inputLine, Response.class);
-		String monitorID = response.getResponse();
-		if (monitorID != null) {
-			monitorsList.remove(monitorID);
-		}
-
-		return (monitorID);
+		return false;
 	}
 
 	protected void setMonitorsList(LinkedHashMap<String, MonitorRecord> monitorsList) {
@@ -143,7 +155,7 @@ class MonitorsDeserializer implements JsonDeserializer<Monitors> {
 	public Monitors deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		Monitors monitors = new Monitors();
 
-		JsonElement jsonElement = json.getAsJsonObject().get("monitors");
+		JsonElement jsonElement = json.getAsJsonObject().get("monitorclasses");
 		if (jsonElement == null || jsonElement.isJsonNull()) {
 			monitors.setMonitorsList(null);
 		} else {
@@ -158,14 +170,14 @@ class MonitorsDeserializer implements JsonDeserializer<Monitors> {
 				String name = (element = jsonObject.get("name")).isJsonNull() ? null : element.getAsString();
 				String description = (element = jsonObject.get("description")).isJsonNull() ? null : element.getAsString();
 				String unit = (element = jsonObject.get("unit")).isJsonNull() ? null : element.getAsString();
-				String icon = (element = jsonObject.get("icon")).isJsonNull() ? null : element.getAsString();
-				String type = (element = jsonObject.get("type")).isJsonNull() ? null : element.getAsString();
-				boolean delta = (element = jsonObject.get("delta")).isJsonNull() ? null : element.getAsBoolean();
-				boolean average = (element = jsonObject.get("average")).isJsonNull() ? null : element.getAsBoolean();
-				String chartType = (element = jsonObject.get("chartType")).isJsonNull() ? null : element.getAsString();
-				int interval = (element = jsonObject.get("interval")).isJsonNull() ? null : element.getAsInt();
+				String type = (element = jsonObject.get("monitortype")).isJsonNull() ? null : element.getAsString();
+				boolean delta = (element = jsonObject.get("delta")).isJsonNull() ? false : element.getAsBoolean();
+				boolean average = (element = jsonObject.get("systemaverage")).isJsonNull() ? false : element.getAsBoolean();
+				String chartType = (element = jsonObject.get("type")).isJsonNull() ? null : element.getAsString();
+				String intervalString = (element = jsonObject.get("interval")).isJsonNull() ? null : element.getAsString();
+				int interval = (intervalString != null && !intervalString.isEmpty()) ? Integer.valueOf(intervalString) : 0;
 				String sql = (element = jsonObject.get("sql")).isJsonNull() ? null : element.getAsString();
-				MonitorRecord monitorRecord = new MonitorRecord(id, name, description, unit, icon, type, delta, average, chartType, interval, sql);
+				MonitorRecord monitorRecord = new MonitorRecord(id, name, description, unit, type, delta, average, chartType, interval, sql);
 				monitorsList.put(id, monitorRecord);
 			}
 			monitors.setMonitorsList(monitorsList);
@@ -174,5 +186,4 @@ class MonitorsDeserializer implements JsonDeserializer<Monitors> {
 
 		return monitors;
 	}
-
 }

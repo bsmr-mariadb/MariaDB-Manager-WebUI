@@ -164,7 +164,7 @@ public class PanelControl extends VerticalLayout {
 		if (!newNodeID.equalsIgnoreCase(lastNodeID)) {
 			lastNodeID = newNodeID;
 
-			TaskInfo taskInfo = new TaskInfo(null, null, nodeInfo.getID());
+			TaskInfo taskInfo = new TaskInfo(null, nodeInfo.getID());
 			logsTable.removeAllItems();
 			if (taskInfo.getTasksList() != null) {
 				for (TaskRecord taskRecord : taskInfo.getTasksList()) {

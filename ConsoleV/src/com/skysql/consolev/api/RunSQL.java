@@ -18,26 +18,14 @@
 
 package com.skysql.consolev.api;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 public class RunSQL {
 
 	private boolean success;
-	private String[] results;
-	private String error;
+	private String result;
+	private String errors;
 
 	public boolean getSuccess() {
 		return success;
@@ -47,78 +35,26 @@ public class RunSQL {
 		this.success = success;
 	}
 
-	public String[] getResults() {
-		return results;
+	public String getResult() {
+		return result;
 	}
 
-	public void setResults(String[] results) {
-		this.results = results;
-	}
-
-	public String getError() {
-		return error;
-	}
-
-	public void setError(String error) {
-		this.error = error;
+	public String getErrors() {
+		return errors;
 	}
 
 	public RunSQL() {
 
 	}
 
-	public RunSQL(String SQL) {
-		String inputLine = null;
+	public RunSQL(String SQL, String systemID, String nodeID) {
+		APIrestful api = new APIrestful();
 		try {
-			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/runsql.php", "node=" + 1 + "&sql=" + SQL, null).toURL();
-			URLConnection sc = url.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
-			inputLine = in.readLine();
-			in.close();
-		} catch (Exception e) {
+			success = api.get("runsql", "?systemid=" + systemID + "&nodeid=" + nodeID + "&sql=" + URLEncoder.encode(SQL, "UTF-8"));
+			result = api.getResult();
+			errors = api.getErrors();
+		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
 		}
-
-		Gson gson = AppData.getGson();
-		RunSQL runSQL = gson.fromJson(inputLine, RunSQL.class);
-		this.success = runSQL.getSuccess();
-		this.error = runSQL.getError();
-		this.results = runSQL.getResults();
-
-	}
-
-}
-
-class RunSQLDeserializer implements JsonDeserializer<RunSQL> {
-	public RunSQL deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-		RunSQL runSQL = new RunSQL();
-
-		JsonObject jsonObject = json.getAsJsonObject();
-
-		if (jsonObject == null || jsonObject.isJsonNull()) {
-
-		} else {
-			JsonElement element = jsonObject.get("results");
-			if (element == null) {
-				runSQL.setSuccess(false);
-				runSQL.setError(jsonObject.get("error").getAsString());
-			} else {
-				runSQL.setSuccess(true);
-				JsonArray array = element.getAsJsonArray();
-				int length = array.size();
-
-				String[] results = new String[length];
-				for (int i = 0; i < length; i++) {
-					jsonObject = array.get(i).getAsJsonObject();
-					results[i] = jsonObject.toString();
-				}
-
-				runSQL.setResults(results);
-			}
-
-		}
-
-		return runSQL;
 	}
 }

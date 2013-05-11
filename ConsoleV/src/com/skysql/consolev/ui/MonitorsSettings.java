@@ -19,10 +19,12 @@
 package com.skysql.consolev.ui;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 
 import com.skysql.consolev.MonitorRecord;
 import com.skysql.consolev.api.Monitors;
+import com.skysql.consolev.api.NodeInfo;
 import com.skysql.consolev.api.RunSQL;
 import com.skysql.consolev.api.SettingsValues;
 import com.skysql.consolev.api.SystemInfo;
@@ -30,6 +32,7 @@ import com.skysql.consolev.api.UserChart;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
+import com.vaadin.data.Validator.EmptyValueException;
 import com.vaadin.event.LayoutEvents.LayoutClickEvent;
 import com.vaadin.event.LayoutEvents.LayoutClickListener;
 import com.vaadin.server.ThemeResource;
@@ -59,6 +62,8 @@ public class MonitorsSettings implements Window.CloseListener {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private Window secondaryDialog;
+	private String systemID, nodeID;
+	private boolean validateSQL;
 	private Button deleteMonitor;
 	private ListSelect select;
 	private LinkedHashMap<String, MonitorRecord> monitorsAll;
@@ -76,6 +81,9 @@ public class MonitorsSettings implements Window.CloseListener {
 		selectLayout.setWidth("200px");
 		selectLayout.setSpacing(true);
 		selectLayout.setMargin(true);
+
+		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+		systemID = systemInfo.getID();
 
 		Monitors.reloadMonitors();
 		monitorsAll = Monitors.getMonitorsList();
@@ -253,23 +261,19 @@ public class MonitorsSettings implements Window.CloseListener {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
-				String monitorID = null;
 				try {
-					monitorID = Monitors.deleteMonitor(monitor);
-
-					if (monitorID != null) {
-						select.removeItem(monitorID);
+					if (Monitors.deleteMonitor(monitor)) {
+						select.removeItem(monitor.getID());
 						monitorsAll = Monitors.getMonitorsList();
 						displayMonitorRecord(null);
+						secondaryDialog.close();
 					}
 
 				} catch (Exception e) {
+					e.printStackTrace();
 					return;
 				}
 
-				if (monitorID != null) {
-					secondaryDialog.close();
-				}
 			}
 		});
 		buttonsBar.addComponent(okButton);
@@ -299,6 +303,7 @@ public class MonitorsSettings implements Window.CloseListener {
 		final TextArea monitorSQL = new TextArea("SQL Statement");
 		final CheckBox monitorDelta = new CheckBox("Is Delta");
 		final CheckBox monitorAverage = new CheckBox("Is Average");
+		final NativeSelect validationTarget = new NativeSelect("Validate SQL on");
 		final NativeSelect monitorInterval = new NativeSelect("Sampling interval");
 		final NativeSelect monitorChartType = new NativeSelect("Default display");
 
@@ -343,6 +348,28 @@ public class MonitorsSettings implements Window.CloseListener {
 		monitorSQL.addValidator(new SQLValidator());
 		form.addField("monitorSQL", monitorSQL);
 
+		final String noValidation = "None - Skip Validation";
+		validationTarget.setImmediate(true);
+		validationTarget.setNullSelectionAllowed(false);
+		validationTarget.addItem(noValidation);
+		validationTarget.select(noValidation);
+		OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
+		ArrayList<NodeInfo> nodes = overviewPanel.getNodes();
+		for (NodeInfo node : nodes) {
+			validationTarget.addItem(node.getID());
+			validationTarget.setItemCaption(node.getID(), node.getName());
+		}
+		validationTarget.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+			public void valueChange(ValueChangeEvent event) {
+				nodeID = (String) event.getProperty().getValue();
+				validateSQL = nodeID.equals(noValidation) ? false : true;
+			}
+
+		});
+		form.addField("validationTarget", validationTarget);
+
 		monitorDelta.setValue(monitor.isDelta());
 		form.addField("monitorDelta", monitorDelta);
 
@@ -350,21 +377,28 @@ public class MonitorsSettings implements Window.CloseListener {
 		form.addField("monitorAverage", monitorAverage);
 
 		SettingsValues intervalValues = new SettingsValues(SettingsValues.SETTINGS_MONITOR_INTERVAL);
-		ArrayList<String> intervals = intervalValues.getValues();
+		String[] intervals = intervalValues.getValues();
 		for (String interval : intervals) {
 			monitorInterval.addItem(Integer.parseInt(interval));
 		}
-		if (monitor.getInterval() == 0) {
+
+		Collection validIntervals = monitorInterval.getItemIds();
+		if (validIntervals.contains(monitor.getInterval())) {
+			monitorInterval.select(monitor.getInterval());
+		} else {
 			SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
 			String defaultInterval = systemInfo.getProperties().get(SystemInfo.PROPERTY_DEFAULTMONITORINTERVAL);
-			if (defaultInterval != null) {
+			if (defaultInterval != null && validIntervals.contains(Integer.parseInt(defaultInterval))) {
 				monitorInterval.select(Integer.parseInt(defaultInterval));
+			} else if (!validIntervals.isEmpty()) {
+				monitorInterval.select(validIntervals.toArray()[0]);
+			} else {
+				throw new RuntimeException("No set of permissible monitor intervals found");
 			}
-		} else {
-			monitorInterval.select(monitor.getInterval());
+
+			monitorInterval.setNullSelectionAllowed(false);
+			form.addField("monitorInterval", monitorInterval);
 		}
-		monitorInterval.setNullSelectionAllowed(false);
-		form.addField("monitorInterval", monitorInterval);
 
 		for (String chartType : UserChart.chartTypes()) {
 			monitorChartType.addItem(chartType);
@@ -422,21 +456,22 @@ public class MonitorsSettings implements Window.CloseListener {
 							monitorsAll = Monitors.getMonitorsList();
 						}
 					} else {
-						monitorID = Monitors.setMonitor(monitor);
+						Monitors.setMonitor(monitor);
 					}
 
 					if (monitorID != null) {
 						select.setItemCaption(monitorID, monitor.getName());
 						displayMonitorRecord(monitorID);
+						secondaryDialog.close();
 					}
 
+				} catch (EmptyValueException e) {
+					return;
 				} catch (Exception e) {
+					e.printStackTrace();
 					return;
 				}
 
-				if (monitorID != null) {
-					secondaryDialog.close();
-				}
 			}
 		});
 		buttonsBar.addComponent(okButton);
@@ -456,12 +491,12 @@ public class MonitorsSettings implements Window.CloseListener {
 
 		public boolean isValid(Object value) {
 			// ignore an empty field
-			if (value == null || (value != null && value.toString().isEmpty())) {
+			if (!validateSQL || value == null || (value != null && value.toString().isEmpty())) {
 				return true;
 			}
 
-			RunSQL runSQL = new RunSQL((String) value);
-			error = runSQL.getError();
+			RunSQL runSQL = new RunSQL((String) value, systemID, nodeID);
+			error = runSQL.getErrors();
 
 			return (runSQL.getSuccess());
 		}
@@ -469,7 +504,7 @@ public class MonitorsSettings implements Window.CloseListener {
 		// Upon failure, the validate() method throws an exception
 		public void validate(Object value) throws InvalidValueException {
 			if (!isValid(value)) {
-				throw new InvalidValueException("SQL statement is invalid. " + error);
+				throw new InvalidValueException(error);
 			} else {
 
 			}

@@ -31,6 +31,9 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
 public class TopPanel extends HorizontalLayout {
+	private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+	private Label userName;
 
 	public TopPanel() {
 		setSpacing(true);
@@ -54,7 +57,8 @@ public class TopPanel extends HorizontalLayout {
 		UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
 		Embedded userIcon = new Embedded(null, new ThemeResource("img/user.png"));
 		userLayout.addComponent(userIcon);
-		final Label userName = new Label(userObject.getName());
+		userLayout.setComponentAlignment(userIcon, Alignment.MIDDLE_CENTER);
+		userName = new Label(userObject.getName());
 		userLayout.addComponent(userName);
 
 		// buttons
@@ -85,6 +89,10 @@ public class TopPanel extends HorizontalLayout {
 			}
 		});
 
+	}
+
+	public void setUserName(String name) {
+		userName.setValue(name);
 	}
 
 }

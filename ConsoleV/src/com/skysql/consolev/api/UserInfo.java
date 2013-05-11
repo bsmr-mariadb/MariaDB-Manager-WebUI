@@ -23,7 +23,6 @@ import java.util.LinkedHashMap;
 
 import org.json.JSONObject;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -46,24 +45,15 @@ public class UserInfo {
 
 	public UserInfo(String userID) {
 
-		String inputLine = null;
-		try {
-			APIrestful api = new APIrestful();
-			inputLine = api.get("user");
-		} catch (Exception e) {
-			e.printStackTrace();
-			String error = "Could not get response from API";
-			Notification.show(error);
-			throw new RuntimeException(error);
+		APIrestful api = new APIrestful();
+		if (api.get("user")) {
+			UserInfo userInfo = AppData.getGson().fromJson(api.getResult(), UserInfo.class);
+			if (userInfo != null) {
+				this.usersList = userInfo.usersList;
+			}
+		} else {
+			Notification.show(api.getErrors());
 		}
-
-		if (inputLine == null) {
-			return;
-		}
-
-		Gson gson = AppData.getGson();
-		UserInfo userInfo = gson.fromJson(inputLine, UserInfo.class);
-		this.usersList = userInfo.usersList;
 
 	}
 
@@ -99,20 +89,19 @@ public class UserInfo {
 
 	public boolean setUser(String userID, String name, String password) {
 
-		String inputLine = null;
+		boolean success = false;
 		try {
 			APIrestful api = new APIrestful();
 			JSONObject jsonParam = new JSONObject();
 			jsonParam.put("name", name);
 			jsonParam.put("password", password);
-			inputLine = api.put("user/" + userID, jsonParam.toString());
+			success = api.put("user/" + userID, jsonParam.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not get response from API");
 		}
 
-		// returns record
-
+		// TODO: check this code!  Shouldn't it be like Monitors? 
 		// if we added a user, versus modified it
 		if (!usersList.containsKey(userID)) {
 			UserObject userObject = new UserObject(userID, name);
@@ -127,23 +116,13 @@ public class UserInfo {
 
 	public boolean deleteUser(String userID) {
 
-		String inputLine = null;
-		try {
-			APIrestful api = new APIrestful();
-			inputLine = api.delete("user/" + userID);
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+		APIrestful api = new APIrestful();
+		if (api.delete("user/" + userID)) {
+			usersList.remove(userID);
+			return true;
 		}
 
-		if (inputLine == null) {
-			return false;
-		}
-
-		usersList.remove(userID);
-
-		return true;
-
+		return false;
 	}
 
 	protected void setUsersList(LinkedHashMap<String, UserObject> usersList) {

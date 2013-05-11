@@ -18,10 +18,12 @@
 
 package com.skysql.consolev.ui;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.ListIterator;
+import java.util.Map;
 
 import com.skysql.consolev.BackupRecord;
-import com.skysql.consolev.api.BackupCommands;
 import com.skysql.consolev.api.BackupStates;
 import com.skysql.consolev.api.Backups;
 import com.skysql.consolev.api.SystemInfo;
@@ -45,7 +47,6 @@ public class PanelBackup extends VerticalLayout {
 	private Table backupsTable;
 	private int oldBackupsCount;
 	private LinkedHashMap<String, BackupRecord> backupsList;
-	final LinkedHashMap<String, String> names = BackupCommands.getNames();
 
 	PanelBackup() {
 
@@ -67,7 +68,7 @@ public class PanelBackup extends VerticalLayout {
 		addComponent(newLayout);
 
 		Label placeholderLabel = new Label(
-				"Scheduled backups are currently not available. To run an interactive backup, select a node and use the Control panel.");
+				"Scheduled backups are currently not available. To run an immediate backup, select a node and use the Control panel.");
 		placeholderLabel.addStyleName("instructions");
 		placeholderLabel.setSizeUndefined();
 		newLayout.addComponent(placeholderLabel);
@@ -111,7 +112,12 @@ public class PanelBackup extends VerticalLayout {
 				oldBackupsCount = size;
 
 				backupsTable.removeAllItems();
-				for (BackupRecord backupRecord : backupsList.values()) {
+				ListIterator<Map.Entry<String, BackupRecord>> iter = new ArrayList(backupsList.entrySet()).listIterator(backupsList.size());
+
+				while (iter.hasPrevious()) {
+					Map.Entry<String, BackupRecord> entry = iter.previous();
+					BackupRecord backupRecord = entry.getValue();
+
 					if (EIP != null) {
 						String url = "http://" + EIP + "/consoleAPI/" + backupRecord.getLog();
 						backupLogLink = new Link("Backup Log", new ExternalResource(url));
@@ -125,8 +131,8 @@ public class PanelBackup extends VerticalLayout {
 
 					backupsTable.addItem(
 							new Object[] { backupRecord.getStarted(), backupRecord.getUpdated(), backupRecord.getLevel(), backupRecord.getStorage(),
-									backupRecord.getRestored(), BackupStates.getDescriptions().get(backupRecord.getStatus()),
-									(backupLogLink != null) ? backupLogLink : NOT_AVAILABLE }, backupRecord.getID());
+									backupRecord.getRestored(), BackupStates.getDescriptions().get(backupRecord.getStatus()), backupLogLink },
+							backupRecord.getID());
 				}
 			}
 		} else {

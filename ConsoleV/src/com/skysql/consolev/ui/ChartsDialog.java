@@ -113,6 +113,7 @@ public class ChartsDialog implements Window.CloseListener {
 					chartsLayout.refresh();
 
 				} catch (Exception e) {
+					e.printStackTrace();
 					return;
 				}
 

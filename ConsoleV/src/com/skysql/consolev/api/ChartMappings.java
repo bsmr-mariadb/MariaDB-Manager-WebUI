@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import javax.xml.bind.DatatypeConverter;
 
 public class ChartMappings implements Serializable {
+	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private String name;
 	private String description;
@@ -93,6 +94,10 @@ public class ChartMappings implements Serializable {
 
 	public void setMonitorIDs(ArrayList<String> monitorIDs) {
 		this.monitorIDs = monitorIDs;
+	}
+
+	public boolean deleteMonitorID(String monitorID) {
+		return monitorIDs.remove(monitorID);
 	}
 
 	public int getPoints() {

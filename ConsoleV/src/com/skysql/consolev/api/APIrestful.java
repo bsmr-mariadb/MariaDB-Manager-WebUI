@@ -22,8 +22,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Type;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.MessageDigest;
@@ -32,51 +34,92 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import com.vaadin.ui.Notification;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 
 public class APIrestful {
 
-	public static String newAPIurl = "http://localhost/consoleAPI/api/";
+	private static String newAPIurl = "http://localhost/consoleAPI/api/";
 	private static final String AUTHORIZATION_ID_SKYSQL_API = "1";
 	private static final String AUTHORIZATION_CODE_SKYSQL_API = "1f8d9e040e65d7b105538b1ed0231770";
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+
+	private boolean success;
+	private String result;
+	private String errors;
 
 	private enum CallType {
 		GET, PUT, POST, DELETE;
 	}
 
-	public String get(String uri) throws IOException {
+	public boolean isSuccess() {
+		return success;
+	}
+
+	public String getResult() {
+		return result;
+	}
+
+	public String getErrors() {
+		return errors;
+	}
+
+	protected void setSuccess(boolean success) {
+		this.success = success;
+	}
+
+	protected void setResult(String result) {
+		this.result = result;
+	}
+
+	protected void setErrors(String errors) {
+		this.errors = errors;
+	}
+
+	public boolean get(String uri) {
 
 		return call(uri, CallType.GET, null);
 
 	}
 
-	public String put(String uri, String value) throws IOException {
+	public boolean get(String uri, String value) {
+
+		return call(uri, CallType.GET, value);
+
+	}
+
+	public boolean put(String uri, String value) {
 
 		return call(uri, CallType.PUT, value);
 
 	}
 
-	public String post(String uri, String value) throws IOException {
+	public boolean post(String uri, String value) {
 
 		return call(uri, CallType.POST, value);
 
 	}
 
-	public String delete(String uri) throws IOException {
+	public boolean delete(String uri) {
 
 		return call(uri, CallType.DELETE, null);
 
 	}
 
-	private String call(String uri, CallType type, String value) throws IOException {
+	private boolean call(String uri, CallType type, String value) {
 
-		URL url = new URL(newAPIurl + uri);
-		URLConnection sc = url.openConnection();
-		HttpURLConnection httpConnection = (HttpURLConnection) sc;
-		String date = sdf.format(new Date());
+		HttpURLConnection httpConnection = null;
 
 		try {
+			URL url = new URL(newAPIurl + uri + ((type == CallType.GET && value != null) ? value : ""));
+			URLConnection sc = url.openConnection();
+			httpConnection = (HttpURLConnection) sc;
+			String date = sdf.format(new Date());
+
 			MessageDigest md = MessageDigest.getInstance("MD5");
 			byte[] mdbytes = md.digest((uri + AUTHORIZATION_CODE_SKYSQL_API + date).getBytes("UTF-8"));
 			StringBuffer sb = new StringBuffer();
@@ -96,6 +139,9 @@ public class APIrestful {
 			case POST:
 				httpConnection.setDoOutput(true);
 				httpConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+				httpConnection.setRequestProperty("charset", "utf-8");
+				httpConnection.setRequestProperty("Content-Length", "" + Integer.toString(value.getBytes().length));
+				httpConnection.setUseCaches(false);
 				httpConnection.setRequestMethod(type.toString());
 				OutputStreamWriter out = new OutputStreamWriter(httpConnection.getOutputStream());
 				out.write(value);
@@ -108,37 +154,97 @@ public class APIrestful {
 			}
 
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
-			String inputLine = in.readLine();
+			result = in.readLine();
 			in.close();
-			return inputLine;
+
+			APIrestful api = AppData.getGson().fromJson(result, APIrestful.class);
+
+			return api.success;
 
 		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
 			throw new RuntimeException("Could not use MD5 to encode HTTP request header");
-
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Bad URL");
 		} catch (ConnectException e) {
+			e.printStackTrace();
+
 			//			UI.getCurrent().getSession().close();
 			//			UI.getCurrent().getPage().setLocation("/error/noapi.html");
 			throw new RuntimeException("Could not get response from API");
 
 		} catch (IOException e) {
-			int errorCode = httpConnection.getResponseCode();
-			BufferedReader in = new BufferedReader(new InputStreamReader(httpConnection.getErrorStream()));
-			String inputLine = in.readLine();
-			in.close();
+			int errorCode = 0;
+			try {
+				errorCode = httpConnection.getResponseCode();
+				BufferedReader in = new BufferedReader(new InputStreamReader(httpConnection.getErrorStream()));
+				errors = in.readLine();
+				in.close();
+
+				APIrestful api = AppData.getGson().fromJson(errors, APIrestful.class);
+				errors = api.getErrors();
+
+			} catch (IOException f) {
+				f.printStackTrace();
+			}
+
 			switch (errorCode) {
 			case 400:
 			case 404:
-				Notification.show(inputLine);
+				//Notification.show("API Error", errors, Notification.Type.HUMANIZED_MESSAGE);
 			case 409:
-				String logString = "API returned HTTP error code: " + errorCode + " with error stream: " + inputLine;
+				String logString = "API returned HTTP error code: " + errorCode + " with error stream: " + errors;
 				System.out.println(logString);
-				return null;
+				return false;
+
+			default:
+				break;
 			}
-			throw new RuntimeException(e + " - " + inputLine);
+			e.printStackTrace();
+			throw new RuntimeException(e + " - " + errors);
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 
+	}
+}
+
+class APIrestfulDeserializer implements JsonDeserializer<APIrestful> {
+	public APIrestful deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+
+		APIrestful response = new APIrestful();
+
+		if (!json.isJsonObject()) {
+			response.setSuccess(false);
+			return response;
+		}
+
+		JsonObject jsonObject = json.getAsJsonObject();
+
+		if (jsonObject.has("result")) {
+			response.setResult(jsonObject.get("result").toString());
+			response.setSuccess(true);
+		} else if (jsonObject.has("errors")) {
+			JsonArray array = jsonObject.get("errors").getAsJsonArray();
+			int length = array.size();
+			StringBuffer errors = new StringBuffer();
+			for (int i = 0; i < length; i++) {
+				errors.append(array.get(i).getAsString());
+				errors.append(",");
+			}
+			if (errors.length() > 0) {
+				errors.deleteCharAt(errors.length() - 1);
+			}
+			response.setErrors(errors.toString());
+			response.setSuccess(false);
+		} else {
+			// response does not have either and is valid JSON, so let processing continue
+			response.setSuccess(true);
+		}
+
+		return response;
 	}
 }

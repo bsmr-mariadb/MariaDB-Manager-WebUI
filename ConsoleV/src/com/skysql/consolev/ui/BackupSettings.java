@@ -18,7 +18,6 @@
 
 package com.skysql.consolev.ui;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import com.skysql.consolev.api.SettingsValues;
@@ -55,7 +54,7 @@ public class BackupSettings {
 		selectCount.setImmediate(true);
 
 		SettingsValues countValues = new SettingsValues(SettingsValues.SETTINGS_MAX_BACKUP_COUNT);
-		ArrayList<String> counts = countValues.getValues();
+		String[] counts = countValues.getValues();
 		for (String value : counts) {
 			selectCount.addItem(value);
 		}
@@ -75,7 +74,7 @@ public class BackupSettings {
 		NativeSelect selectSize = new NativeSelect("Max total backup size");
 		selectSize.setImmediate(true);
 		SettingsValues sizeValues = new SettingsValues(SettingsValues.SETTINGS_MAX_BACKUP_SIZE);
-		ArrayList<String> sizes = sizeValues.getValues();
+		String[] sizes = sizeValues.getValues();
 		for (String value : sizes) {
 			selectSize.addItem(value + " GB");
 		}

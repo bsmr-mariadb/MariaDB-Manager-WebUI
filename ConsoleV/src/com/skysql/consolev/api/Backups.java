@@ -18,15 +18,9 @@
 
 package com.skysql.consolev.api;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.LinkedHashMap;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -53,22 +47,12 @@ public class Backups {
 
 	public Backups(String system, String date) {
 
-		String inputLine = null;
-		try {
-			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/backups.php", "system=" + system + "&date=" + date, null).toURL();
-			URLConnection sc = url.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
-			inputLine = in.readLine();
-			in.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+		APIrestful api = new APIrestful();
+		// TODO: incorporate or eliminate date parameter
+		if (api.get("system/" + system + "/backup")) {
+			Backups backups = AppData.getGson().fromJson(api.getResult(), Backups.class);
+			this.backupsList = backups.backupsList;
 		}
-
-		Gson gson = AppData.getGson();
-		Backups backups = gson.fromJson(inputLine, Backups.class);
-		this.backupsList = backups.backupsList;
-		backups = null;
 	}
 
 }
@@ -78,10 +62,15 @@ class BackupsDeserializer implements JsonDeserializer<Backups> {
 
 		Backups backups = new Backups();
 
-		JsonElement jsonElement = json.getAsJsonObject().get("backups");
+		JsonElement jsonElement = json.getAsJsonObject().get("result");
 		if (jsonElement == null || jsonElement.isJsonNull()) {
 			backups.setBackupsList(null);
 		} else {
+			jsonElement = jsonElement.getAsJsonObject().get("backups");
+			if (jsonElement == null || jsonElement.isJsonNull()) {
+				backups.setBackupsList(null);
+			}
+
 			JsonArray array = jsonElement.getAsJsonArray();
 			int length = array.size();
 

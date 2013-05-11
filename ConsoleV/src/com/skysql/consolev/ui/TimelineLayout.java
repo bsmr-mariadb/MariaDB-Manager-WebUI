@@ -19,7 +19,6 @@
 package com.skysql.consolev.ui;
 
 import java.awt.Color;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -28,7 +27,7 @@ import java.util.LinkedHashMap;
 
 import com.skysql.consolev.MonitorRecord;
 import com.skysql.consolev.api.ClusterComponent;
-import com.skysql.consolev.api.MonitorData2;
+import com.skysql.consolev.api.MonitorDataRaw;
 import com.skysql.consolev.api.Monitors;
 import com.skysql.consolev.api.NodeInfo;
 import com.skysql.consolev.api.SystemInfo;
@@ -85,20 +84,15 @@ public class TimelineLayout extends VerticalLayout {
 		for (String monitorID : monitorIDs) {
 			MonitorRecord monitor = Monitors.getMonitor(monitorID);
 			IndexedContainer container = createIndexedContainer();
-			MonitorData2 monitorData = new MonitorData2(monitor, systemID, nodeID, null, MAX_TIMESPAN);
+			MonitorDataRaw monitorData = new MonitorDataRaw(monitor, systemID, nodeID, null, MAX_TIMESPAN);
 			monitorData.fillDataSource(container);
 			containers.put(monitor, container);
 
-			String latestTime = monitorData.getLatestTime();
+			Long latestTime = monitorData.getLatestTime();
 			Calendar cal = Calendar.getInstance();
-			try {
-				cal.setTime(sdf.parse(latestTime));
-				if (latestCal == null || cal.after(latestCal)) {
-					latestCal = cal;
-				}
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			cal.setTimeInMillis(latestTime * 1000L);
+			if (latestCal == null || cal.after(latestCal)) {
+				latestCal = cal;
 			}
 
 		}

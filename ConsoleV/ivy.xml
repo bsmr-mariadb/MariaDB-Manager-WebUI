@@ -15,22 +15,19 @@
 	</configurations>
 	<dependencies>
 		<!-- The core server part of Vaadin -->
-		<dependency org="com.vaadin" name="vaadin-server" rev="&vaadin.version;"
-			conf="default->default" />
+		<dependency org="com.vaadin" name="vaadin-server" rev="&vaadin.version;" conf="default->default" />
 
 		<!-- Vaadin themes -->
 		<dependency org="com.vaadin" name="vaadin-themes" rev="&vaadin.version;" />
 
 		<!-- Precompiled DefaultWidgetSet -->
-		<dependency org="com.vaadin" name="vaadin-client-compiled"
-			rev="&vaadin.version;" />
+		<dependency org="com.vaadin" name="vaadin-client-compiled" rev="&vaadin.version;" />
 
 		<!-- Vaadin client side, needed for widget set compilation -->
 		<dependency org="com.vaadin" name="vaadin-client" rev="&vaadin.version;" />
 
 		<!-- Compiler for custom widget sets. Should not be deployed -->
-		<dependency org="com.vaadin" name="vaadin-client-compiler"
-			rev="&vaadin.version;" conf="widgetset-compile->default" />
+		<dependency org="com.vaadin" name="vaadin-client-compiler" rev="&vaadin.version;" conf="widgetset-compile->default" />
 		
 		<dependency org="com.vaadin.addon" name="vaadin-charts" rev="1.0.1" />
 		

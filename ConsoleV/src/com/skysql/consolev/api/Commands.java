@@ -18,15 +18,9 @@
 
 package com.skysql.consolev.api;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.LinkedHashMap;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -40,6 +34,7 @@ public class Commands {
 	private static LinkedHashMap<String, String> icons;
 	private static LinkedHashMap<String, String> descriptions;
 	private static LinkedHashMap<String, String> names;
+	private static LinkedHashMap<String, String[]> steps;
 
 	public static LinkedHashMap<String, String> getIcons() {
 		GetCommands();
@@ -56,22 +51,17 @@ public class Commands {
 		return Commands.names;
 	}
 
+	public static String[] getSteps(String command) {
+		GetCommands();
+		return Commands.steps.get(command);
+	}
+
 	private static void GetCommands() {
 		if (commands == null) {
-			String inputLine = null;
-			try {
-				URL url = new URL("http://" + AppData.oldAPIurl + "/consoleAPI/commands.php");
-				URLConnection sc = url.openConnection();
-				BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
-				inputLine = in.readLine();
-				in.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-				throw new RuntimeException("Could not get response from API");
+			APIrestful api = new APIrestful();
+			if (api.get("command")) {
+				commands = AppData.getGson().fromJson(api.getResult(), Commands.class);
 			}
-
-			Gson gson = AppData.getGson();
-			commands = gson.fromJson(inputLine, Commands.class);
 		}
 	}
 
@@ -86,6 +76,11 @@ public class Commands {
 	protected void setNames(LinkedHashMap<String, String> pairs) {
 		Commands.names = pairs;
 	}
+
+	protected void setSteps(LinkedHashMap<String, String[]> pairs) {
+		Commands.steps = pairs;
+	}
+
 }
 
 class CommandsDeserializer implements JsonDeserializer<Commands> {
@@ -97,6 +92,7 @@ class CommandsDeserializer implements JsonDeserializer<Commands> {
 			commands.setIcons(null);
 			commands.setDescriptions(null);
 			commands.setNames(null);
+			commands.setSteps(null);
 		} else {
 			JsonArray array = jsonElement.getAsJsonArray();
 			int length = array.size();
@@ -104,15 +100,18 @@ class CommandsDeserializer implements JsonDeserializer<Commands> {
 			LinkedHashMap<String, String> icons = new LinkedHashMap<String, String>(length);
 			LinkedHashMap<String, String> descriptions = new LinkedHashMap<String, String>(length);
 			LinkedHashMap<String, String> names = new LinkedHashMap<String, String>(length);
+			LinkedHashMap<String, String[]> steps = new LinkedHashMap<String, String[]>(length);
 			for (int i = 0; i < length; i++) {
 				JsonObject pair = array.get(i).getAsJsonObject();
 				icons.put(pair.get("id").getAsString(), pair.get("icon").getAsString());
 				descriptions.put(pair.get("id").getAsString(), pair.get("description").getAsString());
 				names.put(pair.get("id").getAsString(), pair.get("name").getAsString());
+				steps.put(pair.get("id").getAsString(), pair.get("steps").getAsString().split(","));
 			}
 			commands.setIcons(icons);
 			commands.setDescriptions(descriptions);
 			commands.setNames(names);
+			commands.setSteps(steps);
 		}
 
 		return commands;

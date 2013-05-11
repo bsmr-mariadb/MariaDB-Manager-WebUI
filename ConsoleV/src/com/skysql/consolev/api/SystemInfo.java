@@ -18,14 +18,12 @@
 
 package com.skysql.consolev.api;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 import org.json.JSONObject;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -104,57 +102,39 @@ public class SystemInfo extends ClusterComponent {
 
 	public void saveName(String name) {
 
-		String inputLine = null;
 		try {
 			APIrestful api = new APIrestful();
 			JSONObject jsonParam = new JSONObject();
 			jsonParam.put("name", name);
-			inputLine = api.put("system/" + ID, jsonParam.toString());
+			api.put("system/" + ID, jsonParam.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
 		}
 
 	}
 
-	public String setProperty(String property, String value) {
-		String inputLine = null;
-		try {
-			APIrestful api = new APIrestful();
-			inputLine = api.put("system/" + ID + "/property/" + property, value);
-
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+	public boolean setProperty(String property, String value) {
+		APIrestful api = new APIrestful();
+		if (api.put("system/" + ID + "/property/" + property, value)) {
+			WriteResponse writeResponse = AppData.getGson().fromJson(api.getResult(), WriteResponse.class);
+			if (writeResponse != null && (!writeResponse.getInsertKey().isEmpty() || writeResponse.getUpdateCount() > 0)) {
+				return true;
+			}
 		}
+		return false;
 
-		if (inputLine == null) {
-			return null;
-		}
-
-		Gson gson = AppData.getGson();
-		Response response = gson.fromJson(inputLine, Response.class);
-		return response.getResponse();
 	}
 
-	public String deleteProperty(String property) {
-		String inputLine = null;
-		try {
-			APIrestful api = new APIrestful();
-			inputLine = api.delete("system/" + ID + "/property/" + property);
-
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+	public boolean deleteProperty(String property) {
+		APIrestful api = new APIrestful();
+		if (api.delete("system/" + ID + "/property/" + property)) {
+			WriteResponse writeResponse = AppData.getGson().fromJson(api.getResult(), WriteResponse.class);
+			if (writeResponse != null && writeResponse.getDeleteCount() > 0) {
+				return true;
+			}
 		}
+		return false;
 
-		if (inputLine == null) {
-			return null;
-		}
-
-		Gson gson = AppData.getGson();
-		Response response = gson.fromJson(inputLine, Response.class);
-		return response.getResponse();
 	}
 
 	public SystemInfo() {
@@ -163,34 +143,23 @@ public class SystemInfo extends ClusterComponent {
 
 	public SystemInfo(String dummy) {
 
-		String inputLine = null;
-		try {
-			APIrestful api = new APIrestful();
-			inputLine = api.get("system");
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+		APIrestful api = new APIrestful();
+		if (api.get("system")) {
+			SystemInfo systemInfo = AppData.getGson().fromJson(api.getResult(), SystemInfo.class);
+			this.type = ClusterComponent.CCType.system;
+			this.ID = systemInfo.ID;
+			this.name = systemInfo.name;
+			this.startDate = systemInfo.startDate;
+			this.lastStop = systemInfo.lastStop;
+			this.lastAccess = systemInfo.lastAccess;
+			this.nodes = systemInfo.nodes;
+			this.lastCommand = systemInfo.lastCommand;
+			this.lastBackup = systemInfo.lastBackup;
+			this.properties = systemInfo.properties;
+			this.health = systemInfo.health;
+			this.connections = systemInfo.connections;
+			this.packets = systemInfo.packets;
 		}
-
-		if (inputLine == null) {
-			return;
-		}
-
-		Gson gson = AppData.getGson();
-		SystemInfo systemInfo = gson.fromJson(inputLine, SystemInfo.class);
-		this.type = ClusterComponent.CCType.system;
-		this.ID = systemInfo.ID;
-		this.name = systemInfo.name;
-		this.startDate = systemInfo.startDate;
-		this.lastStop = systemInfo.lastStop;
-		this.lastAccess = systemInfo.lastAccess;
-		this.nodes = systemInfo.nodes;
-		this.lastCommand = systemInfo.lastCommand;
-		this.lastBackup = systemInfo.lastBackup;
-		this.properties = systemInfo.properties;
-		this.health = systemInfo.health;
-		this.connections = systemInfo.connections;
-		this.packets = systemInfo.packets;
 
 	}
 
@@ -258,7 +227,6 @@ class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 			} else {
 				JsonObject propertiesJson = element.getAsJsonObject();
 				LinkedHashMap<String, String> properties = new LinkedHashMap<String, String>();
-				String value;
 
 				if ((element = propertiesJson.get(SystemInfo.PROPERTY_EIP)) != null) {
 					properties.put(SystemInfo.PROPERTY_EIP, element.isJsonNull() ? null : element.getAsString());

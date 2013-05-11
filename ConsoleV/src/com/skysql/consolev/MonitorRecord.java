@@ -24,7 +24,6 @@ public class MonitorRecord {
 	private String name;
 	private String description;
 	private String unit;
-	private String icon;
 	private String type;
 	private boolean delta;
 	private boolean average;
@@ -62,14 +61,6 @@ public class MonitorRecord {
 
 	public void setUnit(String unit) {
 		this.unit = unit;
-	}
-
-	public String getIcon() {
-		return icon;
-	}
-
-	public void setIcon(String icon) {
-		this.icon = icon;
 	}
 
 	public String getType() {
@@ -124,13 +115,12 @@ public class MonitorRecord {
 
 	}
 
-	public MonitorRecord(String ID, String name, String description, String unit, String icon, String type, boolean delta, boolean average, String chartType,
-			int interval, String sql) {
+	public MonitorRecord(String ID, String name, String description, String unit, String type, boolean delta, boolean average, String chartType, int interval,
+			String sql) {
 		this.ID = ID;
 		this.name = name;
 		this.description = description;
 		this.unit = unit;
-		this.icon = icon;
 		this.type = type;
 		this.delta = delta;
 		this.average = average;

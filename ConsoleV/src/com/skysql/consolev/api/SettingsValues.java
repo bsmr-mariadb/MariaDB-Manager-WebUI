@@ -18,16 +18,11 @@
 
 package com.skysql.consolev.api;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -36,17 +31,17 @@ import com.google.gson.JsonParseException;
 
 public class SettingsValues {
 
-	public static final String SETTINGS_MONITOR_INTERVAL = "MonitorInterval";
 	public static final String SETTINGS_MAX_BACKUP_SIZE = "maxBackupSize";
 	public static final String SETTINGS_MAX_BACKUP_COUNT = "maxBackupCount";
+	public static final String SETTINGS_MONITOR_INTERVAL = "monitorInterval";
 
-	private ArrayList<String> values;
+	private String[] values;
 
-	public ArrayList<String> getValues() {
+	public String[] getValues() {
 		return values;
 	}
 
-	protected void setValues(ArrayList<String> values) {
+	protected void setValues(String[] values) {
 		this.values = values;
 	}
 
@@ -54,22 +49,11 @@ public class SettingsValues {
 	}
 
 	public SettingsValues(String property) {
-		String inputLine = null;
-		try {
-			URL url = new URL("http://" + AppData.oldAPIurl + "/consoleAPI/settingsvalues.php?property=" + property);
-			URLConnection sc = url.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
-			inputLine = in.readLine();
-			in.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+		APIrestful api = new APIrestful();
+		if (api.get("application/1/property/" + property)) {
+			SettingsValues settingsValues = AppData.getGson().fromJson(api.getResult(), SettingsValues.class);
+			this.values = settingsValues.values;
 		}
-
-		Gson gson = AppData.getGson();
-		SettingsValues settingsValues = gson.fromJson(inputLine, SettingsValues.class);
-		this.values = settingsValues.values;
-		settingsValues = null;
 	}
 
 }
@@ -78,24 +62,20 @@ class SettingsValuesDeserializer implements JsonDeserializer<SettingsValues> {
 	public SettingsValues deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		SettingsValues settingsValues = new SettingsValues();
 
-		JsonElement jsonElement = json.getAsJsonObject().get("settingsValues");
+		JsonElement jsonElement = json.getAsJsonObject().get("applicationproperty");
 		if (jsonElement == null || jsonElement.isJsonNull()) {
 			settingsValues.setValues(null);
 		} else {
-			JsonArray array = jsonElement.getAsJsonArray();
-			int length = array.size();
-
-			ArrayList<String> values = new ArrayList<String>(length);
-			for (int i = 0; i < length; i++) {
-				JsonObject valueJson = array.get(i).getAsJsonObject();
-				JsonElement element;
-				String value = (element = valueJson.get("value")).isJsonNull() ? null : element.getAsString();
-				values.add(value);
+			JsonObject jsonObject = (JsonObject) jsonElement;
+			Set<Entry<String, JsonElement>> set = jsonObject.entrySet();
+			Iterator<Entry<String, JsonElement>> iter = set.iterator();
+			if (iter.hasNext()) {
+				Entry<String, JsonElement> entry = iter.next();
+				String value = entry.getValue().getAsString();
+				settingsValues.setValues(value.split(","));
 			}
-			settingsValues.setValues(values);
 		}
 
 		return settingsValues;
 	}
-
 }

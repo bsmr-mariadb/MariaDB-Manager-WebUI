@@ -19,20 +19,18 @@
 package com.skysql.consolev.ui.components;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
-import com.skysql.consolev.ConsoleUI;
-import com.skysql.consolev.DateConversion;
 import com.skysql.consolev.MonitorRecord;
 import com.skysql.consolev.api.ChartMappings;
 import com.skysql.consolev.api.ClusterComponent;
 import com.skysql.consolev.api.MonitorData;
-import com.skysql.consolev.api.MonitorData2;
-import com.skysql.consolev.api.MonitorData3;
 import com.skysql.consolev.api.Monitors;
 import com.skysql.consolev.api.NodeInfo;
 import com.skysql.consolev.api.SystemInfo;
@@ -133,7 +131,7 @@ public class ChartsLayout extends DDCssLayout {
 		String propertyCharts = userObject.getProperty(UserObject.PROPERTY_CHARTS);
 
 		if (propertyCharts == null) {
-			// FUTURE: if missing, attempt to retrieve SystemProperties
+			// TODO: if missing, attempt to retrieve SystemProperties
 			//			UserProperties userProperties = new UserProperties(null);
 			//			propertyCharts = userProperties.getProperty(UserProperties.PROPERTY_CHARTS);
 		}
@@ -341,8 +339,6 @@ public class ChartsLayout extends DDCssLayout {
 			chartType = ChartType.LINE;
 		} else if (UserChart.AREACHART.equalsIgnoreCase(userChart.getType())) {
 			chartType = ChartType.AREARANGE;
-		} else if (UserChart.TESTCHART.equalsIgnoreCase(userChart.getType())) {
-			chartType = ChartType.LINE;
 		}
 
 		configuration.getChart().setType(chartType);
@@ -403,13 +399,20 @@ public class ChartsLayout extends DDCssLayout {
 				Chart chart = (Chart) component;
 				UserChart userChart = (UserChart) chart.getData();
 				boolean needsRedraw = false;
+				String[] timeStamps = null;
+				Configuration configuration = chart.getConfiguration();
 
-				if (UserChart.TESTCHART.equalsIgnoreCase(userChart.getType())) {
-					Configuration configuration = chart.getConfiguration();
-					String[] timeStamps = null;
+				int monitorsCount = 0;
+				for (String monitorID : userChart.getMonitorIDs()) {
+					MonitorRecord monitor = Monitors.getMonitor(monitorID);
+					if (monitor == null) {
+						// monitor was removed from the system - remove it from chart and later remove chart if chart left with no monitors
+						userChart.deleteMonitorID(monitorID);
+						continue;
+					}
+					monitorsCount++;
 
-					for (String monitorID : userChart.getMonitorIDs()) {
-						MonitorRecord monitor = Monitors.getMonitor(monitorID);
+					if (UserChart.LINECHART.equalsIgnoreCase(userChart.getType())) {
 
 						ListSeries ls = null, testLS;
 						List<Series> lsList = configuration.getSeries();
@@ -428,7 +431,7 @@ public class ChartsLayout extends DDCssLayout {
 
 						MonitorData monitorData = (MonitorData) userChart.getMonitorData(monitor.getID());
 						if (monitorData == null) {
-							monitorData = new MonitorData(monitor, systemID, nodeID, time, interval, count);
+							monitorData = new MonitorData(monitor, systemID, nodeID, time, interval, count, MonitorData.METHOD_AVG);
 							needsRedraw = true;
 						} else if (monitorData.update(systemID, nodeID, time, interval, count) == true) {
 							// data in chart needs to be updated
@@ -439,31 +442,20 @@ public class ChartsLayout extends DDCssLayout {
 
 						userChart.setMonitorData(monitor.getID(), monitorData);
 
-						ArrayList<Number> dataList = new ArrayList<Number>();
-						double dataPoints[] = monitorData.getDataPoints();
-						if (dataPoints != null) {
-							//timeStamps = new String[dataPoints.length];
-							for (int x = 0; x < dataPoints.length; x++) {
-								//timeStamps[x] = dataPoints[x][0].substring(11, 16);
-								dataList.add(Double.valueOf(dataPoints[x]));
+						ArrayList<Number> avgList = monitorData.getAvgPoints();
+						ls.setData(avgList);
+
+						if (timeStamps == null) {
+							ArrayList<Long> unixTimes = monitorData.getTimeStamps();
+							if (unixTimes != null) {
+								timeStamps = new String[unixTimes.size()];
+								for (int x = 0; x < unixTimes.size(); x++) {
+									timeStamps[x] = stampToString(unixTimes.get(x)).substring(11, 16);
+								}
 							}
 						}
-						ls.setData(dataList);
 
-					}
-
-					// if (timeStamps != null) {
-					// configuration.getxAxis().setCategories(timeStamps);
-					// }
-					if (needsRedraw) {
-						chart.drawChart(configuration);
-					}
-
-				} else if (UserChart.AREACHART.equalsIgnoreCase(userChart.getType())) {
-					Configuration configuration = chart.getConfiguration();
-
-					for (String monitorID : userChart.getMonitorIDs()) {
-						MonitorRecord monitor = Monitors.getMonitor(monitorID);
+					} else if (UserChart.AREACHART.equalsIgnoreCase(userChart.getType())) {
 
 						RangeSeries rs = null, testRS;
 						List<Series> lsList = configuration.getSeries();
@@ -480,9 +472,9 @@ public class ChartsLayout extends DDCssLayout {
 							configuration.addSeries(rs);
 						}
 
-						MonitorData3 monitorData = (MonitorData3) userChart.getMonitorData(monitor.getID());
+						MonitorData monitorData = (MonitorData) userChart.getMonitorData(monitor.getID());
 						if (monitorData == null) {
-							monitorData = new MonitorData3(monitor, systemID, nodeID, time, interval, count);
+							monitorData = new MonitorData(monitor, systemID, nodeID, time, interval, count, MonitorData.METHOD_MINMAX);
 							needsRedraw = true;
 						} else if (monitorData.update(systemID, nodeID, time, interval, count) == true) {
 							// data in chart needs to be updated
@@ -493,150 +485,32 @@ public class ChartsLayout extends DDCssLayout {
 
 						userChart.setMonitorData(monitor.getID(), monitorData);
 
-						String dataPoints[][] = monitorData.getDataPoints();
-						if (dataPoints != null) {
-							Number[][] dataList = new Number[dataPoints.length][2];
-							String[] timeStamps = new String[dataPoints.length];
-							for (int x = 0; x < dataPoints.length; x++) {
-								timeStamps[x] = dataPoints[x][2].substring(11, 16);
+						ArrayList<Number> minList = monitorData.getMinPoints();
+						ArrayList<Number> maxList = monitorData.getMaxPoints();
 
-								//								dataList[x][0] = (Double.valueOf(dataPoints[x][0]));
-								String strValue = dataPoints[x][0];
-								double value = Double.valueOf(strValue);
-								if (value % 1.0 > 0) {
-									int index = strValue.indexOf(".");
-									int strlen = strValue.length();
-									if (value >= 100.0 || value <= -100.0) {
-										strValue = strValue.substring(0, index);
-										value = Double.valueOf(strValue);
-									} else if (value >= 10.0 || value <= -10.0) {
-										strValue = strValue.substring(0, (index + 2) >= strlen ? strlen : index + 2);
-										value = Double.valueOf(strValue);
-									} else {
-										strValue = strValue.substring(0, (index + 3) >= strlen ? strlen : index + 3);
-										value = Double.valueOf(strValue);
-									}
-								}
-								dataList[x][0] = value;
+						if (minList != null && maxList != null && minList.size() > 0 && maxList.size() > 0 && minList.size() == maxList.size()) {
+							Object[] minArray = monitorData.getMinPoints().toArray();
+							Object[] maxArray = monitorData.getMaxPoints().toArray();
 
-								//								dataList[x][1] = (Double.valueOf(dataPoints[x][1]));
-								strValue = dataPoints[x][1];
-								value = Double.valueOf(strValue);
-								if (value % 1.0 > 0) {
-									int index = strValue.indexOf(".");
-									int strlen = strValue.length();
-									if (value >= 100.0 || value <= -100.0) {
-										strValue = strValue.substring(0, index);
-										value = Double.valueOf(strValue);
-									} else if (value >= 10.0 || value <= -10.0) {
-										strValue = strValue.substring(0, (index + 2) >= strlen ? strlen : index + 2);
-										value = Double.valueOf(strValue);
-									} else {
-										strValue = strValue.substring(0, (index + 3) >= strlen ? strlen : index + 3);
-										value = Double.valueOf(strValue);
-									}
-								}
-								dataList[x][1] = value;
-
+							Number[][] dataList = new Number[minList.size()][2];
+							for (int x = 0; x < minList.size(); x++) {
+								dataList[x][0] = (Number) minArray[x];
+								dataList[x][1] = (Number) maxArray[x];
 							}
+
 							rs.setRangeData(dataList);
 						} else {
 							rs.setRangeData(new Number[0][0]);
 						}
-					}
 
-					// if (timeStamps != null) {
-					// configuration.getxAxis().setCategories(timeStamps);
-					// }
-					if (needsRedraw) {
-						chart.drawChart(configuration);
-					}
-
-				} else if (UserChart.LINECHART.equalsIgnoreCase(userChart.getType())) {
-					Configuration configuration = chart.getConfiguration();
-
-					int monitorsCount = 0;
-					for (String monitorID : userChart.getMonitorIDs()) {
-						MonitorRecord monitor = Monitors.getMonitor(monitorID);
-						monitorsCount++;
-
-						RangeSeries rs = null, testRS;
-						List<Series> lsList = configuration.getSeries();
-						Iterator seriesIter = lsList.iterator();
-						while (seriesIter.hasNext()) {
-							testRS = (RangeSeries) seriesIter.next();
-							if (testRS.getName().equalsIgnoreCase(monitor.getName())) {
-								rs = testRS;
-								break;
-							}
-						}
-						if (rs == null) {
-							rs = new RangeSeries(monitor.getName());
-							configuration.addSeries(rs);
-						}
-
-						MonitorData2 monitorData = (MonitorData2) userChart.getMonitorData(monitor.getID());
-						if (monitorData == null) {
-							monitorData = new MonitorData2(monitor, systemID, nodeID, time, interval);
-							needsRedraw = true;
-						} else if (monitorData.update(systemID, nodeID, time, interval) == true) {
-							// data in chart needs to be updated
-							needsRedraw = true;
-						} else {
-							continue; // no update needed
-						}
-
-						userChart.setMonitorData(monitor.getID(), monitorData);
-
-						String dataPoints[][] = monitorData.getDataPoints();
-						if (dataPoints != null && dataPoints.length > 0) {
-							DateConversion dateConversion = new DateConversion(dataPoints[0][0], dataPoints[dataPoints.length - 1][0], interval);
-							Number[][] dataList = new Number[dataPoints.length][2];
-							String[] timeStamps = new String[dataPoints.length];
-							for (int x = 0; x < dataPoints.length; x++) {
-								timeStamps[x] = dataPoints[x][0].substring(11, 16);
-								dataList[x][0] = dateConversion.convert(dataPoints[x][0]);
-								// dataList[x][1] = (Double.valueOf(dataPoints[x][1]));
-								String strValue = dataPoints[x][1];
-								double value = Double.valueOf(strValue);
-								if (value % 1.0 > 0) {
-									int index = strValue.indexOf(".");
-									int strlen = strValue.length();
-									if (value >= 100.0 || value <= -100.0) {
-										strValue = strValue.substring(0, index);
-										value = Double.valueOf(strValue);
-									} else if (value >= 10.0 || value <= -10.0) {
-										strValue = strValue.substring(0, (index + 2) >= strlen ? strlen : index + 2);
-										value = Double.valueOf(strValue);
-									} else {
-										strValue = strValue.substring(0, (index + 3) >= strlen ? strlen : index + 3);
-										value = Double.valueOf(strValue);
-									}
-								}
-								dataList[x][1] = value;
-							}
-
-							int pointsTotal = dataList[dataPoints.length - 1][0].intValue();
-							String[] expandedTimeStamps = new String[pointsTotal + 1];
-							for (int t = 0, x = 0, index = dataList[x][0].intValue(); t <= pointsTotal; t++) {
-								if (t == index) {
-									expandedTimeStamps[t] = timeStamps[x];
-									if (++x < dataPoints.length) {
-										index = dataList[x][0].intValue();
-									}
-								} else {
-									expandedTimeStamps[t] = "";
+						if (timeStamps == null) {
+							ArrayList<Long> unixTimes = monitorData.getTimeStamps();
+							if (unixTimes != null) {
+								timeStamps = new String[unixTimes.size()];
+								for (int x = 0; x < unixTimes.size(); x++) {
+									timeStamps[x] = stampToString(unixTimes.get(x)).substring(11, 16);
 								}
 							}
-							rs.setRangeData(dataList);
-							if (monitorsCount == 1) {
-								XAxis xAxis = configuration.getxAxis();
-								Labels labels = new Labels();
-								labels.setRotation(-45);
-								labels.setAlign(HorizontalAlign.RIGHT);
-								xAxis.setLabels(labels);
-								xAxis.setCategories(expandedTimeStamps);
-							}
 						}
 
 					}
@@ -645,76 +519,39 @@ public class ChartsLayout extends DDCssLayout {
 						chart.drawChart(configuration);
 					}
 
-				} else if (UserChart.TESTCHART2.equalsIgnoreCase(userChart.getType())) {
-					Configuration configuration = chart.getConfiguration();
-					String[] timeStamps = null;
+				} // for
 
-					for (String monitorID : userChart.getMonitorIDs()) {
-						MonitorRecord monitor = Monitors.getMonitor(monitorID);
+				if (timeStamps != null) {
+					XAxis xAxis = configuration.getxAxis();
+					Labels labels = new Labels();
+					labels.setRotation(-45);
+					labels.setAlign(HorizontalAlign.RIGHT);
+					xAxis.setLabels(labels);
+					xAxis.setCategories(timeStamps);
+				}
 
-						ListSeries ls = null, testLS;
-						List<Series> lsList = configuration.getSeries();
-						Iterator seriesIter = lsList.iterator();
-						while (seriesIter.hasNext()) {
-							testLS = (ListSeries) seriesIter.next();
-							if (testLS.getName().equalsIgnoreCase(monitor.getName())) {
-								ls = testLS;
-								break;
-							}
-						}
-						if (ls == null) {
-							ls = new ListSeries(monitor.getName());
-							configuration.addSeries(ls);
-						}
-
-						MonitorData2 monitorData = (MonitorData2) userChart.getMonitorData(monitor.getID());
-						if (monitorData == null) {
-							monitorData = new MonitorData2(monitor, systemID, nodeID, time, interval);
-							needsRedraw = true;
-						} else if (monitorData.update(systemID, nodeID, time, interval) == true) {
-							// data in chart needs to be updated
-							needsRedraw = true;
-						} else {
-							continue; // no update needed
-						}
-
-						userChart.setMonitorData(monitor.getID(), monitorData);
-
-						String dataPoints[][] = monitorData.getDataPoints();
-						ConsoleUI.log("monitorData2 = length: " + dataPoints.length);
-						//Number times[] = { 10, 20, 25, 30, 35 };
-						DateConversion dateConversion = new DateConversion();
-						if (dataPoints != null) {
-							Number[][] dataList = new Number[dataPoints.length][2];
-							for (int x = 0; x < dataPoints.length; x++) {
-								ConsoleUI.log("[0]: " + dataPoints[x][0] + ", [1]: " + dataPoints[x][1]);
-
-								//timeStamps[x] = dataPoints[x][2].substring(11, 16);
-								//dataList[x][0] = times[x]; //(Double.valueOf(dataPoints[x][0]));
-								dataList[x][0] = dateConversion.convert(dataPoints[x][0]);
-								dataList[x][1] = (Double.valueOf(dataPoints[x][1]));
-
-							}
-							//ls.setData(dataList);
-						} else {
-							//ls.setData(new Number[0][0]);
-						}
-
-					}
-
-					// if (timeStamps != null) {
-					// configuration.getxAxis().setCategories(timeStamps);
-					// }
-					if (needsRedraw) {
-						chart.drawChart(configuration);
-					}
-
+				if (userChart.getMonitorIDs().isEmpty()) {
+					// remove chart 
+					iter.remove();
+				} else {
+					// is this needed?
+					chart.setData(userChart);
 				}
 
 			}
 
 		}
 
+	}
+
+	private String stampToString(Long timestamp) {
+
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(timestamp * 1000L);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String timeString = sdf.format(cal.getTime());
+
+		return timeString;
 	}
 
 	@Override

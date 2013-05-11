@@ -36,7 +36,6 @@ import com.skysql.consolev.StepRecord;
 import com.skysql.consolev.TaskRecord;
 import com.skysql.consolev.api.BackupStates;
 import com.skysql.consolev.api.Backups;
-import com.skysql.consolev.api.CommandSteps;
 import com.skysql.consolev.api.Commands;
 import com.skysql.consolev.api.NodeInfo;
 import com.skysql.consolev.api.Steps;
@@ -102,7 +101,7 @@ public final class RunningTask {
 
 		if (command == null) {
 			observerMode = true;
-			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null);
+			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null);
 			taskRecord = taskInfo.getTasksList().get(0);
 			command = taskRecord.getCommand();
 		}
@@ -340,12 +339,10 @@ public final class RunningTask {
 		 * Alignment.TOP_CENTER); }
 		 ***/
 
-		Steps steps = new Steps("bogus"); // bogus param not to call empty
-											// constructor
+		Steps steps = new Steps("bogus"); // bogus param not to call empty constructor
 		LinkedHashMap<String, StepRecord> stepRecords = steps.getStepsList();
 
-		LinkedHashMap<String, String[]> stepsMap = CommandSteps.getStepsMap();
-		String[] stepsIDs = stepsMap.get(command);
+		String[] stepsIDs = Commands.getSteps(command);
 
 		primitives = new String[stepsIDs.length];
 		taskImages = new Embedded[stepsIDs.length + 1]; // allow for one more
@@ -536,7 +533,7 @@ public final class RunningTask {
 
 			try {
 
-				TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null);
+				TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null);
 				TaskRecord taskRecord = taskInfo.getTasksList().get(0);
 				int index = Integer.parseInt(taskRecord.getIndex()) - 1;
 				int status = Integer.parseInt(taskRecord.getStatus());

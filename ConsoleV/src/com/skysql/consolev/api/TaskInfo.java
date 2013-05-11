@@ -18,15 +18,9 @@
 
 package com.skysql.consolev.api;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -50,33 +44,31 @@ public class TaskInfo {
 	public TaskInfo() {
 	}
 
-	public TaskInfo(String taskID, String status, String node) {
+	public TaskInfo(String taskID, String node) {
 
-		String inputLine = null;
-		try {
-			URL url = new URI("http", AppData.oldAPIurl, "/consoleAPI/taskinfo.php", "task=" + taskID + "&status=" + status + "&node=" + node, null).toURL();
-			URLConnection sc = url.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
-			inputLine = in.readLine();
-			in.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+		APIrestful api = new APIrestful();
+		boolean success = false;
+		if (taskID != null) {
+			success = api.get("task/" + taskID);
+		} else if (node != null) {
+			success = api.get("task", "?nodeid=" + node);
 		}
 
-		Gson gson = AppData.getGson();
-		TaskInfo taskInfo = gson.fromJson(inputLine, TaskInfo.class);
-		this.tasksList = taskInfo.tasksList;
+		if (success) {
+			TaskInfo taskInfo = AppData.getGson().fromJson(api.getResult(), TaskInfo.class);
+			if (taskInfo != null) {
+				this.tasksList = taskInfo.tasksList;
+			}
+		}
 
 	}
-
 }
 
 class TaskInfoDeserializer implements JsonDeserializer<TaskInfo> {
 	public TaskInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		TaskInfo taskInfo = new TaskInfo();
 
-		JsonElement jsonElement = json.getAsJsonObject().get("tasks");
+		JsonElement jsonElement = json.getAsJsonObject().get("task");
 		if (jsonElement == null || jsonElement.isJsonNull()) {
 			taskInfo.setTasksList(null);
 		} else {
@@ -91,7 +83,7 @@ class TaskInfoDeserializer implements JsonDeserializer<TaskInfo> {
 				String node = (element = backupJson.get("node")).isJsonNull() ? null : element.getAsString();
 				String command = (element = backupJson.get("command")).isJsonNull() ? null : element.getAsString();
 				String params = (element = backupJson.get("params")).isJsonNull() ? null : element.getAsString();
-				String index = (element = backupJson.get("index")).isJsonNull() ? null : element.getAsString();
+				String index = (element = backupJson.get("stepindex")).isJsonNull() ? null : element.getAsString();
 				String status = (element = backupJson.get("status")).isJsonNull() ? null : element.getAsString();
 				String user = (element = backupJson.get("user")).isJsonNull() ? null : element.getAsString();
 				String start = (element = backupJson.get("start")).isJsonNull() ? null : element.getAsString();

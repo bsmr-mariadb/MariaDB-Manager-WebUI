@@ -21,7 +21,6 @@ package com.skysql.consolev.api;
 import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -48,22 +47,10 @@ public class NodeStates {
 
 	private synchronized static void GetNodeStates() {
 		if (nodeStates == null) {
-			String inputLine = null;
-			try {
-				APIrestful api = new APIrestful();
-				inputLine = api.get("nodestate");
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new RuntimeException("Could not get response from API");
+			APIrestful api = new APIrestful();
+			if (api.get("nodestate")) {
+				nodeStates = AppData.getGson().fromJson(api.getResult(), NodeStates.class);
 			}
-
-			if (inputLine == null) {
-				return;
-			}
-
-			Gson gson = AppData.getGson();
-			nodeStates = gson.fromJson(inputLine, NodeStates.class);
-
 		}
 	}
 

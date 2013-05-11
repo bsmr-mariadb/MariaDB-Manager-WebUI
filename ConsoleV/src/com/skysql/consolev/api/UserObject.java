@@ -24,7 +24,6 @@ import java.util.LinkedHashMap;
 
 import org.json.JSONObject;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -34,7 +33,7 @@ import com.google.gson.JsonParseException;
 
 public class UserObject {
 
-	public static final String PROPERTY_CHARTS = "CHARTS";
+	public static final String PROPERTY_CHARTS = "com.skysql.manager.charts";
 
 	private String userID;
 	private String name;
@@ -61,18 +60,15 @@ public class UserObject {
 		}
 		properties.put(key, value);
 
-		String inputLine = null;
 		try {
 			APIrestful api = new APIrestful();
 			JSONObject jsonParam = new JSONObject();
 			jsonParam.put("value", URLEncoder.encode(value, "UTF8"));
-			inputLine = api.put("user/" + userID + "/property/" + key, jsonParam.toString());
+			return api.put("user/" + userID + "/property/" + key, jsonParam.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+			throw new RuntimeException("Error preparing API call");
 		}
-
-		return (inputLine == null) ? false : true;
 
 	}
 
@@ -99,43 +95,23 @@ public class UserObject {
 
 	public boolean login(String userID, String password) {
 
-		String inputLine = null;
-		try {
-			APIrestful api = new APIrestful();
-			inputLine = api.post("user/" + userID, "password=" + password);
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+		APIrestful api = new APIrestful();
+		if (api.post("user/" + userID, "password=" + password)) {
+			UserObject login = AppData.getGson().fromJson(api.getResult(), UserObject.class);
+			if (login.getUserID() == null) {
+				return false;
+			}
+			this.userID = userID;
+			this.name = login.name;
+
+			api = new APIrestful();
+			if (api.get("user/" + userID)) {
+				UserObject user = AppData.getGson().fromJson(api.getResult(), UserObject.class);
+				this.properties = user.properties;
+				return true;
+			}
 		}
-
-		if (inputLine == null) {
-			return false;
-		}
-
-		Gson gson = AppData.getGson();
-		UserObject login = gson.fromJson(inputLine, UserObject.class);
-		if (login.getUserID() == null) {
-			return false;
-		}
-		this.userID = userID;
-		this.name = login.name;
-
-		try {
-			APIrestful api = new APIrestful();
-			inputLine = api.get("user/" + userID);
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
-		}
-
-		if (inputLine == null) {
-			return false;
-		}
-
-		UserObject user = gson.fromJson(inputLine, UserObject.class);
-		this.properties = user.properties;
-
-		return true;
+		return false;
 	}
 
 }

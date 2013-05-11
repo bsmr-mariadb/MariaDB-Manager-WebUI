@@ -23,6 +23,7 @@ import com.skysql.consolev.api.UserObject;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
+import com.vaadin.data.Validator.EmptyValueException;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
@@ -149,13 +150,15 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 					String currentName = userInfo.findNameByID(selectedUserID);
 					if (!newName.equalsIgnoreCase(currentName)) {
 						userInfo.setUser(selectedUserID, newName, null);
+						TopPanel topPanel = VaadinSession.getCurrent().getAttribute(TopPanel.class);
+						topPanel.setUserName(newName);
 					}
+					select.focus();
 				}
 			}
 		});
 
 		changePassword = new Button("Change Password");
-		changePassword.setEnabled(false);
 		changePassword.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -251,7 +254,10 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 					} else {
 						return;
 					}
+				} catch (EmptyValueException e) {
+					return;
 				} catch (Exception e) {
+					e.printStackTrace();
 					return;
 				}
 				secondaryDialog.close();
@@ -327,7 +333,10 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 					} else {
 						return;
 					}
+				} catch (EmptyValueException e) {
+					return;
 				} catch (Exception e) {
+					e.printStackTrace();
 					return;
 				}
 				secondaryDialog.close();
@@ -413,7 +422,10 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 					if (!success) {
 						return;
 					}
+				} catch (EmptyValueException e) {
+					return;
 				} catch (Exception e) {
+					e.printStackTrace();
 					return;
 				}
 				secondaryDialog.close();

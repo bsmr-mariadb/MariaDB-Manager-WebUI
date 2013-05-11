@@ -22,7 +22,6 @@ import java.lang.reflect.Type;
 
 import org.json.JSONObject;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -117,15 +116,14 @@ public class NodeInfo extends ClusterComponent {
 
 	public void saveName(String name) {
 
-		String inputLine = null;
 		try {
 			APIrestful api = new APIrestful();
 			JSONObject jsonParam = new JSONObject();
 			jsonParam.put("name", name);
-			inputLine = api.put("system/" + systemID + "/node/" + ID, jsonParam.toString());
+			api.put("system/" + systemID + "/node/" + ID, jsonParam.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+			throw new RuntimeException("Error preparing API call");
 		}
 
 	}
@@ -135,49 +133,38 @@ public class NodeInfo extends ClusterComponent {
 
 	public NodeInfo(String systemID, String nodeID) {
 
-		String inputLine = null;
-		try {
-			APIrestful api = new APIrestful();
-			inputLine = api.get("system/" + systemID + "/node/" + nodeID);
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+		APIrestful api = new APIrestful();
+		if (api.get("system/" + systemID + "/node/" + nodeID)) {
+			NodeInfo nodeInfo = AppData.getGson().fromJson(api.getResult(), NodeInfo.class);
+			this.type = ClusterComponent.CCType.node;
+			this.systemID = systemID;
+			this.ID = nodeID;
+			this.name = nodeInfo.name;
+			this.status = nodeInfo.status;
+			this.health = nodeInfo.health;
+			this.connections = nodeInfo.connections;
+			this.packets = nodeInfo.packets;
+			this.commands = nodeInfo.commands;
+			this.task = nodeInfo.task;
+			this.command = nodeInfo.command;
+			this.privateIP = nodeInfo.privateIP;
+			this.publicIP = nodeInfo.publicIP;
+			this.instanceID = nodeInfo.instanceID;
+			this.type = CCType.node;
 		}
-
-		if (inputLine == null) {
-			return;
-		}
-
-		Gson gson = AppData.getGson();
-		NodeInfo nodeInfo = gson.fromJson(inputLine, NodeInfo.class);
-		this.type = ClusterComponent.CCType.node;
-		this.systemID = systemID;
-		this.ID = nodeID;
-		this.name = nodeInfo.name;
-		this.status = nodeInfo.status;
-		this.health = nodeInfo.health;
-		this.connections = nodeInfo.connections;
-		this.packets = nodeInfo.packets;
-		this.commands = nodeInfo.commands;
-		this.task = nodeInfo.task;
-		this.command = nodeInfo.command;
-		this.privateIP = nodeInfo.privateIP;
-		this.publicIP = nodeInfo.publicIP;
-		this.instanceID = nodeInfo.instanceID;
-		this.type = CCType.node;
 
 	}
 
 	public String ToolTip() {
 		StringBuffer commands = new StringBuffer("[");
-		if (this.commands != null && commands.length() > 0) {
+		if (this.commands != null && this.commands.length > 0) {
 			for (String command : this.commands) {
 				commands.append(Commands.getNames().get(command));
 				commands.append(",");
 			}
 			commands.deleteCharAt(commands.length() - 1);
-			commands.append("]");
 		}
+		commands.append("]");
 
 		return "<h2>Node</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Name:</b> " + this.name + "</li>" + "<li><b>Public IP:</b> "
 				+ this.publicIP + "</li>" + "<li><b>Private IP:</b> " + this.privateIP + "</li>" + "<li><b>Instance ID:</b> " + this.instanceID + "</li>"

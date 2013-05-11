@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 import com.skysql.consolev.MonitorRecord;
 import com.skysql.consolev.api.ClusterComponent;
-import com.skysql.consolev.api.MonitorData;
+import com.skysql.consolev.api.MonitorDataLatest;
 import com.skysql.consolev.api.Monitors;
 import com.skysql.consolev.api.NodeInfo;
 import com.skysql.consolev.api.NodeStates;
@@ -39,8 +39,8 @@ import com.vaadin.ui.VerticalLayout;
 public class OverviewPanel extends Panel {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	private static final String STATE_MASTER = "1";
-	private static final String STATE_ONLINE = "2";
+	private static final String ICON_MASTER = "master";
+	private static final String ICON_SLAVE = "slave";
 
 	private SystemInfo systemInfo;
 	private ArrayList<NodeInfo> nodes = new ArrayList<NodeInfo>();
@@ -69,6 +69,10 @@ public class OverviewPanel extends Panel {
 			createButton(strip, nodeInfo);
 		}
 
+	}
+
+	public ArrayList<NodeInfo> getNodes() {
+		return nodes;
 	}
 
 	private VerticalLayout createButton(HorizontalLayout strip, ClusterComponent componentInfo) {
@@ -161,8 +165,6 @@ public class OverviewPanel extends Panel {
 		}
 
 		refresh = false;
-		int i = 0;
-
 		for (NodeInfo nodeInfo : nodes) {
 			NodeInfo newInfo = new NodeInfo(nodeInfo.getSystemID(), nodeInfo.getID());
 
@@ -174,9 +176,9 @@ public class OverviewPanel extends Panel {
 			// fetch current capacity from monitor
 			MonitorRecord capacityMonitor = Monitors.getMonitor(Monitors.MONITOR_CAPACITY);
 			if (capacityMonitor != null) {
-				MonitorData monitorData = new MonitorData(capacityMonitor, newInfo.getSystemID(), newInfo.getID(), null, null, "1");
-				double dataPoints[] = monitorData.getDataPoints();
-				newInfo.setCapacity((dataPoints == null) ? null : String.valueOf(dataPoints[0]));
+				MonitorDataLatest monitorData = new MonitorDataLatest(capacityMonitor, newInfo.getSystemID(), newInfo.getID());
+				Number dataPoint = monitorData.getLatestValue();
+				newInfo.setCapacity((dataPoint != null) ? String.valueOf(dataPoint) : null);
 			}
 
 			if ((newName = newInfo.getName()) != null && !newName.equals(nodeInfo.getName())) {
@@ -191,7 +193,7 @@ public class OverviewPanel extends Panel {
 				refresh = true;
 
 				String icon = NodeStates.getNodeIcon(newStatus);
-				if ((newCapacity = newInfo.getCapacity()) != null && (newInfo.getStatus().equals(STATE_MASTER) || newInfo.getStatus().equals(STATE_ONLINE))) {
+				if ((newCapacity = newInfo.getCapacity()) != null && (icon.equals(ICON_MASTER) || icon.equals(ICON_SLAVE))) {
 
 					double capacity_num = Double.parseDouble(newCapacity);
 					if (capacity_num > 0 && capacity_num < 20)
