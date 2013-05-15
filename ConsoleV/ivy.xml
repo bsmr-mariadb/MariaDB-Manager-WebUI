@@ -5,7 +5,7 @@
 <ivy-module version="2.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
-	<info organisation="com.example" module="v7proj" />
+	<info organisation="com.skysql" module="manager" />
 	<configurations>
 		<!-- The default configuration, which should be deployed to the server -->
 		<conf name="default" />
@@ -15,24 +15,31 @@
 	</configurations>
 	<dependencies>
 		<!-- The core server part of Vaadin -->
-		<dependency org="com.vaadin" name="vaadin-server" rev="&vaadin.version;" conf="default->default" />
+		<dependency org="com.vaadin" name="vaadin-server" rev="&vaadin.version;"
+			conf="default->default" />
 
 		<!-- Vaadin themes -->
 		<dependency org="com.vaadin" name="vaadin-themes" rev="&vaadin.version;" />
 
 		<!-- Precompiled DefaultWidgetSet -->
-		<dependency org="com.vaadin" name="vaadin-client-compiled" rev="&vaadin.version;" />
+		<dependency org="com.vaadin" name="vaadin-client-compiled"
+			rev="&vaadin.version;" />
 
 		<!-- Vaadin client side, needed for widget set compilation -->
 		<dependency org="com.vaadin" name="vaadin-client" rev="&vaadin.version;" />
 
 		<!-- Compiler for custom widget sets. Should not be deployed -->
-		<dependency org="com.vaadin" name="vaadin-client-compiler" rev="&vaadin.version;" conf="widgetset-compile->default" />
-		
+		<dependency org="com.vaadin" name="vaadin-client-compiler"
+			rev="&vaadin.version;" conf="widgetset-compile->default" />
+
 		<dependency org="com.vaadin.addon" name="vaadin-charts" rev="1.0.1" />
+		<dependency org="org.vaadin.addons" name="dragdroplayouts" rev="1.0.0.alpha4" />
+		<dependency org="org.vaadin.addons" name="icepush" rev="0.5.5" />
 		
 		<dependency org="com.sun.xml.bind" name="jaxb-impl" rev="2.2.3"/>
-		
+		<dependency org="com.google.code.gson" name="gson" rev="2.2.3"/>
+
+
 	</dependencies>
 </ivy-module>
     

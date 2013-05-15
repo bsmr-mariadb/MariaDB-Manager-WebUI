@@ -1,10 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.skysql.consolev</groupId>
-	<artifactId>ConsoleV</artifactId>
+	<groupId>com.skysql.manager</groupId>
+	<artifactId>SkySQLManager</artifactId>
 	<packaging>war</packaging>
-	<version>1.2</version>
-	<name>SkyQL Admin Console</name>
+	<version>1.0</version>
+	<name>SkySQL Manager</name>
   
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -73,9 +73,9 @@
 			<version>1.0.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.vaadin.addons</groupId>
-			<artifactId>icepush</artifactId>
-			<version>0.5.5</version>
+   			<groupId>org.vaadin.addons</groupId>
+   			<artifactId>icepush</artifactId>
+   			<version>0.5.5</version>
 		</dependency>
 		<dependency>
 			<groupId>ICEPush</groupId>
@@ -90,13 +90,13 @@
 		<dependency>
 			<groupId>org.vaadin.addons</groupId>
 			<artifactId>dragdroplayouts</artifactId>
-			<version>1.0.0.alpha3</version>
+			<version>1.0.0.alpha4</version>
 		</dependency>
 	    <!--  Gson: Java to Json conversion -->
    		<dependency>
       		<groupId>com.google.code.gson</groupId>
       		<artifactId>gson</artifactId>
-      		<version>2.2.2</version>
+      		<version>2.2.3</version>
       		<scope>compile</scope>
     	</dependency>
     	<dependency>
