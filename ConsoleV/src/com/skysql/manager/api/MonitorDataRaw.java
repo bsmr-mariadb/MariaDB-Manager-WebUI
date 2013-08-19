@@ -29,8 +29,8 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.skysql.manager.AppData.Debug;
 import com.skysql.manager.MonitorRecord;
+import com.skysql.manager.ui.ErrorDialog;
 import com.vaadin.addon.timeline.Timeline;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.IndexedContainer;
@@ -60,13 +60,13 @@ public class MonitorDataRaw {
 	}
 
 	public Long getLatestTime() {
-		return (timeStamps == null) ? null : timeStamps.get(timeStamps.size() - 1);
+		return (timeStamps == null || timeStamps.size() == 0) ? null : timeStamps.get(timeStamps.size() - 1);
 	}
 
 	public boolean update(String system, String node, String time, String interval) {
 
 		MonitorDataRaw newMonitorData;
-		if ((system != null && system.equalsIgnoreCase(this.system)) || (node != null && node.equalsIgnoreCase(this.node))) {
+		if ((system != null && system.equals(this.system)) || (node != null && node.equals(this.node))) {
 			this.system = system;
 			this.node = node;
 			newMonitorData = new MonitorDataRaw(monitor, system, node, timeEnd, interval);
@@ -94,7 +94,7 @@ public class MonitorDataRaw {
 
 			Item item = container.addItem(cal.getTime());
 			if (item == null) {
-				System.out.println("point in time is null");
+				System.err.println("point in time is null");
 			} else {
 				item.getItemProperty(Timeline.PropertyId.TIMESTAMP).setValue(cal.getTime());
 				double value = dataPoints.get(i);
@@ -107,10 +107,6 @@ public class MonitorDataRaw {
 	}
 
 	public MonitorDataRaw(MonitorRecord monitor, String system, String node, Long timeEnd, String interval) {
-
-		if (Debug.ON) {
-			timeEnd = 1367511000L;
-		}
 
 		if (timeEnd == null) {
 			timeEnd = System.currentTimeMillis() / 1000;
@@ -127,20 +123,29 @@ public class MonitorDataRaw {
 		String params = "?start=" + (timeStart != null ? String.valueOf(timeStart) : "") + "&finish=" + String.valueOf(timeEnd);
 
 		if (api.get(uri, params)) {
-			MonitorDataRaw monitorData = APIrestful.getGson().fromJson(api.getResult(), MonitorDataRaw.class);
-			this.dataPoints = monitorData.dataPoints;
-			this.timeStamps = monitorData.timeStamps;
+			try {
+				MonitorDataRaw monitorData = APIrestful.getGson().fromJson(api.getResult(), MonitorDataRaw.class);
+				this.dataPoints = monitorData.dataPoints;
+				this.timeStamps = monitorData.timeStamps;
+			} catch (NullPointerException e) {
+				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+				throw new RuntimeException("API response");
+			} catch (JsonParseException e) {
+				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+				throw new RuntimeException("API response");
+			}
+
 		}
 
 	}
 }
 
 class MonitorDataRawDeserializer implements JsonDeserializer<MonitorDataRaw> {
-	public MonitorDataRaw deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public MonitorDataRaw deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		MonitorDataRaw monitorData = new MonitorDataRaw();
 
 		JsonElement jsonElement = json.getAsJsonObject().get("monitor_rawdata");
-		if (jsonElement == null || jsonElement.isJsonNull() || jsonElement.isJsonArray()) {
+		if (jsonElement.isJsonNull() || jsonElement.isJsonArray()) {
 			return monitorData;
 		}
 

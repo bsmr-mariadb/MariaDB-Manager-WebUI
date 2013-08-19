@@ -28,6 +28,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.TaskRecord;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class TaskInfo {
 
@@ -55,9 +56,15 @@ public class TaskInfo {
 		}
 
 		if (success) {
-			TaskInfo taskInfo = APIrestful.getGson().fromJson(api.getResult(), TaskInfo.class);
-			if (taskInfo != null) {
+			try {
+				TaskInfo taskInfo = APIrestful.getGson().fromJson(api.getResult(), TaskInfo.class);
 				this.tasksList = taskInfo.tasksList;
+			} catch (NullPointerException e) {
+				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+				throw new RuntimeException("API response");
+			} catch (JsonParseException e) {
+				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+				throw new RuntimeException("API response");
 			}
 		}
 
@@ -65,33 +72,39 @@ public class TaskInfo {
 }
 
 class TaskInfoDeserializer implements JsonDeserializer<TaskInfo> {
-	public TaskInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public TaskInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		TaskInfo taskInfo = new TaskInfo();
 
-		JsonElement jsonElement = json.getAsJsonObject().get("task");
-		if (jsonElement == null || jsonElement.isJsonNull()) {
-			taskInfo.setTasksList(null);
-		} else {
-			JsonArray array = jsonElement.getAsJsonArray();
-			int length = array.size();
+		JsonArray array = null;
 
-			ArrayList<TaskRecord> tasksList = new ArrayList<TaskRecord>(length);
-			for (int i = 0; i < length; i++) {
-				JsonObject backupJson = array.get(i).getAsJsonObject();
-				JsonElement element;
-				String id = (element = backupJson.get("id")).isJsonNull() ? null : element.getAsString();
-				String node = (element = backupJson.get("node")).isJsonNull() ? null : element.getAsString();
-				String command = (element = backupJson.get("command")).isJsonNull() ? null : element.getAsString();
-				String params = (element = backupJson.get("params")).isJsonNull() ? null : element.getAsString();
-				String index = (element = backupJson.get("stepindex")).isJsonNull() ? null : element.getAsString();
-				String status = (element = backupJson.get("status")).isJsonNull() ? null : element.getAsString();
-				String user = (element = backupJson.get("user")).isJsonNull() ? null : element.getAsString();
-				String start = (element = backupJson.get("start")).isJsonNull() ? null : element.getAsString();
-				String end = (element = backupJson.get("end")).isJsonNull() ? null : element.getAsString();
-				TaskRecord taskRecord = new TaskRecord(id, node, command, params, index, status, user, start, end);
-				tasksList.add(taskRecord);
-			}
-			taskInfo.setTasksList(tasksList);
+		int length = 0;
+		if (json.getAsJsonObject().has("tasks")) {
+			array = json.getAsJsonObject().get("tasks").getAsJsonArray();
+			length = array.size();
+		} else if (json.getAsJsonObject().has("task")) {
+			length = 1;
+		} else {
+			return null;
+		}
+
+		ArrayList<TaskRecord> tasksList = new ArrayList<TaskRecord>(length);
+		taskInfo.setTasksList(tasksList);
+
+		for (int i = 0; i < length; i++) {
+			JsonObject taskObject = (array != null) ? array.get(i).getAsJsonObject() : json.getAsJsonObject().get("task").getAsJsonObject();
+			JsonElement element;
+
+			String id = (element = taskObject.get("id")).isJsonNull() ? null : element.getAsString();
+			String node = (element = taskObject.get("nodeid")).isJsonNull() ? null : element.getAsString();
+			String command = (element = taskObject.get("command")).isJsonNull() ? null : element.getAsString();
+			String params = ((element = taskObject.get("parameters")) == null || element.isJsonNull()) ? null : element.getAsString();
+			String index = (element = taskObject.get("stepindex")).isJsonNull() ? null : element.getAsString();
+			String status = (element = taskObject.get("state")).isJsonNull() ? null : element.getAsString();
+			String user = (element = taskObject.get("username")).isJsonNull() ? null : element.getAsString();
+			String start = (element = taskObject.get("start")).isJsonNull() ? null : element.getAsString();
+			String end = (element = taskObject.get("completed")).isJsonNull() ? null : element.getAsString();
+			TaskRecord taskRecord = new TaskRecord(id, node, command, params, index, status, user, start, end);
+			tasksList.add(taskRecord);
 		}
 
 		return taskInfo;

@@ -39,11 +39,15 @@
     <!-- <set-configuration-property name="devModeRedirectEnabled" value="true" /> -->
 
 
-    <inherits name="org.vaadin.artur.icepush.IcepushaddonWidgetset" />
+    
 
-    <inherits name="fi.jasoft.dragdroplayouts.DragDropLayoutsWidgetSet" />
+    
 
     <inherits name="com.vaadin.addon.charts.Widgetset" />
 
     <inherits name="com.vaadin.addon.timeline.gwt.TimelineWidgetSet" />
+
+    <inherits name="org.vaadin.jouni.animator.AnimatorWidgetset" />
+
+    <inherits name="fi.jasoft.dragdroplayouts.WidgetSet" />
 </module>

@@ -18,25 +18,32 @@
 
 package com.skysql.manager.ui;
 
+import org.vaadin.jouni.animator.AnimatorProxy;
+import org.vaadin.jouni.animator.AnimatorProxy.AnimationEvent;
+import org.vaadin.jouni.animator.AnimatorProxy.AnimationListener;
+import org.vaadin.jouni.animator.shared.AnimType;
+
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.SystemRecord;
+import com.skysql.manager.api.ChartProperties;
 import com.skysql.manager.api.Commands;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.NodeStates;
-import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.ui.components.ChartControls;
 import com.skysql.manager.ui.components.ChartsLayout;
-import com.vaadin.addon.charts.Chart;
+import com.skysql.manager.ui.components.ComponentButton;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.server.VaadinSession;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.HorizontalSplitPanel;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
@@ -45,8 +52,8 @@ import com.vaadin.ui.themes.Runo;
 import fi.jasoft.dragdroplayouts.DDCssLayout;
 import fi.jasoft.dragdroplayouts.client.ui.LayoutDragMode;
 
-public class PanelInfo extends HorizontalLayout {
-	private static final long serialVersionUID = 0x4C656F6E6172646FL;
+@SuppressWarnings("serial")
+public class PanelInfo extends HorizontalSplitPanel {
 
 	private static final String NOT_AVAILABLE = "n/a";
 
@@ -54,7 +61,7 @@ public class PanelInfo extends HorizontalLayout {
 	private Component systemGrid, nodeGrid;
 	private VerticalLayout infoLayout, chartsLayout;
 	private DDCssLayout chartsArray;
-	private String chartTime, chartInterval = "1800", chartPoints = "15";
+	private String chartTime, chartInterval = "1800";
 	private String systemLabelsStrings[] = { "Status", "Availability", "Connections", "Data Transfer", "Last Backup", "Start Date", "Last Access" };
 	private String nodeLabelsStrings[] = { "Status", "Availability", "Connections", "Data Transfer", "Commands Running", "Public IP", "Private IP",
 			"Instance ID", };
@@ -63,14 +70,14 @@ public class PanelInfo extends HorizontalLayout {
 	private ChartsLayout chartsArrayLayout;
 	private Label nameLabel;
 	private TextField nameField;
-	private SystemInfo systemInfo;
+	private ChartProperties chartProperties;
+	private boolean isExpanded = false;
 
 	private ValueChangeListener chartIntervalListener = new ValueChangeListener() {
-		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 		public void valueChange(ValueChangeEvent event) {
-
 			Integer value = (Integer) (event.getProperty()).getValue();
+			chartProperties.setTimeSpan(value);
 			chartInterval = Integer.toString(value);
 			refresh();
 		}
@@ -81,8 +88,7 @@ public class PanelInfo extends HorizontalLayout {
 		setSizeFull();
 		addStyleName("infoTab");
 
-		systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
-
+		setSplitPosition(300, Unit.PIXELS);
 		createInfoLayout();
 		createChartsLayout();
 
@@ -94,14 +100,13 @@ public class PanelInfo extends HorizontalLayout {
 		infoLayout.addStyleName("infoLayout");
 		infoLayout.setWidth("300px");
 		infoLayout.setSpacing(true);
-		infoLayout.setMargin(true);
 		addComponent(infoLayout);
 
 		final HorizontalLayout nameLayout = new HorizontalLayout();
 		nameLayout.addStyleName("panelHeaderLayout");
 		nameLayout.setWidth("100%");
 		nameLayout.setSpacing(true);
-		nameLayout.setMargin(true);
+		nameLayout.setMargin(new MarginInfo(false, true, false, true));
 		infoLayout.addComponent(nameLayout);
 
 		nameLabel = new Label();
@@ -111,12 +116,13 @@ public class PanelInfo extends HorizontalLayout {
 		nameLayout.setComponentAlignment(nameLabel, Alignment.MIDDLE_LEFT);
 
 		final Button editButton = new Button("Edit");
+		// TODO: this will become the editing function of what properties are displayed in the info layout - now the system/node name can be edited from the respective dialogs in the Navigation/Overview panel
+		editButton.setEnabled(false);
 		final Button saveButton = new Button("Done");
 
 		nameLayout.addComponent(editButton);
 		nameLayout.setComponentAlignment(editButton, Alignment.MIDDLE_RIGHT);
 		editButton.addClickListener(new Button.ClickListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
 				nameField = new TextField();
@@ -125,7 +131,6 @@ public class PanelInfo extends HorizontalLayout {
 				nameField.setWidth("12em");
 				nameField.focus();
 				nameField.addValueChangeListener(new ValueChangeListener() {
-					private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 					public void valueChange(ValueChangeEvent event) {
 						saveButton.click();
@@ -139,7 +144,6 @@ public class PanelInfo extends HorizontalLayout {
 		});
 
 		saveButton.addClickListener(new Button.ClickListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
 				String name = nameField.getValue();
@@ -150,13 +154,12 @@ public class PanelInfo extends HorizontalLayout {
 				nameLayout.setComponentAlignment(editButton, Alignment.MIDDLE_RIGHT);
 				lastComponent.setName(name);
 				if (lastComponent instanceof NodeInfo) {
-					((NodeInfo) lastComponent).saveName(name);
+					//((NodeInfo) lastComponent).saveName(name);
 				} else if (lastComponent instanceof SystemRecord) {
-					systemInfo.saveName(name);
+					//systemInfo.saveName(name);
 				}
-				VerticalLayout button = (VerticalLayout) lastComponent.getButton();
-				Label label = (Label) button.getComponent(0);
-				label.setValue(name);
+				ComponentButton componentButton = lastComponent.getButton();
+				componentButton.setName(name);
 			}
 		});
 
@@ -164,13 +167,17 @@ public class PanelInfo extends HorizontalLayout {
 		systemGrid = createCurrentInfo(systemLabels, systemLabelsStrings);
 		nodeLabels = new Label[nodeLabelsStrings.length];
 		nodeGrid = createCurrentInfo(nodeLabels, nodeLabelsStrings);
-		infoLayout.addComponent(systemGrid);
+	}
+
+	public void setComponentName(String name) {
+		nameLabel.setValue(name);
 	}
 
 	private Component createCurrentInfo(Label[] labels, String[] values) {
 		GridLayout currentGrid = new GridLayout(2, labels.length);
 		currentGrid.addStyleName("currentInfo");
 		currentGrid.setSpacing(true);
+		currentGrid.setMargin(new MarginInfo(false, true, false, true));
 		currentGrid.setSizeUndefined();
 
 		for (int i = 0; i < labels.length; i++) {
@@ -186,22 +193,22 @@ public class PanelInfo extends HorizontalLayout {
 	}
 
 	private void createChartsLayout() {
+		chartProperties = new ChartProperties(null, null);
+
 		chartsLayout = new VerticalLayout();
 		chartsLayout.addStyleName("chartsLayout");
 		chartsLayout.setHeight("100%");
 		chartsLayout.setSpacing(true);
-		chartsLayout.setMargin(true);
 		addComponent(chartsLayout);
-		setExpandRatio(chartsLayout, 1.0f);
 
 		final HorizontalLayout chartsHeaderLayout = new HorizontalLayout();
 		chartsHeaderLayout.addStyleName("panelHeaderLayout");
 		chartsHeaderLayout.setWidth("100%");
 		chartsHeaderLayout.setSpacing(true);
-		chartsHeaderLayout.setMargin(true);
+		chartsHeaderLayout.setMargin(new MarginInfo(false, true, false, true));
 		chartsLayout.addComponent(chartsHeaderLayout);
 
-		chartControls = new ChartControls();
+		chartControls = new ChartControls(chartProperties);
 		chartControls.addIntervalSelectionListener(chartIntervalListener);
 		chartsHeaderLayout.addComponent(chartControls);
 		chartsHeaderLayout.setComponentAlignment(chartControls, Alignment.MIDDLE_LEFT);
@@ -220,11 +227,9 @@ public class PanelInfo extends HorizontalLayout {
 		addChartButton.setVisible(false);
 		buttonsLayout.addComponent(addChartButton);
 		addChartButton.addClickListener(new Button.ClickListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
-				Chart chart = (Chart) chartsArrayLayout.addChart();
-				new ChartsDialog(chartsArrayLayout, chart, true);
+				new ChartsDialog(chartsArrayLayout, null);
 			}
 		});
 
@@ -232,26 +237,62 @@ public class PanelInfo extends HorizontalLayout {
 		final Button saveButton = new Button("Done");
 		buttonsLayout.addComponent(editButton);
 		editButton.addClickListener(new Button.ClickListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
 				buttonsLayout.replaceComponent(editButton, saveButton);
 				chartsArrayLayout.setDragMode(LayoutDragMode.CLONE);
-				chartsArrayLayout.disableCharts();
+				chartsArrayLayout.setEditable(true);
 				editMonitorsButton.setVisible(true);
 				addChartButton.setVisible(true);
 			}
 		});
 
 		saveButton.addClickListener(new Button.ClickListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
 				buttonsLayout.replaceComponent(saveButton, editButton);
 				chartsArrayLayout.setDragMode(LayoutDragMode.NONE);
-				chartsArrayLayout.enableCharts();
+				chartsArrayLayout.setEditable(false);
 				editMonitorsButton.setVisible(false);
 				addChartButton.setVisible(false);
+			}
+		});
+
+		final Button expandButton = new NativeButton();
+		expandButton.setStyleName("expandButton");
+		buttonsLayout.addComponent(expandButton);
+		buttonsLayout.setComponentAlignment(expandButton, Alignment.MIDDLE_CENTER);
+		expandButton.addClickListener(new Button.ClickListener() {
+
+			public void buttonClick(ClickEvent event) {
+				isExpanded = !isExpanded;
+
+				AnimatorProxy proxy = getSession().getAttribute(AnimatorProxy.class);
+				proxy.addListener(new AnimationListener() {
+					public void onAnimation(AnimationEvent event) {
+						Component component = event.getComponent();
+						component.setVisible(isExpanded ? false : true);
+					}
+				});
+				//				OverviewPanel overviewPanel = getSession().getAttribute(OverviewPanel.class);
+				//				if (!isExpanded) {
+				//					overviewPanel.setVisible(isExpanded ? false : true);
+				//				}
+				//				proxy.animate(overviewPanel, isExpanded ? AnimType.ROLL_UP_CLOSE : AnimType.ROLL_DOWN_OPEN).setDuration(500).setDelay(100);
+				//
+				//				TopPanel topPanel = getSession().getAttribute(TopPanel.class);
+				//				if (!isExpanded) {
+				//					topPanel.setVisible(isExpanded ? false : true);
+				//				}
+				//				proxy.animate(topPanel, isExpanded ? AnimType.ROLL_UP_CLOSE : AnimType.ROLL_DOWN_OPEN).setDuration(500).setDelay(100);
+
+				VerticalLayout topMid = getSession().getAttribute(VerticalLayout.class);
+				if (!isExpanded) {
+					topMid.setVisible(isExpanded ? false : true);
+				}
+				proxy.animate(topMid, isExpanded ? AnimType.ROLL_UP_CLOSE : AnimType.ROLL_DOWN_OPEN).setDuration(500).setDelay(100);
+
+				expandButton.setStyleName(isExpanded ? "shrinkButton" : "expandButton");
 			}
 		});
 
@@ -261,43 +302,57 @@ public class PanelInfo extends HorizontalLayout {
 		chartsLayout.addComponent(panel);
 		chartsLayout.setExpandRatio(panel, 1.0f);
 
-		chartsArray = chartsArray();
+		chartsArray = chartsArray(chartProperties);
 		panel.setContent(chartsArray);
 
 	}
 
-	public DDCssLayout chartsArray() {
+	public DDCssLayout chartsArray(ChartProperties chartProperties) {
 
 		chartsArrayLayout = new ChartsLayout(false);
-		chartsArrayLayout.initializeCharts();
+		chartsArrayLayout.initializeCharts(chartProperties);
 
 		return chartsArrayLayout;
 
 	}
 
-	public void redrawMonitors() {
-		DDCssLayout newChartsArray = chartsArray();
-		chartsLayout.replaceComponent(chartsArray, newChartsArray);
-		chartsArray = newChartsArray;
-		refresh();
-	}
-
 	public void refresh() {
-		ClusterComponent componentInfo = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
+		ClusterComponent componentInfo = getSession().getAttribute(ClusterComponent.class);
+		if (componentInfo == null) {
+			return;
+		}
 
-		if ((lastComponent != null) && (componentInfo != lastComponent)) {
-			// switch out System or Node current info, if necessary
-			if (componentInfo.getType() != lastComponent.getType()) {
+		if (componentInfo != lastComponent) {
+
+			// if we have not attached a component yet...
+			if (lastComponent == null) {
 				switch (componentInfo.getType()) {
 				case system:
-					infoLayout.replaceComponent(nodeGrid, systemGrid);
+					infoLayout.addComponent(systemGrid);
 					break;
 
 				case node:
-					infoLayout.replaceComponent(systemGrid, nodeGrid);
+					infoLayout.addComponent(nodeGrid);
 					break;
 				}
+			} else {
+
+				// switch out System or Node current info, if necessary
+				if (componentInfo.getType() != lastComponent.getType()) {
+					switch (componentInfo.getType()) {
+					case system:
+						infoLayout.replaceComponent(nodeGrid, systemGrid);
+						break;
+
+					case node:
+						infoLayout.replaceComponent(systemGrid, nodeGrid);
+						break;
+					}
+				}
 			}
+
+			// zero out existing display in order to eliminate false user readings if new data is slow to be retireved
+			chartsArrayLayout.hideCharts();
 		}
 
 		nameLabel.setValue(componentInfo.getName());
@@ -309,8 +364,7 @@ public class PanelInfo extends HorizontalLayout {
 		case system:
 			SystemRecord systemRecord = (SystemRecord) componentInfo;
 			currentLabels = systemLabels;
-			String systemValues[] = {
-					((value = systemRecord.getStatus()) != null) && (value = NodeStates.getNodeStatesDescriptions().get(value)) != null ? value : "Invalid",
+			String systemValues[] = { (value = systemRecord.getStatus()) != null ? NodeStates.getDescription(value) : NOT_AVAILABLE,
 					(value = systemRecord.getHealth()) != null ? value + "%" : NOT_AVAILABLE,
 					(value = systemRecord.getConnections()) != null ? value : NOT_AVAILABLE,
 					(value = systemRecord.getPackets()) != null ? value + " KB" : NOT_AVAILABLE,
@@ -323,8 +377,7 @@ public class PanelInfo extends HorizontalLayout {
 		case node:
 			NodeInfo nodeInfo = (NodeInfo) componentInfo;
 			currentLabels = nodeLabels;
-			String nodeValues[] = {
-					((value = nodeInfo.getStatus()) != null) && (value = NodeStates.getNodeStatesDescriptions().get(value)) != null ? value : "Invalid",
+			String nodeValues[] = { (value = nodeInfo.getStatus()) != null ? NodeStates.getDescription(value) : NOT_AVAILABLE,
 					(value = nodeInfo.getHealth()) != null ? value + "%" : NOT_AVAILABLE, (value = nodeInfo.getConnections()) != null ? value : NOT_AVAILABLE,
 					(value = nodeInfo.getPackets()) != null ? value + " KB" : NOT_AVAILABLE,
 					(value = nodeInfo.getCommand()) != null ? Commands.getNames().get(value) : NOT_AVAILABLE,
@@ -339,12 +392,12 @@ public class PanelInfo extends HorizontalLayout {
 
 		for (int i = 0; i < values.length && i < currentLabels.length; i++) {
 			value = values[i];
-			if (!((String) currentLabels[i].getValue()).equalsIgnoreCase(value)) {
+			if (!((String) currentLabels[i].getValue()).equals(value)) {
 				currentLabels[i].setValue(value);
 			}
 		}
 
-		chartsArrayLayout.refresh(chartTime, chartInterval, chartPoints);
+		chartsArrayLayout.refresh(chartTime, chartInterval);
 
 		lastComponent = componentInfo;
 	}

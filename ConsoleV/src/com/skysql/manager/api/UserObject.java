@@ -20,20 +20,25 @@ package com.skysql.manager.api;
 
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.json.JSONObject;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class UserObject {
 
 	public static final String PROPERTY_CHARTS = "com.skysql.manager.charts";
+	public static final String PROPERTY_CHART_MAPPINGS = "com.skysql.manager.chart.mappings";
+	public static final String PROPERTY_CHART_SETTINGS = "com.skysql.manager.chart.settings";
 
 	private String userID;
 	private String name;
@@ -73,7 +78,7 @@ public class UserObject {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+			new ErrorDialog(e, "Error encoding API request");
 		}
 
 		return false;
@@ -92,9 +97,22 @@ public class UserObject {
 			return api.put("user/" + userID + "/property/" + key, jsonParam.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new RuntimeException("Error preparing API call");
+			new ErrorDialog(e, "Error encoding API request");
 		}
 
+		return false;
+	}
+
+	public boolean deleteProperty(String key) {
+		if (properties != null) {
+			APIrestful api = new APIrestful();
+			if (api.delete("user/" + userID + "/property/" + key)) {
+				properties.remove(key);
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public void setUserID(String userID) {
@@ -126,18 +144,26 @@ public class UserObject {
 
 		APIrestful api = new APIrestful();
 		if (api.post("user/" + userID, "password=" + password)) {
-			UserObject login = APIrestful.getGson().fromJson(api.getResult(), UserObject.class);
-			if (login.getUserID() == null) {
-				return false;
-			}
-			this.userID = userID;
-			this.name = login.name;
+			try {
+				UserObject login = APIrestful.getGson().fromJson(api.getResult(), UserObject.class);
+				if (login.getUserID() == null) {
+					return false;
+				}
+				this.userID = userID;
+				this.name = login.name;
 
-			api = new APIrestful();
-			if (api.get("user/" + userID)) {
-				UserObject user = APIrestful.getGson().fromJson(api.getResult(), UserObject.class);
-				this.properties = user.properties;
-				return true;
+				api = new APIrestful();
+				if (api.get("user/" + userID)) {
+					UserObject user = APIrestful.getGson().fromJson(api.getResult(), UserObject.class);
+					this.properties = user.properties;
+					return true;
+				}
+			} catch (NullPointerException e) {
+				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+				throw new RuntimeException("API response");
+			} catch (JsonParseException e) {
+				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+				throw new RuntimeException("API response");
 			}
 		}
 		return false;
@@ -146,27 +172,29 @@ public class UserObject {
 }
 
 class UserObjectDeserializer implements JsonDeserializer<UserObject> {
-	public UserObject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public UserObject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		UserObject userObject = new UserObject();
 
 		JsonObject jsonObject = json.getAsJsonObject();
 		JsonElement element;
 
-		if (jsonObject.has("username")) {
+		if (jsonObject.has("user")) {
+			jsonObject = jsonObject.get("user").getAsJsonObject();
 			userObject.setUserID(((element = jsonObject.get("username")) == null || element.isJsonNull()) ? null : element.getAsString());
 			userObject.setName(((element = jsonObject.get("name")) == null || element.isJsonNull()) ? null : element.getAsString());
-			element = jsonObject.get("properties");
-			if (element == null || element.isJsonNull()) {
+
+			JsonElement jsonElement = jsonObject.get("properties");
+			if (jsonElement == null || jsonElement.isJsonNull()) {
 				userObject.setProperties(null);
 			} else {
-				JsonArray array = element.getAsJsonArray();
-				int length = array.size();
-
-				LinkedHashMap<String, String> properties = new LinkedHashMap<String, String>(length);
-				for (int i = 0; i < length; i++) {
-					JsonObject pair = array.get(i).getAsJsonObject();
-					String property = (element = pair.get("property")).isJsonNull() ? null : element.getAsString();
-					String value = (element = pair.get("value")).isJsonNull() ? null : element.getAsString();
+				jsonObject = (JsonObject) jsonElement;
+				LinkedHashMap<String, String> properties = new LinkedHashMap<String, String>();
+				Set<Entry<String, JsonElement>> set = jsonObject.entrySet();
+				Iterator<Entry<String, JsonElement>> iter = set.iterator();
+				while (iter.hasNext()) {
+					Entry<String, JsonElement> entry = iter.next();
+					String property = entry.getKey();
+					String value = entry.getValue().getAsString();
 					properties.put(property, value);
 				}
 				userObject.setProperties(properties);

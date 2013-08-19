@@ -31,6 +31,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class AppData {
 
@@ -81,10 +82,10 @@ public class AppData {
 				this.apiURI = config.apiURI;
 				this.apiKeys = config.apiKeys;
 			}
-			System.out.println("API uri: " + getApiURI());
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			new ErrorDialog(e, "Error setting up application");
 		}
 
 	}
@@ -96,7 +97,7 @@ public class AppData {
 
 	public final class Debug {
 		//set to false to allow compiler to identify and eliminate unreachable code
-		public static final boolean ON = false;
+		public static final boolean ON = true;
 	}
 
 }

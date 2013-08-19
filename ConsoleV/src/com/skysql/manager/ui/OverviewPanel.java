@@ -19,226 +19,266 @@
 package com.skysql.manager.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import com.skysql.manager.ClusterComponent;
-import com.skysql.manager.MonitorRecord;
+import com.skysql.manager.ManagerUI;
 import com.skysql.manager.SystemRecord;
-import com.skysql.manager.api.MonitorDataLatest;
-import com.skysql.manager.api.Monitors;
 import com.skysql.manager.api.NodeInfo;
-import com.skysql.manager.api.NodeStates;
 import com.skysql.manager.api.SystemInfo;
-import com.vaadin.event.LayoutEvents.LayoutClickEvent;
-import com.vaadin.event.LayoutEvents.LayoutClickListener;
+import com.skysql.manager.ui.components.ComponentButton;
+import com.skysql.manager.ui.components.NodesLayout;
+import com.skysql.manager.ui.components.SystemLayout;
+import com.vaadin.server.Sizeable;
 import com.vaadin.server.VaadinSession;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.Runo;
 
+@SuppressWarnings("serial")
 public class OverviewPanel extends Panel {
-	private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-	private static final String ICON_MASTER = "master";
-	private static final String ICON_SLAVE = "slave";
 
 	private SystemInfo systemInfo;
 	private SystemRecord systemRecord;
-	private ArrayList<NodeInfo> nodes = new ArrayList<NodeInfo>();
-	private ArrayList<VerticalLayout> buttons = new ArrayList<VerticalLayout>();
-	private VerticalLayout selectedButton;
+	public ComponentButton selectedButton;
+	private NodesLayout nodesLayout;
+	private SystemLayout systemLayout;
+	private HorizontalLayout backButton;
+	private UpdaterThread updaterThread;
 
 	public OverviewPanel() {
 
-		setHeight("176px");
+		HorizontalLayout overviewContainer = new HorizontalLayout();
+		overviewContainer.addStyleName("overviewPanel");
+		overviewContainer.setWidth("100%");
+		setContent(overviewContainer);
 
-		HorizontalLayout strip = new HorizontalLayout();
-		strip.addStyleName("overviewPanel");
-		strip.setMargin(true);
-		strip.setWidth("100%");
-		setContent(strip);
+		VerticalLayout systemSlot = new VerticalLayout();
+		systemSlot.addStyleName("systemSlot");
+		systemSlot.setWidth(Sizeable.SIZE_UNDEFINED, Sizeable.Unit.PERCENTAGE);
+		systemSlot.setMargin(new MarginInfo(false, false, true, false));
+		overviewContainer.addComponent(systemSlot);
+
+		final HorizontalLayout systemHeader = new HorizontalLayout();
+		systemHeader.addStyleName("panelHeaderLayout");
+		systemHeader.setWidth("100%");
+		systemHeader.setHeight("23px");
+		systemSlot.addComponent(systemHeader);
+		final Label systemLabel = new Label("System");
+		systemLabel.setSizeUndefined();
+		systemHeader.addComponent(systemLabel);
+		systemHeader.setComponentAlignment(systemLabel, Alignment.MIDDLE_CENTER);
 
 		systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
 		systemRecord = systemInfo.getCurrentSystem();
+		systemLayout = new SystemLayout(systemRecord);
+		systemSlot.addComponent(systemLayout);
 
-		// initialize System button
-		selectedButton = createButton(strip, systemInfo.getCurrentSystem());
+		backButton = new HorizontalLayout();
+		backButton.setStyleName("backButton");
+		systemSlot.addComponent(backButton);
 
-		// initialize Node buttons
-		for (String nodeID : systemRecord.getNodes()) {
-			NodeInfo nodeInfo = new NodeInfo(systemRecord.getID(), nodeID);
-			nodes.add(nodeInfo);
-			createButton(strip, nodeInfo);
-		}
+		VerticalLayout nodesSlot = new VerticalLayout();
+		nodesSlot.addStyleName("nodesSlot");
+		nodesSlot.setMargin(new MarginInfo(false, false, false, true));
+		overviewContainer.addComponent(nodesSlot);
+		overviewContainer.setExpandRatio(nodesSlot, 1.0f);
+
+		final HorizontalLayout nodesHeader = new HorizontalLayout();
+		nodesHeader.addStyleName("panelHeaderLayout");
+		nodesHeader.setWidth("100%");
+		nodesSlot.addComponent(nodesHeader);
+		final Label nodesLabel = new Label("Nodes");
+		nodesLabel.setSizeUndefined();
+		nodesHeader.addComponent(nodesLabel);
+		nodesHeader.setComponentAlignment(nodesLabel, Alignment.MIDDLE_CENTER);
+		nodesHeader.setExpandRatio(nodesLabel, 1.0f);
+
+		final HorizontalLayout buttonsLayout = new HorizontalLayout();
+		buttonsLayout.setSpacing(true);
+		buttonsLayout.setMargin(new MarginInfo(false, true, false, false));
+		nodesHeader.addComponent(buttonsLayout);
+		nodesHeader.setComponentAlignment(buttonsLayout, Alignment.MIDDLE_RIGHT);
+
+		final Button addNodeButton = new Button("Add Node...");
+		addNodeButton.setVisible(false);
+		buttonsLayout.addComponent(addNodeButton);
+		addNodeButton.addClickListener(new Button.ClickListener() {
+
+			public void buttonClick(ClickEvent event) {
+				new NodeDialog(null, null);
+			}
+		});
+
+		final Button editButton = new Button("Edit");
+		final Button saveButton = new Button("Done");
+		buttonsLayout.addComponent(editButton);
+		editButton.addClickListener(new Button.ClickListener() {
+
+			public void buttonClick(ClickEvent event) {
+				buttonsLayout.replaceComponent(editButton, saveButton);
+				systemLayout.setEditable(true);
+				nodesLayout.setEditable(true);
+				addNodeButton.setVisible(true);
+			}
+		});
+
+		saveButton.addClickListener(new Button.ClickListener() {
+
+			public void buttonClick(ClickEvent event) {
+				buttonsLayout.replaceComponent(saveButton, editButton);
+				systemLayout.setEditable(false);
+				nodesLayout.setEditable(false);
+				addNodeButton.setVisible(false);
+			}
+		});
+
+		Panel panel = new Panel();
+		panel.setHeight("155px");
+		panel.addStyleName(Runo.PANEL_LIGHT);
+		nodesSlot.addComponent(panel);
+
+		nodesLayout = new NodesLayout(systemRecord);
+		nodesLayout.addStyleName("nodesLayout");
+		nodesLayout.setWidth("100%");
+		panel.setContent(nodesLayout);
 
 	}
 
 	public ArrayList<NodeInfo> getNodes() {
-		return nodes;
-	}
-
-	private VerticalLayout createButton(HorizontalLayout strip, ClusterComponent componentInfo) {
-		final VerticalLayout button_node = new VerticalLayout();
-		button_node.setWidth(componentInfo.getType() == ClusterComponent.CCType.system ? "128px" : "96px");
-		button_node.setHeight("120px");
-		Label nodeName = new Label(componentInfo.getName());
-		nodeName.setSizeUndefined();
-		button_node.addComponent(nodeName);
-		button_node.setComponentAlignment(nodeName, Alignment.BOTTOM_CENTER);
-
-		componentInfo.setButton(button_node);
-
-		button_node.addStyleName(componentInfo.getType().toString());
-		String status = componentInfo.getStatus();
-		String icon = NodeStates.getNodeIcon(status);
-		button_node.addStyleName(icon);
-		button_node.setImmediate(true);
-
-		String description;
-		switch (componentInfo.getType()) {
-		case system:
-			description = ((SystemRecord) systemRecord).ToolTip();
-			break;
-		case node:
-			description = ((NodeInfo) componentInfo).ToolTip();
-			break;
-		default:
-			description = "Unknown component type";
-			break;
-		}
-		button_node.setDescription(description);
-		button_node.setData(componentInfo);
-		strip.addComponent(button_node);
-		buttons.add(button_node);
-
-		button_node.addLayoutClickListener(new LayoutClickListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-			@Override
-			public void layoutClick(LayoutClickEvent event) {
-				clickLayout(button_node);
-			}
-		});
-
-		return button_node;
+		return nodesLayout.getNodes();
 	}
 
 	public void clickLayout(final int buttonIndex) {
-		clickLayout(buttons.get(buttonIndex));
+		if (buttonIndex > 0) {
+			clickLayout(getNodes().get(buttonIndex - 1).getButton());
+		} else {
+			clickLayout(systemLayout.getButton());
+		}
 	}
 
-	private void clickLayout(final VerticalLayout button_node) {
+	public void clickLayout(final ComponentButton button_node) {
 		if (selectedButton != null) {
-			String styleName = selectedButton.getStyleName();
-			if (styleName.contains("selected")) {
-				selectedButton.setStyleName(styleName.replace("selected", ""));
-			}
+			selectedButton.setSelected(false);
 		}
-
 		selectedButton = button_node;
-		button_node.addStyleName("selected");
-		ClusterComponent componentInfo = (ClusterComponent) button_node.getData();
-		VaadinSession.getCurrent().setAttribute(ClusterComponent.class, componentInfo);
+		selectedButton.setSelected(true);
 
-		TabbedPanel tabbedPanel = VaadinSession.getCurrent().getAttribute(TabbedPanel.class);
+		ClusterComponent componentInfo = (ClusterComponent) button_node.getData();
+		getSession().setAttribute(ClusterComponent.class, componentInfo);
+
+		TabbedPanel tabbedPanel = getSession().getAttribute(TabbedPanel.class);
 		tabbedPanel.refresh();
 
 	}
 
 	public void refresh() {
 
-		boolean refresh = false;
-		SystemRecord newSystemRecord = systemInfo.update(systemRecord.getID());
-		VerticalLayout button = systemRecord.getButton();
+		ManagerUI.log("OverviewPanel refresh()");
+		updaterThread = new UpdaterThread(updaterThread);
+		updaterThread.start();
 
-		String newName;
-		if ((newName = newSystemRecord.getName()) != null && !newName.equals(systemRecord.getID())) {
+	}
+
+	public class UpdaterThread extends Thread {
+		UpdaterThread oldUpdaterThread;
+		public volatile boolean flagged = false;
+
+		UpdaterThread(UpdaterThread oldUpdaterThread) {
+			this.oldUpdaterThread = oldUpdaterThread;
+		}
+
+		@Override
+		public void run() {
+			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
+				ManagerUI.log("OverviewPanel - Old thread is alive: " + oldUpdaterThread);
+				oldUpdaterThread.flagged = true;
+				oldUpdaterThread.interrupt();
+				try {
+					ManagerUI.log("OverviewPanel - Before Join");
+					oldUpdaterThread.join();
+					ManagerUI.log("OverviewPanel- After Join");
+				} catch (InterruptedException iex) {
+					ManagerUI.log("OverviewPanel- Interrupted Exception");
+					return;
+				}
+
+			}
+
+			ManagerUI.log("OverviewPanel- UpdaterThread.this: " + this);
+			asynchRefresh(this);
+			
+		}
+	}
+
+	private void asynchRefresh(UpdaterThread updaterThread) {
+
+		boolean refresh = false;
+		ManagerUI managerUI = getSession().getAttribute(ManagerUI.class);
+
+		SystemRecord newSystemRecord = systemInfo.updateSystem(systemRecord.getID());
+		final ComponentButton button = systemRecord.getButton();
+
+		final String newName;
+		if ((newName = newSystemRecord.getName()) != null && !newName.equals(systemRecord.getName())) {
 			refresh = true;
-			Label buttonLabel = (Label) button.getComponent(0);
-			buttonLabel.setValue(newName);
+		}
+
+		String[] newNodes;
+		boolean reloadNodes = false;
+		if ((newNodes = newSystemRecord.getNodes()) != null && (!Arrays.equals(newNodes, systemRecord.getNodes()) || nodesLayout.getButtons().isEmpty())) {
+			ManagerUI.log("ReloadNodes");
+			refresh = true;
+			reloadNodes = true;
 		}
 
 		if (refresh) {
 			newSystemRecord.setButton(systemRecord.getButton());
 			systemRecord = newSystemRecord;
 			// will this have already been updated?
-			//VaadinSession.getCurrent().setAttribute(SystemInfo.class, systemInfo);
-			button.setData(systemRecord);
-			button.setDescription(systemRecord.ToolTip());
+			//getSession().setAttribute(SystemInfo.class, systemInfo);
+
+			managerUI.access(new Runnable() {
+				@Override
+				public void run() {
+					// Here the UI is locked and can be updated
+
+					ManagerUI.log("OverviewPanel access run()");
+
+					button.setName(newName);
+					button.setData(systemRecord);
+					button.setDescription(systemRecord.ToolTip());
+				}
+			});
+
 		}
 
-		refresh = false;
-		for (NodeInfo nodeInfo : nodes) {
-			NodeInfo newInfo = new NodeInfo(nodeInfo.getSystemID(), nodeInfo.getID());
+		if (updaterThread.flagged) {
+			ManagerUI.log("OverviewPanel - flagged is set before Nodes refresh");
+			return;
+		}
 
-			// copies the Button object to new nodeInfo and replaces old one
-			// with it in the button Data and in the array
-			button = nodeInfo.getButton();
-			newInfo.setButton(button);
+		nodesLayout.refresh(updaterThread, reloadNodes ? newSystemRecord : null);
 
-			// fetch current capacity from monitor
-			MonitorRecord capacityMonitor = Monitors.getMonitor(Monitors.MONITOR_CAPACITY);
-			if (capacityMonitor != null) {
-				MonitorDataLatest monitorData = new MonitorDataLatest(capacityMonitor, newInfo.getSystemID(), newInfo.getID());
-				Number dataPoint = monitorData.getLatestValue();
-				newInfo.setCapacity((dataPoint != null) ? String.valueOf(dataPoint) : null);
+		managerUI.access(new Runnable() {
+			@Override
+			public void run() {
+				// Here the UI is locked and can be updated
+
+				ManagerUI.log("OverviewPanel - TabbedPanel access run()");
+
+				TabbedPanel tabbedPanel = getSession().getAttribute(TabbedPanel.class);
+				tabbedPanel.refresh();
+
 			}
+		});
 
-			if ((newName = newInfo.getName()) != null && !newName.equals(nodeInfo.getName())) {
-				refresh = true;
-				Label buttonLabel = (Label) button.getComponent(0);
-				buttonLabel.setValue(newName);
-			}
-
-			String newStatus, newCapacity;
-			if (((newStatus = newInfo.getStatus()) != null && !newStatus.equals(nodeInfo.getStatus()))
-					|| ((newStatus != null) && (newCapacity = newInfo.getCapacity()) != null && !newCapacity.equals(nodeInfo.getCapacity()))) {
-				refresh = true;
-
-				String icon = NodeStates.getNodeIcon(newStatus);
-				if ((newCapacity = newInfo.getCapacity()) != null && (icon.equals(ICON_MASTER) || icon.equals(ICON_SLAVE))) {
-
-					double capacity_num = Double.parseDouble(newCapacity);
-					if (capacity_num > 0 && capacity_num < 20)
-						icon += "-20";
-					else if (capacity_num < 40)
-						icon += "-40";
-					else if (capacity_num < 60)
-						icon += "-60";
-					else if (capacity_num < 80)
-						icon += "-80";
-					else if (capacity_num <= 100)
-						icon += "-100";
-				}
-
-				button.setStyleName(icon);
-				button.addStyleName(nodeInfo.getType().toString());
-				if (button == selectedButton) {
-					button.addStyleName("selected");
-				}
-			}
-
-			String newTask = newInfo.getTask();
-			String oldTask = nodeInfo.getTask();
-			if (((newTask == null) && (oldTask != null)) || (newTask != null) && ((oldTask == null) || (!newTask.equals(oldTask)))) {
-				refresh = true;
-			}
-
-			if (refresh) {
-				newInfo.setButton(button);
-				// carry over RunningTask(s)
-				newInfo.setCommandTask(nodeInfo.getCommandTask());
-
-				nodes.set(nodes.indexOf(nodeInfo), newInfo);
-				if (nodeInfo == VaadinSession.getCurrent().getAttribute(ClusterComponent.class)) {
-					VaadinSession.getCurrent().setAttribute(ClusterComponent.class, newInfo);
-				}
-				button.setData(newInfo);
-				button.setDescription(newInfo.ToolTip());
-			}
-
-		} // for all nodes
 
 	}
 }

@@ -28,6 +28,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class SettingsValues {
 
@@ -51,19 +52,27 @@ public class SettingsValues {
 	public SettingsValues(String property) {
 		APIrestful api = new APIrestful();
 		if (api.get("application/1/property/" + property)) {
-			SettingsValues settingsValues = APIrestful.getGson().fromJson(api.getResult(), SettingsValues.class);
-			this.values = settingsValues.values;
+			try {
+				SettingsValues settingsValues = APIrestful.getGson().fromJson(api.getResult(), SettingsValues.class);
+				this.values = settingsValues.values;
+			} catch (NullPointerException e) {
+				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+				throw new RuntimeException("API response");
+			} catch (JsonParseException e) {
+				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+				throw new RuntimeException("API response");
+			}
 		}
 	}
 
 }
 
 class SettingsValuesDeserializer implements JsonDeserializer<SettingsValues> {
-	public SettingsValues deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public SettingsValues deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		SettingsValues settingsValues = new SettingsValues();
 
 		JsonElement jsonElement = json.getAsJsonObject().get("applicationproperty");
-		if (jsonElement == null || jsonElement.isJsonNull()) {
+		if (jsonElement.isJsonNull()) {
 			settingsValues.setValues(null);
 		} else {
 			JsonObject jsonObject = (JsonObject) jsonElement;

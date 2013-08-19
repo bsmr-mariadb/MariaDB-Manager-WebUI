@@ -2,26 +2,24 @@
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
   <display-name>SkySQLManager</display-name>
   <context-param>
-  	<description>
-  	Vaadin production mode</description>
+  	<description>Vaadin production mode</description>
   	<param-name>productionMode</param-name>
   	<param-value>true</param-value>
   </context-param>
   <servlet>
   	<servlet-name>SkySQL Manager</servlet-name>
-  	<servlet-class>org.vaadin.artur.icepush.ICEPushServlet</servlet-class>
+  	<servlet-class>com.vaadin.server.VaadinServlet</servlet-class>
   	<init-param>
-  		<description>
-  		Vaadin UI class to use</description>
+  		<description>Vaadin UI class to use</description>
   		<param-name>UI</param-name>
   		<param-value>com.skysql.manager.ManagerUI</param-value>
   	</init-param>
- 		<init-param>
-			<description>
-			Application widgetset</description>
-			<param-name>widgetset</param-name>
-			<param-value>com.skysql.manager.widgetset.ManagerWidgetset</param-value>
-		</init-param>
+ 	<init-param>
+		<description>Application widgetset</description>
+		<param-name>widgetset</param-name>
+		<param-value>com.skysql.manager.widgetset.ManagerWidgetset</param-value>
+	</init-param>
+  	<async-supported>true</async-supported>
   </servlet>
   <servlet-mapping>
   	<servlet-name>SkySQL Manager</servlet-name>

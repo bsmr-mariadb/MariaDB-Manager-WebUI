@@ -21,7 +21,6 @@ package com.skysql.manager;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.vaadin.ui.Button;
 
 public class UserChart extends ChartMappings {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
@@ -45,7 +44,6 @@ public class UserChart extends ChartMappings {
 	}
 
 	private HashMap<String, Object> monitorsData;
-	private Button deleteButton;
 
 	public UserChart(String name, String description, String unit, String type, int points, ArrayList<String> monitorIDs) {
 		super(name, description, unit, type, points, monitorIDs);
@@ -55,7 +53,6 @@ public class UserChart extends ChartMappings {
 	public UserChart(UserChart oldUserChart) {
 		super(oldUserChart);
 		this.monitorsData = oldUserChart.monitorsData;
-		this.deleteButton = oldUserChart.deleteButton;
 	}
 
 	public UserChart(ChartMappings chartMappings) {
@@ -73,14 +70,6 @@ public class UserChart extends ChartMappings {
 
 	public void clearMonitorData() {
 		this.monitorsData = new HashMap<String, Object>();
-	}
-
-	public Button getDeleteButton() {
-		return deleteButton;
-	}
-
-	public void setDeleteButton(Button deleteButton) {
-		this.deleteButton = deleteButton;
 	}
 
 }

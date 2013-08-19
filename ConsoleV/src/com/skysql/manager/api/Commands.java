@@ -27,6 +27,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class Commands {
 
@@ -56,11 +57,24 @@ public class Commands {
 		return Commands.steps.get(command);
 	}
 
+	public static boolean load() {
+		GetCommands();
+		return (commands != null);
+	}
+
 	private static void GetCommands() {
 		if (commands == null) {
 			APIrestful api = new APIrestful();
 			if (api.get("command")) {
-				commands = APIrestful.getGson().fromJson(api.getResult(), Commands.class);
+				try {
+					commands = APIrestful.getGson().fromJson(api.getResult(), Commands.class);
+				} catch (NullPointerException e) {
+					new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+					throw new RuntimeException("API response");
+				} catch (JsonParseException e) {
+					new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+					throw new RuntimeException("API response");
+				}
 			}
 		}
 	}
@@ -83,12 +97,14 @@ public class Commands {
 
 }
 
+// {"node_commands":[{"command":"backup","description":"Backup Online Slave Node","icon":"backup","steps":"isolate,backup,promote"},{"command":"backup","description":"Backup Offline Slave Node","icon":"backup","steps":"backup"},{"command":"start","description":"Start Stopped Node","icon":"start","steps":"start"},{"command":"stop","description":"Stop Master Node","icon":"stop","steps":"stop"},{"command":"stop","description":"Stop Slave Node","icon":"stop","steps":"stop"},{"command":"restore","description":"Restore Online Slave Node","icon":"stop","steps":"isolate,restore,synchronize"},{"command":"restart","description":"Restore Offline Slave Node","icon":"stop","steps":"restore"},{"command":"start","description":"Stop Node in Error","icon":"stop","steps":"stop"},{"command":"restart","description":"Restart Master Node","icon":"stop","steps":"stop,start"},{"command":"restart","description":"Restart Slave Node","icon":"restart","steps":"stop,start"},{"command":"restart","description":"Restart Node in Error","icon":"restart","steps":"restart"},{"command":"promote","description":"Promote Slave Node","icon":"promote","steps":"promote"}],"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
+
 class CommandsDeserializer implements JsonDeserializer<Commands> {
-	public Commands deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public Commands deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		Commands commands = new Commands();
 
-		JsonElement jsonElement = json.getAsJsonObject().get("commands");
-		if (jsonElement == null || jsonElement.isJsonNull()) {
+		JsonElement jsonElement = json.getAsJsonObject().get("node_commands");
+		if (jsonElement.isJsonNull()) {
 			commands.setIcons(null);
 			commands.setDescriptions(null);
 			commands.setNames(null);
@@ -103,10 +119,11 @@ class CommandsDeserializer implements JsonDeserializer<Commands> {
 			LinkedHashMap<String, String[]> steps = new LinkedHashMap<String, String[]>(length);
 			for (int i = 0; i < length; i++) {
 				JsonObject pair = array.get(i).getAsJsonObject();
-				icons.put(pair.get("id").getAsString(), pair.get("icon").getAsString());
-				descriptions.put(pair.get("id").getAsString(), pair.get("description").getAsString());
-				names.put(pair.get("id").getAsString(), pair.get("name").getAsString());
-				steps.put(pair.get("id").getAsString(), pair.get("steps").getAsString().split(","));
+				String command = pair.get("command").getAsString();
+				icons.put(command, pair.get("icon").getAsString());
+				descriptions.put(command, pair.get("description").getAsString());
+				names.put(command, command);
+				steps.put(command, pair.get("steps").getAsString().split(","));
 			}
 			commands.setIcons(icons);
 			commands.setDescriptions(descriptions);

@@ -42,13 +42,14 @@ public class TopPanel extends HorizontalLayout {
 
 		Embedded logo = new Embedded(null, new ThemeResource("img/combologo.png"));
 		addComponent(logo);
+		setComponentAlignment(logo, Alignment.BOTTOM_LEFT);
 
 		// LINKS AREA (TOP-RIGHT)
 		HorizontalLayout userSettingsLayout = new HorizontalLayout();
 		userSettingsLayout.setSizeUndefined();
 		userSettingsLayout.setSpacing(true);
 		addComponent(userSettingsLayout);
-		setComponentAlignment(userSettingsLayout, Alignment.MIDDLE_RIGHT);
+		setComponentAlignment(userSettingsLayout, Alignment.BOTTOM_RIGHT);
 
 		// User icon and name
 		VerticalLayout userLayout = new VerticalLayout();
@@ -58,8 +59,14 @@ public class TopPanel extends HorizontalLayout {
 		Embedded userIcon = new Embedded(null, new ThemeResource("img/user.png"));
 		userLayout.addComponent(userIcon);
 		userLayout.setComponentAlignment(userIcon, Alignment.MIDDLE_CENTER);
-		userName = new Label(userObject.getName());
+		String name = userObject.getName();
+		if (name == null || name.isEmpty()) {
+			name = userObject.getUserID();
+		}
+		userName = new Label(name);
+		userName.setSizeUndefined();
 		userLayout.addComponent(userName);
+		userLayout.setComponentAlignment(userName, Alignment.MIDDLE_CENTER);
 
 		// buttons
 		VerticalLayout buttonsLayout = new VerticalLayout();
@@ -83,9 +90,10 @@ public class TopPanel extends HorizontalLayout {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
-				VaadinSession.getCurrent().setAttribute(UserObject.class, null);
-				getSession().close();
 				UI.getCurrent().getPage().setLocation("");
+				UI.getCurrent().close();
+				getSession().setAttribute(UserObject.class, null);
+				getSession().close();
 			}
 		});
 

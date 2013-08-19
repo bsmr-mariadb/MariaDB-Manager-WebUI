@@ -27,6 +27,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class BackupStates {
 
@@ -38,11 +39,24 @@ public class BackupStates {
 		return BackupStates.backupStatesDescriptions;
 	}
 
+	public static boolean load() {
+		GetBackupStates();
+		return (backupStates != null);
+	}
+
 	private static void GetBackupStates() {
 		if (backupStates == null) {
 			APIrestful api = new APIrestful();
 			if (api.get("backupstate")) {
-				backupStates = APIrestful.getGson().fromJson(api.getResult(), BackupStates.class);
+				try {
+					backupStates = APIrestful.getGson().fromJson(api.getResult(), BackupStates.class);
+				} catch (NullPointerException e) {
+					new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+					throw new RuntimeException("API response");
+				} catch (JsonParseException e) {
+					new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+					throw new RuntimeException("API response");
+				}
 			}
 		}
 	}
@@ -53,11 +67,11 @@ public class BackupStates {
 }
 
 class BackupStatesDeserializer implements JsonDeserializer<BackupStates> {
-	public BackupStates deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public BackupStates deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		BackupStates backupStates = new BackupStates();
 
 		JsonElement jsonElement = json.getAsJsonObject().get("backupStates");
-		if (jsonElement == null || jsonElement.isJsonNull()) {
+		if (jsonElement.isJsonNull()) {
 			backupStates.setBackupStatesDescriptions(null);
 		} else {
 			JsonArray array = jsonElement.getAsJsonArray();

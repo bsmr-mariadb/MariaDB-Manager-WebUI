@@ -27,6 +27,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class NodeStates {
 
@@ -40,16 +41,30 @@ public class NodeStates {
 		return (icon == null ? "invalid" : icon);
 	}
 
-	public static LinkedHashMap<String, String> getNodeStatesDescriptions() {
+	public static String getDescription(String state) {
 		GetNodeStates();
-		return NodeStates.nodeStatesDescriptions;
+		String description = nodeStatesDescriptions.get(state);
+		return (description == null ? "Invalid" : description);
+	}
+
+	public static boolean load() {
+		GetNodeStates();
+		return (nodeStates != null);
 	}
 
 	private synchronized static void GetNodeStates() {
 		if (nodeStates == null) {
 			APIrestful api = new APIrestful();
 			if (api.get("nodestate")) {
-				nodeStates = APIrestful.getGson().fromJson(api.getResult(), NodeStates.class);
+				try {
+					nodeStates = APIrestful.getGson().fromJson(api.getResult(), NodeStates.class);
+				} catch (NullPointerException e) {
+					new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+					throw new RuntimeException("API response");
+				} catch (JsonParseException e) {
+					new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+					throw new RuntimeException("API response");
+				}
 			}
 		}
 	}
@@ -64,11 +79,11 @@ public class NodeStates {
 }
 
 class NodeStatesDeserializer implements JsonDeserializer<NodeStates> {
-	public NodeStates deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public NodeStates deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		NodeStates nodeStates = new NodeStates();
 
 		JsonElement jsonElement = json.getAsJsonObject().get("nodestates");
-		if (jsonElement == null || jsonElement.isJsonNull()) {
+		if (jsonElement.isJsonNull()) {
 			nodeStates.setNodeStatesIcons(null);
 			nodeStates.setNodeStatesDescriptions(null);
 		} else {

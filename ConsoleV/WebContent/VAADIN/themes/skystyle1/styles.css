@@ -28,6 +28,10 @@
 
 }
 
+.debugPanel {
+	background: orange;
+}
+
 .v-horizontallayout-newLayout {
 	/* background: yellow; */
 }
@@ -39,6 +43,17 @@
 .v-verticallayout-infoLayout {
 }
 
+.systemSlot {
+	/* background: yellow; */
+}
+
+.nodesSlot {
+	/* background: orange; */
+}
+
+.nodesLayout {
+	/* background: blue; */
+}
 .buttonsBar {
 	background: whitesmoke;
 	border-top-width: 1px;
@@ -51,13 +66,28 @@
 	background: lightsteelblue;
 }
 
-.v-button-deleteChart {
-	margin-left: -41px;
-	position: relative;
-    top: -206px;
-    left: -10px;
-    opacity: 1;
-    /* transition: opacity .5s linear; */
+.editNode {
+	position: absolute;
+    top: 5px;
+    left: 5px;
+}
+
+.deleteNode {
+	position: absolute;
+    top: 5px;
+    left: 67px;
+}
+
+.editChart {
+	position: absolute;
+    top: 8px;
+    left: 10px;
+}
+
+.deleteChart {
+	position: absolute;
+    top: 8px;
+    left: 368px;
 }
 
 .v-label-nameLabel {
@@ -74,88 +104,129 @@
 }
 
 
-.v-verticallayout-invalid .v-slot {
+.v-verticallayout-invalid {
     background: transparent url(img/normal/invalid.png) no-repeat;
 }
 
-.v-verticallayout-master .v-slot {
-    background: transparent url(img/normal/master_0.png) no-repeat;
+.componentButton {
+	/* display: block; */
 }
-.v-verticallayout-master-20 .v-slot {
+
+.chartButton {
+}
+
+.chartButton.draggable {
+	border: 2px dotted orange;
+	cursor: hand; cursor: pointer;
+}
+
+.draggableLabel {
+	position: absolute;
+    top: 80px;
+    left: 100px;
+	cursor: hand; cursor: pointer;
+}
+
+.v-nativebutton-expandButton {
+	border: none;
+	background: transparent url(img/expand.png) no-repeat;
+ 	width: 27px;
+	height: 21px;
+}
+
+.v-nativebutton-shrinkButton {
+	border: none;
+	background: transparent url(img/shrink.png) no-repeat;
+ 	width: 27px;
+	height: 21px;
+}
+
+/*.v-button-with-hand {
+   cursor: pointer;
+}*/
+
+.v-verticallayout-master {
+    background: transparent url(img/normal/master_0.png) no-repeat;
+    display: block;
+}
+.v-verticallayout-master-20 {
     background: transparent url(img/normal/master_20.png) no-repeat;
 }
-.v-verticallayout-master-40 .v-slot {
+.v-verticallayout-master-40 {
     background: transparent url(img/normal/master_40.png) no-repeat;
 }
-.v-verticallayout-master-60 .v-slot {
+.v-verticallayout-master-60 {
     background: transparent url(img/normal/master_60.png) no-repeat;
 }
-.v-verticallayout-master-80 .v-slot {
+.v-verticallayout-master-80 {
     background: transparent url(img/normal/master_80.png) no-repeat;
 }
-.v-verticallayout-master-100 .v-slot {
+.v-verticallayout-master-100 {
     background: transparent url(img/normal/master_100.png) no-repeat;
 }
 
-.v-verticallayout-slave .v-slot {
+.v-verticallayout-slave {
 	 background: transparent url(img/normal/node_0.png) no-repeat;
 }
-.v-verticallayout-slave-20 .v-slot {
+.v-verticallayout-slave-20 {
 	 background: transparent url(img/normal/node_20.png) no-repeat;
 }
-.v-verticallayout-slave-40 .v-slot {
+.v-verticallayout-slave-40 {
 	 background: transparent url(img/normal/node_40.png) no-repeat;
 }
-.v-verticallayout-slave-60 .v-slot {
+.v-verticallayout-slave-60 {
 	 background: transparent url(img/normal/node_60.png) no-repeat;
 }
-.v-verticallayout-slave-80 .v-slot {
+.v-verticallayout-slave-80 {
 	 background: transparent url(img/normal/node_80.png) no-repeat;
 }
-.v-verticallayout-slave-100 .v-slot {
+.v-verticallayout-slave-100 {
 	 background: transparent url(img/normal/node_100.png) no-repeat;
 }
 
-.v-verticallayout-offline .v-slot {
+.v-verticallayout-offline {
     background: transparent url(img/normal/offline.png) no-repeat;
-}    
-.v-verticallayout-stopping .v-slot {
+}
+.v-verticallayout-stopping {
     background: transparent url(img/normal/stopping.png) no-repeat;
-}    
-.v-verticallayout-stopped .v-slot {
+}
+.v-verticallayout-stopped {
     background: transparent url(img/normal/stopped.png) no-repeat;
-}    
-.v-verticallayout-isolating .v-slot {
+}
+.v-verticallayout-isolating {
     background: transparent url(img/normal/isolating.png) no-repeat;
-}    
-.v-verticallayout-recovering .v-slot {
+}
+.v-verticallayout-isolated {
+    background: transparent url(img/normal/isolated.png) no-repeat;
+}
+.v-verticallayout-recovering {
     background: transparent url(img/normal/recovering.png) no-repeat;
-}    
-.v-verticallayout-restoring .v-slot {
+}
+.v-verticallayout-restoring {
     background: transparent url(img/normal/restoring.png) no-repeat;
-}    
-.v-verticallayout-backingup .v-slot {
+}
+.v-verticallayout-backingup {
     background: transparent url(img/normal/backingup.png) no-repeat;
-}    
-.v-verticallayout-starting .v-slot {
+}
+.v-verticallayout-starting {
     background: transparent url(img/normal/starting.png) no-repeat;
-}    
-.v-verticallayout-promoting .v-slot {
+}
+.v-verticallayout-promoting {
     background: transparent url(img/normal/promoting.png) no-repeat;
-}    
-.v-verticallayout-synchronizing .v-slot {
+}
+.v-verticallayout-synchronizing {
     background: transparent url(img/normal/synchronizing.png) no-repeat;
-}    
-.v-verticallayout-error .v-slot {
+}
+.v-verticallayout-error {
     background: transparent url(img/normal/error.png) no-repeat;
 }
 
-.v-verticallayout-system .v-slot,
-.v-verticallayout-sys_stopping .v-slot,
-.v-verticallayout-sys_stopped .v-slot,
-.v-verticallayout-sys_starting .v-slot {
+.v-verticallayout-system,
+.v-verticallayout-sys_stopping,
+.v-verticallayout-sys_stopped,
+.v-verticallayout-sys_starting {
     background: transparent url(img/normal/system.png) no-repeat;
-}    
+}
 
 
 .node .v-label {
@@ -172,10 +243,9 @@
 	background-color: gold;
 }
 
-.v-slot-node {
+.network {
 	 border-bottom: 2px solid black;
 }
-
 
 .v-nativebutton-caption,
 .system .v-button-caption {
@@ -184,7 +254,6 @@
     position:absolute;
     bottom:0;
 }
-
 
 .v-horizontallayout-titleLayout {
 	
@@ -204,6 +273,10 @@
     font-size: 16px;
 }
 
+.api-response {
+    font-size: 13px;
+}
+
 .icon-after-caption img {
     float: right;
 }
@@ -216,20 +289,6 @@
 	font-size: 16px;
 	font-style: bold;
 	white-space:nowrap;
-}
-
-.vaadin-chart {
-	float: left;
-	border-style:solid;
-	border-width:1px;
-	border-color:lightgray;
-}
-
-.chartObject-draggable {
-	float: left;
-	border-style:solid;
-	border-width:2px;
-	border-color:yellow;
 }
 
 .chartPreview {

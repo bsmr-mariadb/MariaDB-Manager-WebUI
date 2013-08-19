@@ -23,11 +23,27 @@ import java.util.LinkedHashMap;
 
 public class SystemRecord extends ClusterComponent {
 
+	public static String[] systemTypes() {
+		String[] array = { "aws", "galera" };
+		return array;
+	}
+
+	private static final String NOT_AVAILABLE = "n/a";
+
+	private String systemType;
 	private String startDate;
 	private String lastAccess;
 	private String[] nodes;
 	private LinkedHashMap<String, String> properties;
 	private String lastBackup;
+
+	public String getSystemType() {
+		return systemType;
+	}
+
+	public void setSystemType(String systemType) {
+		this.systemType = systemType;
+	}
 
 	public String getStartDate() {
 		return startDate;
@@ -73,10 +89,11 @@ public class SystemRecord extends ClusterComponent {
 		this.type = ClusterComponent.CCType.system;
 	}
 
-	public SystemRecord(String ID, String name, String health, String connections, String packets, String startDate, String lastAccess, String[] nodes,
-			String lastBackup, LinkedHashMap<String, String> properties) {
+	public SystemRecord(String ID, String systemType, String name, String health, String connections, String packets, String startDate, String lastAccess,
+			String[] nodes, String lastBackup, LinkedHashMap<String, String> properties) {
 		this.type = ClusterComponent.CCType.system;
 		this.ID = ID;
+		this.systemType = systemType;
 		this.name = name;
 		this.startDate = startDate;
 		this.lastAccess = lastAccess;
@@ -90,11 +107,11 @@ public class SystemRecord extends ClusterComponent {
 
 	public String ToolTip() {
 
-		return "<h2>System</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Name:</b> " + this.name + "</li>" + "<li><b>Nodes:</b> "
-				+ ((this.nodes == null) ? "n/a" : Arrays.toString(this.nodes)) + "</li>" + "<li><b>Start Date:</b> "
-				+ ((this.startDate == null) ? "n/a" : this.startDate) + "</li>" + "<li><b>Last Access:</b> "
-				+ ((this.lastAccess == null) ? "n/a" : this.lastAccess) + "</li>" + "<li><b>Last Backup:</b> "
-				+ ((this.lastBackup == null) ? "n/a" : this.lastBackup) + "</li>" + "</ul>";
+		return "<h2>System</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Type:</b> " + this.systemType + "</li>" + "<li><b>Name:</b> "
+				+ this.name + "</li>" + "<li><b>Nodes:</b> " + ((this.nodes == null) ? NOT_AVAILABLE : Arrays.toString(this.nodes)) + "</li>"
+				+ "<li><b>Start Date:</b> " + ((this.startDate == null) ? NOT_AVAILABLE : this.startDate) + "</li>" + "<li><b>Last Access:</b> "
+				+ ((this.lastAccess == null) ? NOT_AVAILABLE : this.lastAccess) + "</li>" + "<li><b>Last Backup:</b> "
+				+ ((this.lastBackup == null) ? NOT_AVAILABLE : this.lastBackup) + "</li>" + "</ul>";
 
 	}
 

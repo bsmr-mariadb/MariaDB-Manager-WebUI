@@ -20,9 +20,11 @@ package com.skysql.manager.ui;
 
 import java.util.ArrayList;
 
+import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.UserChart;
+import com.skysql.manager.api.Monitors;
+import com.skysql.manager.ui.components.ChartButton;
 import com.skysql.manager.ui.components.ChartsLayout;
-import com.vaadin.addon.charts.Chart;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -33,27 +35,22 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
-import com.vaadin.ui.Window.CloseEvent;
 
-public class ChartsDialog implements Window.CloseListener {
-	private static final long serialVersionUID = 0x4C656F6E6172646FL;
+public class ChartsDialog {
 
 	Window dialogWindow;
 	Button openButton;
 	Button closebutton;
 	UserChart newUserChart;
-	final Chart chart;
+	final ChartButton chartButton;
 	final ChartsLayout chartsLayout;
-	final boolean isCreate;
 
-	public ChartsDialog(final ChartsLayout chartsLayout, final Chart chart, final boolean isCreate) {
+	public ChartsDialog(final ChartsLayout chartsLayout, final ChartButton chartButton) {
 
-		this.chart = chart;
+		this.chartButton = chartButton;
 		this.chartsLayout = chartsLayout;
-		this.isCreate = isCreate;
 
 		dialogWindow = new ChartWindow("Monitors to Chart mapping");
-		dialogWindow.addCloseListener(this);
 
 		HorizontalLayout wrapper = new HorizontalLayout();
 		//wrapper.setWidth("100%");
@@ -61,8 +58,7 @@ public class ChartsDialog implements Window.CloseListener {
 
 		UI.getCurrent().addWindow(dialogWindow);
 
-		UserChart originalUserChart = (UserChart) chart.getData();
-		newUserChart = new UserChart(originalUserChart);
+		newUserChart = (chartButton != null) ? new UserChart((UserChart) chartButton.getData()) : newUserChart();
 
 		ArrayList<String> monitorIDs = newUserChart.getMonitorIDs();
 		MonitorsLayout monitorsLayout = new MonitorsLayout(monitorIDs);
@@ -98,19 +94,24 @@ public class ChartsDialog implements Window.CloseListener {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
-				windowClose(null);
+				dialogWindow.close();
 			}
 		});
 
-		Button okButton = new Button("Save Chart");
+		Button okButton = new Button(chartButton != null ? "Save Changes" : "Add Chart");
 		okButton.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
-				String monitorID = null;
 				try {
-					chartsLayout.replaceChart(chart, newUserChart);
-					chartsLayout.refresh();
+					ChartButton newChartButton = new ChartButton(newUserChart);
+					newChartButton.setChartsLayout(chartsLayout);
+					newChartButton.setEditable(true);
+					if (chartButton != null) {
+						chartsLayout.replaceComponent(chartButton, newChartButton);
+					} else {
+						chartsLayout.addComponent(newChartButton);
+					}
 
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -118,7 +119,6 @@ public class ChartsDialog implements Window.CloseListener {
 				}
 
 				dialogWindow.close();
-
 			}
 		});
 		buttonsBar.addComponent(okButton);
@@ -132,15 +132,18 @@ public class ChartsDialog implements Window.CloseListener {
 
 	}
 
-	public void windowClose(CloseEvent e) {
-		if (isCreate) {
-			UserChart userChart = (UserChart) chart.getData();
-			Button deleteButton = userChart.getDeleteButton();
-			chartsLayout.removeComponent(deleteButton);
-			chartsLayout.removeComponent(chart);
-		}
-		dialogWindow.close();
+	public UserChart newUserChart() {
+
+		MonitorRecord monitor = (MonitorRecord) Monitors.getMonitorsList(null).values().toArray()[0];
+		ArrayList<String> monitorsForChart = new ArrayList<String>();
+		monitorsForChart.add(monitor.getID());
+		UserChart userChart = new UserChart(monitor.getName(), monitor.getDescription(), monitor.getUnit(), monitor.getChartType(), UserChart.COUNT_15,
+				monitorsForChart);
+
+		return (userChart);
+
 	}
+
 }
 
 class ChartWindow extends Window {

@@ -29,9 +29,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.ClusterComponent;
+import com.skysql.manager.ui.ErrorDialog;
 import com.skysql.manager.ui.RunningTask;
 
 public class NodeInfo extends ClusterComponent {
+
+	private static final String NOT_AVAILABLE = "n/a";
 
 	private String systemID;
 	private String[] commands;
@@ -50,15 +53,11 @@ public class NodeInfo extends ClusterComponent {
 		return systemID;
 	}
 
-	public void setSystemID(String systemID) {
-		this.systemID = systemID;
-	}
-
 	public String[] getCommands() {
 		return commands;
 	}
 
-	public void setCommands(String[] commands) {
+	protected void setCommands(String[] commands) {
 		this.commands = commands;
 	}
 
@@ -142,21 +141,7 @@ public class NodeInfo extends ClusterComponent {
 		this.capacity = capacity;
 	}
 
-	public void saveName(String name) {
-
-		try {
-			APIrestful api = new APIrestful();
-			JSONObject jsonParam = new JSONObject();
-			jsonParam.put("name", name);
-			api.put("system/" + systemID + "/node/" + ID, jsonParam.toString());
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Error preparing API call");
-		}
-
-	}
-
-	public boolean saveNode(String systemID) {
+	public boolean saveNode() {
 
 		try {
 			APIrestful api = new APIrestful();
@@ -164,50 +149,82 @@ public class NodeInfo extends ClusterComponent {
 			jsonParam.put("name", this.name);
 			jsonParam.put("hostname", this.hostname);
 			jsonParam.put("instanceID", this.instanceID);
-			jsonParam.put("publicIP", this.publicIP);
-			jsonParam.put("privateIP", this.privateIP);
+			jsonParam.put("publicip", this.publicIP);
+			jsonParam.put("privateip", this.privateIP);
 			jsonParam.put("username", this.username);
-			jsonParam.put("password", this.password);
-			if (api.put("system/" + systemID + "/node/" + ID, jsonParam.toString())) {
+			jsonParam.put("passwd", this.password);
+			if (api.put("system/" + systemID + "/node" + (ID == null || ID.isEmpty() ? "" : "/" + ID), jsonParam.toString())) {
 				WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
-				if (writeResponse != null && (!writeResponse.getInsertKey().isEmpty() || writeResponse.getUpdateCount() > 0)) {
-					return true;
+				if (writeResponse != null) {
+					if (ID == null && !writeResponse.getInsertKey().isEmpty()) {
+						ID = writeResponse.getInsertKey();
+						return true;
+					} else if (!ID.isEmpty() && (writeResponse.getUpdateCount() > 0 || !writeResponse.getInsertKey().isEmpty())) {
+						return true;
+					} else {
+						return false;
+					}
 				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new RuntimeException("Error encoding API request");
+			new ErrorDialog(e, "Error encoding API request");
 		}
 
 		return false;
 
 	}
 
+	public synchronized boolean deleteNode() {
+
+		APIrestful api = new APIrestful();
+		if (api.delete("system/" + systemID + "/node/" + ID)) {
+			WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
+			if (writeResponse != null && writeResponse.getDeleteCount() > 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public NodeInfo() {
+	}
+
+	public NodeInfo(String systemID) {
+		this.type = CCType.node;
+		this.systemID = systemID;
 	}
 
 	public NodeInfo(String systemID, String nodeID) {
 
 		APIrestful api = new APIrestful();
 		if (api.get("system/" + systemID + "/node/" + nodeID)) {
-			NodeInfo nodeInfo = APIrestful.getGson().fromJson(api.getResult(), NodeInfo.class);
-			this.type = CCType.node;
-			this.systemID = systemID;
-			this.ID = nodeID;
-			this.name = nodeInfo.name;
-			this.status = nodeInfo.status;
-			this.health = nodeInfo.health;
-			this.connections = nodeInfo.connections;
-			this.packets = nodeInfo.packets;
-			this.commands = nodeInfo.commands;
-			this.task = nodeInfo.task;
-			this.command = nodeInfo.command;
-			this.hostname = nodeInfo.hostname;
-			this.privateIP = nodeInfo.privateIP;
-			this.publicIP = nodeInfo.publicIP;
-			this.instanceID = nodeInfo.instanceID;
-			this.username = nodeInfo.username;
-			this.password = nodeInfo.password;
+			try {
+				NodeInfo nodeInfo = APIrestful.getGson().fromJson(api.getResult(), NodeInfo.class);
+				this.type = CCType.node;
+				this.systemID = systemID;
+				this.ID = nodeID;
+				this.name = nodeInfo.name;
+				this.status = nodeInfo.status;
+				this.health = nodeInfo.health;
+				this.connections = nodeInfo.connections;
+				this.packets = nodeInfo.packets;
+				this.commands = nodeInfo.commands;
+				this.task = nodeInfo.task;
+				this.command = nodeInfo.command;
+				this.hostname = nodeInfo.hostname;
+				this.privateIP = nodeInfo.privateIP;
+				this.publicIP = nodeInfo.publicIP;
+				this.instanceID = nodeInfo.instanceID;
+				this.username = nodeInfo.username;
+				this.password = nodeInfo.password;
+			} catch (NullPointerException e) {
+				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+				throw new RuntimeException("API response");
+			} catch (JsonParseException e) {
+				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+				throw new RuntimeException("API response");
+			}
 		}
 
 	}
@@ -226,52 +243,71 @@ public class NodeInfo extends ClusterComponent {
 		return "<h2>Node</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Name:</b> " + this.name + "</li>" + "<li><b>Hostname:</b> "
 				+ this.hostname + "</li>" + "<li><b>Public IP:</b> " + this.publicIP + "</li>" + "<li><b>Private IP:</b> " + this.privateIP + "</li>"
 				+ "<li><b>Instance ID:</b> " + this.instanceID + "<li><b>Username:</b> " + this.username + "<li><b>Password:</b> " + this.password + "</li>"
-				+ "<li><b>Status:</b> " + ((this.status == null) ? "n/a" : NodeStates.getNodeStatesDescriptions().get(this.status)) + "</li>"
-				+ "<li><b>Availabilty:</b> " + ((this.health == null) ? "n/a" : this.health) + "%</li>" + "<li><b>Connections:</b> "
-				+ ((this.connections == null) ? "n/a" : this.connections) + "</li>" + "<li><b>Data Transfer:</b> "
-				+ ((this.packets == null) ? "n/a" : this.packets) + " KB</li>" + "<li><b>Available Commands:</b> "
-				+ ((this.commands == null) ? "n/a" : commands) + "</li>" + "<li><b>Task ID:</b> " + ((this.task == null) ? "n/a" : this.task) + "</li>"
-				+ "<li><b>Running Command:</b> " + ((this.command == null) ? "n/a" : Commands.getNames().get(this.command)) + "</li>" + "</ul>";
+				+ "<li><b>Status:</b> " + ((this.status == null) ? NOT_AVAILABLE : NodeStates.getDescription(this.status)) + "</li>"
+				+ "<li><b>Availabilty:</b> " + ((this.health == null) ? NOT_AVAILABLE : this.health + "%") + "</li>" + "<li><b>Connections:</b> "
+				+ ((this.connections == null) ? NOT_AVAILABLE : this.connections) + "</li>" + "<li><b>Data Transfer:</b> "
+				+ ((this.packets == null) ? NOT_AVAILABLE : this.packets + "KB") + "</li>" + "<li><b>Available Commands:</b> "
+				+ ((this.commands == null) ? NOT_AVAILABLE : commands) + "</li>" + "<li><b>Task ID:</b> " + ((this.task == null) ? NOT_AVAILABLE : this.task)
+				+ "</li>" + "<li><b>Running Command:</b> " + ((this.command == null) ? NOT_AVAILABLE : Commands.getNames().get(this.command)) + "</li>"
+				+ "</ul>";
 
 	}
 
 }
 
+// {"node":{"systemid":"1","nodeid":"1","name":"node1","state":"offline","hostname":"host1","publicip":"10.0.0.1","privateip":"10.0.0.1","port":"0","instanceid":"","dbusername":"","dbpassword":"","commands":["backup","restart"],"monitorlatest":{"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null},"command":null,"taskid":null},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
+// {"node":{"systemid":"1","nodeid":"1","name":"node1","state":"offline","hostname":"host1","publicip":"10.0.0.1","privateip":"10.0.0.2","port":"0","instanceid":"","dbusername":"","dbpassword":"","commands":["backup","restart"],"monitorlatest":{"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null},"command":null,"taskid":null},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
+
 class NodeInfoDeserializer implements JsonDeserializer<NodeInfo> {
-	public NodeInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public NodeInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		NodeInfo nodeInfo = new NodeInfo();
 
 		JsonElement element = json.getAsJsonObject().get("node");
-		if (element == null || element.isJsonNull()) {
+		if (element.isJsonNull()) {
 			return null;
 		} else {
 
-			JsonObject jsonObject = (JsonObject) element.getAsJsonArray().get(0);
+			JsonObject jsonObject = element.getAsJsonObject();
 			nodeInfo.setName(((element = jsonObject.get("name")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setStatus(((element = jsonObject.get("state")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setTask(((element = jsonObject.get("task")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setTask(((element = jsonObject.get("taskid")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setCommand(((element = jsonObject.get("command")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setHostname(((element = jsonObject.get("hostname")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setPrivateIP(((element = jsonObject.get("privateIP")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setPublicIP(((element = jsonObject.get("publicIP")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setInstanceID(((element = jsonObject.get("instanceID")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setUsername(((element = jsonObject.get("username")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setPassword(((element = jsonObject.get("password")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setPrivateIP(((element = jsonObject.get("privateip")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setPublicIP(((element = jsonObject.get("publicip")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setInstanceID(((element = jsonObject.get("instanceid")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setUsername(((element = jsonObject.get("dbusername")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setPassword(((element = jsonObject.get("dbpassword")) == null || element.isJsonNull()) ? null : element.getAsString());
 
-			if ((element = jsonObject.get("health")) != null) {
-				if ((element = element.getAsJsonArray()) != null && ((element = ((JsonArray) element).get(0)) != null) && !element.isJsonNull()) {
-					nodeInfo.setHealth(element.getAsString());
-				}
-			}
-			if ((element = jsonObject.get("connections")) != null) {
-				if ((element = element.getAsJsonArray()) != null && ((element = ((JsonArray) element).get(0)) != null) && !element.isJsonNull()) {
-					nodeInfo.setConnections(element.getAsString());
-				}
-			}
-			if ((element = jsonObject.get("packets")) != null) {
-				if ((element = element.getAsJsonArray()) != null && ((element = ((JsonArray) element).get(0)) != null) && !element.isJsonNull()) {
-					nodeInfo.setPackets(element.getAsString());
-				}
+			String connections, traffic, availability, nodestate, capacity, hoststate, clustersize, reppaused, parallelism, recvqueue, flowcontrol, sendqueue;
+			if (!(element = jsonObject.get("monitorlatest")).isJsonNull()) {
+				JsonObject monitorObject = element.getAsJsonObject();
+
+				connections = (element = monitorObject.get("connections")).isJsonNull() ? null : element.getAsString();
+				traffic = (element = monitorObject.get("traffic")).isJsonNull() ? null : element.getAsString();
+				availability = (element = monitorObject.get("availability")).isJsonNull() ? null : element.getAsString();
+				nodestate = (element = monitorObject.get("nodestate")).isJsonNull() ? null : element.getAsString();
+				capacity = (element = monitorObject.get("capacity")).isJsonNull() ? null : element.getAsString();
+				hoststate = (element = monitorObject.get("hoststate")).isJsonNull() ? null : element.getAsString();
+				clustersize = (element = monitorObject.get("clustersize")).isJsonNull() ? null : element.getAsString();
+				reppaused = (element = monitorObject.get("reppaused")).isJsonNull() ? null : element.getAsString();
+				parallelism = (element = monitorObject.get("parallelism")).isJsonNull() ? null : element.getAsString();
+				recvqueue = (element = monitorObject.get("recvqueue")).isJsonNull() ? null : element.getAsString();
+				flowcontrol = (element = monitorObject.get("flowcontrol")).isJsonNull() ? null : element.getAsString();
+				sendqueue = (element = monitorObject.get("sendqueue")).isJsonNull() ? null : element.getAsString();
+			} else {
+				connections = null;
+				traffic = null;
+				availability = null;
+				nodestate = null;
+				capacity = null;
+				hoststate = null;
+				clustersize = null;
+				reppaused = null;
+				parallelism = null;
+				recvqueue = null;
+				flowcontrol = null;
+				sendqueue = null;
 			}
 
 			element = jsonObject.get("commands");

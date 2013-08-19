@@ -32,6 +32,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class CommandStates {
 
@@ -49,11 +50,24 @@ public class CommandStates {
 		return CommandStates.descriptions;
 	}
 
+	public static boolean load() {
+		GetCommandStates();
+		return (commandStates != null);
+	}
+
 	private static void GetCommandStates() {
 		if (commandStates == null) {
 			APIrestful api = new APIrestful();
 			if (api.get("command/state")) {
-				commandStates = APIrestful.getGson().fromJson(api.getResult(), CommandStates.class);
+				try {
+					commandStates = APIrestful.getGson().fromJson(api.getResult(), CommandStates.class);
+				} catch (NullPointerException e) {
+					new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+					throw new RuntimeException("API response");
+				} catch (JsonParseException e) {
+					new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+					throw new RuntimeException("API response");
+				}
 			}
 		}
 	}
@@ -69,11 +83,11 @@ public class CommandStates {
 }
 
 class CommandStatesDeserializer implements JsonDeserializer<CommandStates> {
-	public CommandStates deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public CommandStates deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		CommandStates commandStates = new CommandStates();
 
 		JsonElement jsonElement = json.getAsJsonObject().get("commandStates");
-		if (jsonElement == null || jsonElement.isJsonNull()) {
+		if (jsonElement.isJsonNull()) {
 			commandStates.setIcons(null);
 			commandStates.setDescriptions(null);
 		} else {
@@ -84,8 +98,8 @@ class CommandStatesDeserializer implements JsonDeserializer<CommandStates> {
 			LinkedHashMap<String, String> descriptions = new LinkedHashMap<String, String>(length);
 			for (int i = 0; i < length; i++) {
 				JsonObject pair = array.get(i).getAsJsonObject();
-				icons.put(pair.get("id").getAsString(), pair.get("icon").getAsString());
-				descriptions.put(pair.get("id").getAsString(), pair.get("description").getAsString());
+				icons.put(pair.get("state").getAsString(), pair.get("icon").getAsString());
+				descriptions.put(pair.get("state").getAsString(), pair.get("description").getAsString());
 			}
 			commandStates.setIcons(icons);
 			commandStates.setDescriptions(descriptions);

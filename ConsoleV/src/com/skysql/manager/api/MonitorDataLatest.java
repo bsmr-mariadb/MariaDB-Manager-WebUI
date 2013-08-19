@@ -24,9 +24,9 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
-import com.skysql.manager.AppData.Debug;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.MonitorRecord;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class MonitorDataLatest {
 
@@ -73,27 +73,31 @@ public class MonitorDataLatest {
 
 		APIrestful api = new APIrestful();
 		String uri = "system/" + system + (node.equals(SystemInfo.SYSTEM_NODEID) ? "" : "/node/" + node) + "/monitor/" + monitor.getID() + "/latest";
-		if (Debug.ON) {
-			ManagerUI.log(uri);
-		}
+		ManagerUI.log(uri);
 
 		if (api.get(uri)) {
-			MonitorDataLatest monitorData = APIrestful.getGson().fromJson(api.getResult(), MonitorDataLatest.class);
-			this.latestValue = monitorData.latestValue;
-			this.latestTimeStamp = monitorData.latestTimeStamp;
-			if (Debug.ON) {
+			try {
+				MonitorDataLatest monitorData = APIrestful.getGson().fromJson(api.getResult(), MonitorDataLatest.class);
+				this.latestValue = monitorData.latestValue;
+				this.latestTimeStamp = monitorData.latestTimeStamp;
 				ManagerUI.log("latestValue: " + (this.latestValue != null ? this.latestValue.toString() : "null"));
+			} catch (NullPointerException e) {
+				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+				throw new RuntimeException("API response");
+			} catch (JsonParseException e) {
+				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+				throw new RuntimeException("API response");
 			}
 		}
 	}
 }
 
 class MonitorDataLatestDeserializer implements JsonDeserializer<MonitorDataLatest> {
-	public MonitorDataLatest deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public MonitorDataLatest deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		MonitorDataLatest monitorData = new MonitorDataLatest();
 
 		JsonElement jsonElement = json.getAsJsonObject().get("latest");
-		if (jsonElement != null && !jsonElement.isJsonNull()) {
+		if (!jsonElement.isJsonNull()) {
 			monitorData.setLatestValue(sanitize(jsonElement.getAsDouble()));
 			return monitorData;
 		}

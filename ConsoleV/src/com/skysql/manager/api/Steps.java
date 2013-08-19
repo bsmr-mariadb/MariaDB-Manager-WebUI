@@ -28,42 +28,55 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.StepRecord;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class Steps {
 
-	LinkedHashMap<String, StepRecord> stepsList;
+	private static Steps steps;
+	private static LinkedHashMap<String, StepRecord> stepsList;
 
-	public LinkedHashMap<String, StepRecord> getStepsList() {
-		return stepsList;
+	public static LinkedHashMap<String, StepRecord> getStepsList() {
+		GetSteps();
+		return Steps.stepsList;
 	}
 
-	public void setStepsList(LinkedHashMap<String, StepRecord> stepsList) {
-		this.stepsList = stepsList;
+	protected void setStepsList(LinkedHashMap<String, StepRecord> stepsList) {
+		Steps.stepsList = stepsList;
 	}
 
-	public Steps() {
-
+	public static boolean load() {
+		GetSteps();
+		return (steps != null);
 	}
 
-	public Steps(String dummy) {
-		APIrestful api = new APIrestful();
-		if (api.get("command/step")) {
-			Steps steps = APIrestful.getGson().fromJson(api.getResult(), Steps.class);
-			if (steps != null) {
-				this.stepsList = steps.stepsList;
+	private static void GetSteps() {
+		if (steps == null) {
+			APIrestful api = new APIrestful();
+			if (api.get("command/step")) {
+				try {
+					steps = APIrestful.getGson().fromJson(api.getResult(), Steps.class);
+				} catch (NullPointerException e) {
+					new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+					throw new RuntimeException("API response");
+				} catch (JsonParseException e) {
+					new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+					throw new RuntimeException("API response");
+				}
 			}
 		}
 	}
 
 }
 
+// {"command_steps":[{"state":"start","icon":"starting","description":"Start node up, start replication"},{"state":"stop","icon":"stopping","description":"Stop replication, shut node down"},{"state":"isolate","icon":"isolating","description":"Take node out of replication"},{"state":"recover","icon":"recovering","description":"Put node back into replication"},{"state":"promote","icon":"promoting","description":"Promote a slave to master"},{"state":"synchronize","icon":"synchronizing","description":"Synchronize a node"},{"state":"backup","icon":"backingup","description":"Backup a node"},{"state":"restore","icon":"restoring","description":"Restore a node"}],"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
+
 class StepsDeserializer implements JsonDeserializer<Steps> {
-	public Steps deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public Steps deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 
 		Steps steps = new Steps();
 
 		JsonElement jsonElement = json.getAsJsonObject().get("command_steps");
-		if (jsonElement == null || jsonElement.isJsonNull()) {
+		if (jsonElement.isJsonNull()) {
 			steps.setStepsList(null);
 		} else {
 			JsonArray array = jsonElement.getAsJsonArray();
@@ -74,11 +87,10 @@ class StepsDeserializer implements JsonDeserializer<Steps> {
 				JsonObject backupJson = array.get(i).getAsJsonObject();
 
 				JsonElement element;
-				String id = (element = backupJson.get("id")).isJsonNull() ? null : element.getAsString();
-				String script = (element = backupJson.get("script")).isJsonNull() ? null : element.getAsString();
+				String id = (element = backupJson.get("state")).isJsonNull() ? null : element.getAsString();
 				String icon = (element = backupJson.get("icon")).isJsonNull() ? null : element.getAsString();
 				String description = (element = backupJson.get("description")).isJsonNull() ? null : element.getAsString();
-				StepRecord stepRecord = new StepRecord(script, icon, description);
+				StepRecord stepRecord = new StepRecord(icon, description);
 				stepsList.put(id, stepRecord);
 			}
 			steps.setStepsList(stepsList);

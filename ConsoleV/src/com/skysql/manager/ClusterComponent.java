@@ -18,7 +18,7 @@
 
 package com.skysql.manager;
 
-import com.vaadin.ui.VerticalLayout;
+import com.skysql.manager.ui.components.ComponentButton;
 
 public class ClusterComponent {
 
@@ -28,7 +28,7 @@ public class ClusterComponent {
 
 	protected String ID;
 	protected String name;
-	protected VerticalLayout button;
+	protected ComponentButton button;
 	protected CCType type;
 	protected String status;
 	protected String health;
@@ -51,11 +51,11 @@ public class ClusterComponent {
 		this.name = name;
 	}
 
-	public VerticalLayout getButton() {
+	public ComponentButton getButton() {
 		return button;
 	}
 
-	public void setButton(VerticalLayout button) {
+	public void setButton(ComponentButton button) {
 		this.button = button;
 	}
 

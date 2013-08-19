@@ -22,6 +22,7 @@ import com.skysql.manager.SystemRecord;
 import com.vaadin.data.Validator.EmptyValueException;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Form;
+import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
@@ -30,6 +31,8 @@ public class SystemForm extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	final TextField name = new TextField("Name");
+	final NativeSelect systemType = new NativeSelect("Type");
+
 	final Form form = new Form();
 	private SystemRecord system;
 
@@ -53,6 +56,13 @@ public class SystemForm extends VerticalLayout {
 		name.setRequiredError("Name is a required field");
 		name.focus();
 
+		for (String systemType : SystemRecord.systemTypes()) {
+			this.systemType.addItem(systemType);
+		}
+		systemType.select(SystemRecord.systemTypes()[0]);
+		systemType.setNullSelectionAllowed(false);
+		form.addField("systemType", systemType);
+
 	}
 
 	public boolean validateSystem() {
@@ -62,6 +72,7 @@ public class SystemForm extends VerticalLayout {
 			form.commit();
 
 			system.setName(name.getValue());
+			system.setSystemType((String) systemType.getValue());
 
 			return true;
 

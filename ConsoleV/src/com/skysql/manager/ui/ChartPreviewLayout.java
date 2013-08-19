@@ -18,7 +18,10 @@
 
 package com.skysql.manager.ui;
 
+import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.UserChart;
+import com.skysql.manager.api.Monitors;
+import com.skysql.manager.ui.components.ChartButton;
 import com.skysql.manager.ui.components.ChartsLayout;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -36,7 +39,9 @@ public class ChartPreviewLayout extends VerticalLayout {
 	private String chartTime, chartInterval = "1800";
 	private ChartsLayout chartLayout;
 	private UserChart userChart;
-	private String chartName;
+	private TextField chartName, chartDescription, chartUnit;
+	private NativeSelect chartSelectType, selectCount;
+	private boolean blockRefresh = false;
 
 	public ChartPreviewLayout(final UserChart userChart) {
 		this.userChart = userChart;
@@ -58,10 +63,38 @@ public class ChartPreviewLayout extends VerticalLayout {
 		FormLayout formLayout = new FormLayout();
 		chartInfo.addComponent(formLayout);
 
-		TextField chartName = new TextField("Title");
+		chartName = new TextField("Title");
 		chartName.setImmediate(true);
-		chartName.setValue(userChart.getName());
 		formLayout.addComponent(chartName);
+
+		chartDescription = new TextField("Description");
+		chartDescription.setWidth("25em");
+		chartDescription.setImmediate(true);
+		formLayout.addComponent(chartDescription);
+
+		chartUnit = new TextField("Unit");
+		chartUnit.setImmediate(true);
+		formLayout.addComponent(chartUnit);
+
+		chartSelectType = new NativeSelect("Type");
+		chartSelectType.setImmediate(true);
+		for (String type : UserChart.chartTypes()) {
+			chartSelectType.addItem(type);
+		}
+		chartSelectType.setNullSelectionAllowed(false);
+		formLayout.addComponent(chartSelectType);
+
+		selectCount = new NativeSelect("Points");
+		selectCount.setImmediate(true);
+		for (int points : UserChart.chartPoints()) {
+			selectCount.addItem(points);
+			selectCount.setItemCaption(points, String.valueOf(points));
+		}
+		selectCount.setNullSelectionAllowed(false);
+		formLayout.addComponent(selectCount);
+
+		updateChartInfo(userChart.getName(), userChart.getDescription(), userChart.getUnit(), userChart.getType(), userChart.getPoints());
+
 		chartName.addValueChangeListener(new ValueChangeListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -69,16 +102,11 @@ public class ChartPreviewLayout extends VerticalLayout {
 
 				String chartName = (String) (event.getProperty()).getValue();
 				userChart.setName(chartName);
-				refresh();
+				refreshChart();
 
 			}
 		});
 
-		TextField chartDescription = new TextField("Description");
-		chartDescription.setWidth("25em");
-		chartDescription.setImmediate(true);
-		chartDescription.setValue(userChart.getDescription());
-		formLayout.addComponent(chartDescription);
 		chartDescription.addValueChangeListener(new ValueChangeListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -86,15 +114,11 @@ public class ChartPreviewLayout extends VerticalLayout {
 
 				String value = (String) (event.getProperty()).getValue();
 				userChart.setDescription(value);
-				refresh();
+				refreshChart();
 
 			}
 		});
 
-		TextField chartUnit = new TextField("Unit");
-		chartUnit.setImmediate(true);
-		chartUnit.setValue(userChart.getUnit());
-		formLayout.addComponent(chartUnit);
 		chartUnit.addValueChangeListener(new ValueChangeListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -102,21 +126,11 @@ public class ChartPreviewLayout extends VerticalLayout {
 
 				String value = (String) (event.getProperty()).getValue();
 				userChart.setUnit(value);
-				refresh();
+				refreshChart();
 
 			}
 		});
 
-		// formLayout = new FormLayout();
-		// chartInfo.addComponent(formLayout);
-		NativeSelect chartSelectType = new NativeSelect("Type");
-		chartSelectType.setImmediate(true);
-		for (String type : UserChart.chartTypes()) {
-			chartSelectType.addItem(type);
-		}
-		chartSelectType.setNullSelectionAllowed(false);
-		chartSelectType.setValue(userChart.getType());
-		formLayout.addComponent(chartSelectType);
 		chartSelectType.addValueChangeListener(new ValueChangeListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -124,20 +138,11 @@ public class ChartPreviewLayout extends VerticalLayout {
 
 				String value = (String) (event.getProperty()).getValue();
 				userChart.setType(value);
-				refresh();
+				refreshChart();
 
 			}
 		});
 
-		NativeSelect selectCount = new NativeSelect("Points");
-		selectCount.setImmediate(true);
-		for (int points : UserChart.chartPoints()) {
-			selectCount.addItem(points);
-			selectCount.setItemCaption(points, String.valueOf(points));
-		}
-		selectCount.setNullSelectionAllowed(false);
-		selectCount.setValue(userChart.getPoints());
-		formLayout.addComponent(selectCount);
 		selectCount.addValueChangeListener(new ValueChangeListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -145,7 +150,7 @@ public class ChartPreviewLayout extends VerticalLayout {
 
 				int points = (Integer) (event.getProperty()).getValue();
 				userChart.setPoints(points);
-				refresh();
+				refreshChart();
 
 			}
 		});
@@ -155,18 +160,51 @@ public class ChartPreviewLayout extends VerticalLayout {
 
 	}
 
+	private void updateChartInfo(String name, String description, String unit, String type, int points) {
+		blockRefresh = true;
+
+		chartName.setValue(name != null ? name : "");
+		userChart.setName(name);
+
+		chartDescription.setValue(description != null ? description : "");
+		userChart.setDescription(description);
+
+		chartUnit.setValue(unit != null ? unit : "");
+		userChart.setUnit(unit);
+
+		chartSelectType.setValue(type);
+
+		selectCount.setValue(points);
+
+		blockRefresh = false;
+
+	}
+
 	private ChartsLayout drawChart() {
 		ChartsLayout newChartsLayout = new ChartsLayout(true);
 		newChartsLayout.addStyleName("chartPreview");
 		userChart.clearMonitorData();
-		newChartsLayout.initializeChart(userChart);
-		newChartsLayout.refresh(chartTime, chartInterval, String.valueOf(userChart.getPoints()));
+		ChartButton newChartButton = new ChartButton(userChart);
+		newChartButton.setChartsLayout(newChartsLayout);
+		newChartsLayout.addComponent(newChartButton);
+		newChartsLayout.refresh(chartTime, chartInterval);
 		return newChartsLayout;
 	}
 
-	public void refresh() {
-		ChartsLayout newChartLayout = drawChart();
-		replaceComponent(chartLayout, newChartLayout);
-		chartLayout = newChartLayout;
+	public void refreshChart() {
+		if (blockRefresh == false) {
+			ChartsLayout newChartLayout = drawChart();
+			replaceComponent(chartLayout, newChartLayout);
+			chartLayout = newChartLayout;
+		}
+	}
+
+	public void refreshUserChart() {
+		if (userChart.getMonitorIDs().size() == 1) {
+			// update chart fields from selection of Monitor only when it's the first and only monitor mapped to chart
+			String monitorID = userChart.getMonitorIDs().get(0);
+			MonitorRecord monitor = Monitors.getMonitor(monitorID);
+			updateChartInfo(monitor.getName(), monitor.getDescription(), monitor.getUnit(), monitor.getChartType(), userChart.getPoints());
+		}
 	}
 }

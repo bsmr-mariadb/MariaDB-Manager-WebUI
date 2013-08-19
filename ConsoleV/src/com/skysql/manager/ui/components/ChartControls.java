@@ -18,6 +18,7 @@
 
 package com.skysql.manager.ui.components;
 
+import com.skysql.manager.api.ChartProperties;
 import com.vaadin.addon.charts.ChartOptions;
 import com.vaadin.addon.charts.model.style.Theme;
 import com.vaadin.addon.charts.themes.GrayTheme;
@@ -43,10 +44,19 @@ public class ChartControls extends HorizontalLayout {
 	private static final Integer INTERVAL_1_DAY = INTERVAL_1_HOUR * 24;
 	private static final Integer INTERVAL_1_WEEK = INTERVAL_1_DAY * 7;
 	private static final Integer INTERVAL_1_MONTH = INTERVAL_1_DAY * 31;
+	public static final Integer DEFAULT_INTERVAL = INTERVAL_30_MIN;
+
+	private enum Themes {
+		Vaadin, Skies, Grid, Gray, Highcharts;
+	}
+
+	public static final String DEFAULT_THEME = Themes.Vaadin.name();
 
 	private NativeSelect selectInterval, selectTheme;
+	private ChartProperties chartProperties;
 
-	public ChartControls() {
+	public ChartControls(ChartProperties chartProps) {
+		chartProperties = chartProps;
 
 		setSpacing(true);
 
@@ -78,7 +88,7 @@ public class ChartControls extends HorizontalLayout {
 		selectInterval.setItemCaption(INTERVAL_1_WEEK, "1 Week");
 		selectInterval.setItemCaption(INTERVAL_1_MONTH, "1 Month");
 
-		selectInterval.select(INTERVAL_30_MIN);
+		selectInterval.select(chartProperties.getTimeSpan());
 		selectInterval.setNullSelectionAllowed(false);
 		form1.addComponent(selectInterval);
 
@@ -90,27 +100,14 @@ public class ChartControls extends HorizontalLayout {
 		selectTheme = new NativeSelect("Theme");
 		selectTheme.setImmediate(true);
 
-		Theme theme = new VaadinTheme();
-		selectTheme.addItem(theme);
-		selectTheme.setItemCaption(theme, "Vaadin");
-		selectTheme.select(theme);
-
-		theme = new SkiesTheme();
-		selectTheme.addItem(theme);
-		selectTheme.setItemCaption(theme, "Skies");
-
-		theme = new GridTheme();
-		selectTheme.addItem(theme);
-		selectTheme.setItemCaption(theme, "Grid");
-
-		theme = new GrayTheme();
-		selectTheme.addItem(theme);
-		selectTheme.setItemCaption(theme, "Gray");
-
-		theme = new HighChartsDefaultTheme();
-		selectTheme.addItem(theme);
-		selectTheme.setItemCaption(theme, "Highcharts");
-
+		for (Themes theme : Themes.values()) {
+			selectTheme.addItem(theme.name());
+		}
+		String themeName = chartProperties.getTheme();
+		if (!Themes.Vaadin.name().equals(themeName)) {
+			setTheme(themeName);
+		}
+		selectTheme.select(themeName);
 		selectTheme.setNullSelectionAllowed(false);
 		form2.addComponent(selectTheme);
 
@@ -118,11 +115,40 @@ public class ChartControls extends HorizontalLayout {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void valueChange(ValueChangeEvent event) {
-				Theme theme = (Theme) event.getProperty().getValue();
-				ChartOptions.get().setTheme(theme);
+				String themeName = (String) event.getProperty().getValue();
+				setTheme(themeName);
+				chartProperties.setTheme(themeName);
 			}
 
 		});
+
+	}
+
+	private void setTheme(String themeName) {
+
+		Theme theme = null;
+		switch (Themes.valueOf(themeName)) {
+		case Vaadin:
+			theme = new VaadinTheme();
+			break;
+
+		case Skies:
+			theme = new SkiesTheme();
+			break;
+
+		case Grid:
+			theme = new GridTheme();
+			break;
+
+		case Gray:
+			theme = new GrayTheme();
+			break;
+
+		case Highcharts:
+			theme = new HighChartsDefaultTheme();
+			break;
+		}
+		ChartOptions.get().setTheme(theme);
 
 	}
 

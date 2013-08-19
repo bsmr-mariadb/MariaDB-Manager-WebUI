@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ExecutorFactory {
 
-	private static final int NUM_THREADS = 6;
+	private static final int NUM_THREADS = 24;
 	private static ScheduledExecutorService fScheduler;
 	private static final boolean MAY_INTERRUPT_IF_RUNNING = true;
 	private static int runningTimers = 0;
@@ -40,7 +40,7 @@ public class ExecutorFactory {
 			ManagerUI.log("timer startup");
 		}
 
-		ScheduledFuture<?> newTimerHandle = fScheduler.scheduleWithFixedDelay(timerTask, 0L, fDelayBetweenRuns, TimeUnit.SECONDS);
+		ScheduledFuture<?> newTimerHandle = fScheduler.scheduleWithFixedDelay(timerTask, fDelayBetweenRuns, fDelayBetweenRuns, TimeUnit.SECONDS);
 		if (newTimerHandle != null) {
 			runningTimers++;
 			ManagerUI.log("timer added - " + runningTimers);

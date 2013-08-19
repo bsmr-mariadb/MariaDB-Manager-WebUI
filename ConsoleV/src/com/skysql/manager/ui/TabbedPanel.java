@@ -19,15 +19,17 @@
 package com.skysql.manager.ui;
 
 import java.io.Serializable;
+import java.util.LinkedHashMap;
 
 import com.skysql.manager.ClusterComponent;
+import com.skysql.manager.api.SystemInfo;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 
+@SuppressWarnings("serial")
 public class TabbedPanel implements Serializable {
-	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private Component currentTab;
 	private TabSheet tabsheet;
@@ -35,8 +37,10 @@ public class TabbedPanel implements Serializable {
 	private PanelControl panelControl;
 	private PanelBackup panelBackup;
 	private PanelTools panelTools;
+	private VaadinSession session;
 
-	public TabbedPanel() {
+	public TabbedPanel(VaadinSession session) {
+		this.session = session;
 
 		// Set another root layout for the middle panels section.
 		tabsheet = new TabSheet();
@@ -58,13 +62,19 @@ public class TabbedPanel implements Serializable {
 		tabsheet.addTab(panelBackup).setCaption("Backups");
 
 		// TOOLS TAB
-		panelTools = new PanelTools();
-		panelTools.setImmediate(true);
-		tabsheet.addTab(panelTools).setCaption("Tools");
+		SystemInfo systemInfo = session.getAttribute(SystemInfo.class);
+		LinkedHashMap<String, String> properties = systemInfo.getCurrentSystem().getProperties();
+		String EIP = properties.get(SystemInfo.PROPERTY_EIP);
+		String MONyog = properties.get(SystemInfo.PROPERTY_MONYOG);
+		String phpUrl = properties.get(SystemInfo.PROPERTY_PHPMYADMIN);
+		if ((EIP != null && MONyog != null) || phpUrl != null) {
+			panelTools = new PanelTools();
+			panelTools.setImmediate(true);
+			tabsheet.addTab(panelTools).setCaption("Tools");
+		}
 
 		// ADD LISTENERS TO TABS
 		tabsheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void selectedTabChange(SelectedTabChangeEvent event) {
 				final TabSheet source = (TabSheet) event.getSource();
@@ -84,7 +94,8 @@ public class TabbedPanel implements Serializable {
 	}
 
 	public void refresh() {
-		ClusterComponent componentInfo = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
+
+		ClusterComponent componentInfo = session.getAttribute(ClusterComponent.class);
 
 		tabsheet.getTab(panelBackup).setVisible(componentInfo.getType() == ClusterComponent.CCType.system ? true : false);
 		tabsheet.getTab(panelControl).setVisible(componentInfo.getType() == ClusterComponent.CCType.system ? false : true);

@@ -58,8 +58,8 @@ public class MonitorsLayout extends VerticalLayout {
 		setSpacing(true);
 		setMargin(true);
 
-		Monitors.reloadMonitors();
-		availableMonitors = Monitors.getMonitorsList();
+		Monitors.reloadMonitors(null);
+		availableMonitors = Monitors.getMonitorsList(null);
 		initializeMonitors();
 
 	}
@@ -101,7 +101,8 @@ public class MonitorsLayout extends VerticalLayout {
 			String monitorID = (String) select.getValue();
 			selectedMonitorIDs.add(monitorID);
 		}
-		chartPreviewLayout.refresh();
+		chartPreviewLayout.refreshUserChart();
+		chartPreviewLayout.refreshChart();
 
 	}
 
@@ -116,6 +117,7 @@ public class MonitorsLayout extends VerticalLayout {
 		selectMonitorList.add(selectMonitor);
 
 		selectMonitor.setValue(monitorID);
+		selectMonitor.setNullSelectionAllowed(false);
 		selectMonitor.setImmediate(true);
 		selectMonitor.addValueChangeListener(monitorSelectListener);
 

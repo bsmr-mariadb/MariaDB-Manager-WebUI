@@ -1,23 +1,14 @@
 These steps are currently needed to allow ConsoleV to be built by Maven.
-They are only needed once, as they will save two jars in the local Maven repository,
+They are only needed once, as they will save their jars in the local Maven repository,
 which are then going to be used every time for packaging.
-Place yourself in the ConsoleV folder and copy and run each of the two mvn install
+Place yourself in the ConsoleV folder and copy and run each of the mvn install
 commands listed below into the terminal.  
 Afterwards, use "mvn package" to generate the WAR file (to be found in the target folder).
 
-
-mvn install:install-file \
-  -DgroupId=ICEPush \
-  -DartifactId=icepush \
+ mvn install:install-file \
+  -DgroupId=jasoft \
+  -DartifactId=dragdroplayouts \
   -Dpackaging=jar \
-  -Dversion=2.0.0.alpha3 \
-  -Dfile=WebContent/WEB-INF/lib/icepush.jar \
-  -DgeneratePom=true
-
-mvn install:install-file \
-  -DgroupId=ICEPush \
-  -DartifactId=icepush-gwt \
-  -Dpackaging=jar \
-  -Dversion=2.0.0.alpha3 \
-  -Dfile=WebContent/WEB-INF/lib/icepush-gwt.jar \
+  -Dversion=1.0.0.alpha4_hotfix_273 \
+  -Dfile=WebContent/WEB-INF/lib/dragdroplayouts-1.0.0.alpha4_hotfix_273.jar \
   -DgeneratePom=true

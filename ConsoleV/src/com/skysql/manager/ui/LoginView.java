@@ -19,12 +19,16 @@
 package com.skysql.manager.ui;
 
 import com.skysql.manager.ManagerUI;
+import com.skysql.manager.api.BackupStates;
+import com.skysql.manager.api.CommandStates;
+import com.skysql.manager.api.Commands;
+import com.skysql.manager.api.NodeStates;
+import com.skysql.manager.api.Steps;
 import com.skysql.manager.api.UserObject;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -40,6 +44,8 @@ import com.vaadin.ui.VerticalLayout;
 public class LoginView extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
+	private UpdaterThread updaterThread;
+
 	private TextField userName = new TextField("Username");
 	private PasswordField password = new PasswordField("Password");
 	private Button login = new Button("Login");
@@ -51,11 +57,11 @@ public class LoginView extends VerticalLayout {
 		public void buttonClick(ClickEvent event) {
 
 			String userNameInput;
-			if ((userNameInput = userName.getValue()) != null && !userNameInput.equalsIgnoreCase("")) {
+			if ((userNameInput = userName.getValue()) != null && !userNameInput.equals("")) {
 				UserObject userObject = new UserObject();
-				boolean success = userObject.login(userName.getValue(), password.getValue());
+				boolean success = userObject.login(userName.getValue().trim(), password.getValue());
 				if (success) {
-					VaadinSession.getCurrent().setAttribute(UserObject.class, userObject);
+					getSession().setAttribute(UserObject.class, userObject);
 
 					//Tell the UI to refresh itself - this is not the only way to do this, just one possibility
 					ManagerUI current = (ManagerUI) UI.getCurrent();
@@ -86,12 +92,6 @@ public class LoginView extends VerticalLayout {
 		Embedded cloud = new Embedded(null, new ThemeResource("img/cloud_data_suite.png"));
 		featuresLayout.addComponent(cloud);
 		featuresLayout.setComponentAlignment(cloud, Alignment.MIDDLE_CENTER);
-		//		Embedded plus = new Embedded(null, new ThemeResource("img/plus.png"));
-		//		featuresLayout.addComponent(plus);
-		//		featuresLayout.setComponentAlignment(plus, Alignment.MIDDLE_CENTER);
-		//		Embedded baremetal = new Embedded(null, new ThemeResource("img/BareMetal.png"));
-		//		featuresLayout.addComponent(baremetal);
-		//		featuresLayout.setComponentAlignment(baremetal, Alignment.MIDDLE_CENTER);
 		addComponent(featuresLayout);
 		setComponentAlignment(featuresLayout, Alignment.MIDDLE_CENTER);
 
@@ -142,6 +142,51 @@ public class LoginView extends VerticalLayout {
 			setComponentAlignment(versionLabel, Alignment.BOTTOM_LEFT);
 		}
 
+		preload();
+	}
+
+	public void preload() {
+
+		ManagerUI.log("LoginView preload()");
+		updaterThread = new UpdaterThread(updaterThread);
+		updaterThread.start();
+		ManagerUI.log("LoginView after preload()");
+
+	}
+
+	class UpdaterThread extends Thread {
+		UpdaterThread oldUpdaterThread;
+		volatile boolean flagged = false;
+
+		UpdaterThread(UpdaterThread oldUpdaterThread) {
+			this.oldUpdaterThread = oldUpdaterThread;
+		}
+
+		@Override
+		public void run() {
+			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
+				ManagerUI.log("LoginView - Old thread is alive: " + oldUpdaterThread);
+				oldUpdaterThread.flagged = true;
+				oldUpdaterThread.interrupt();
+				try {
+					ManagerUI.log("LoginView - Before Join");
+					oldUpdaterThread.join();
+					ManagerUI.log("LoginView - After Join");
+				} catch (InterruptedException iex) {
+					ManagerUI.log("LoginView - Interrupted Exception");
+					return;
+				}
+
+			}
+
+			ManagerUI.log("LoginView - UpdaterThread.this: " + this);
+
+			BackupStates.load();
+			Commands.load();
+			CommandStates.load();
+			Steps.load();
+			NodeStates.load();
+		}
 	}
 
 }

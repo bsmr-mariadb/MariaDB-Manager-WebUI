@@ -26,7 +26,6 @@ package com.skysql.manager.ui;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComponentContainer;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
@@ -43,7 +42,6 @@ public class SettingsDialog implements Window.CloseListener {
 	Button closebutton;
 	Label explanation;
 	private TabSheet tabsheet;
-	private HorizontalLayout backupsTab, monitorsTab;
 	private String selectedTab;
 
 	private ClickListener settingsDialogOpenListener = new ClickListener() {
@@ -56,30 +54,26 @@ public class SettingsDialog implements Window.CloseListener {
 			UI.getCurrent().addWindow(dialogWindow);
 
 			tabsheet = new TabSheet();
-			//			tabsheet.setSizeUndefined();
 			tabsheet.setImmediate(true);
 
 			// Account Tab
 			AccountSettings accountTab = new AccountSettings();
-			Tab tab = tabsheet.addTab(accountTab, "Account");
-			if (selectedTab != null && selectedTab.equalsIgnoreCase("Account")) {
+			Tab tab = tabsheet.addTab(accountTab, "Accounts");
+			if (selectedTab != null && selectedTab.equals("Accounts")) {
 				tabsheet.setSelectedTab(tab);
 			}
 
 			// Backups Tab
-			backupsTab = new HorizontalLayout();
-			BackupSettings backupSettings = new BackupSettings(backupsTab);
+			BackupSettings backupsTab = new BackupSettings();
 			tab = tabsheet.addTab(backupsTab, "Backups");
-			if (selectedTab != null && selectedTab.equalsIgnoreCase("Backups")) {
+			if (selectedTab != null && selectedTab.equals("Backups")) {
 				tabsheet.setSelectedTab(tab);
 			}
 
 			// Monitors Tab
-			monitorsTab = new HorizontalLayout();
-			monitorsTab.setSizeFull();
-			MonitorsSettings monitorsSettings = new MonitorsSettings(monitorsTab);
+			MonitorsSettings monitorsTab = new MonitorsSettings();
 			tab = tabsheet.addTab(monitorsTab, "Monitors");
-			if (selectedTab != null && selectedTab.equalsIgnoreCase("Monitors")) {
+			if (selectedTab != null && selectedTab.equals("Monitors")) {
 				tabsheet.setSelectedTab(tab);
 			}
 

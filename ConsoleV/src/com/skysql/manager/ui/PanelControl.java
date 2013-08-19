@@ -18,10 +18,13 @@
 
 package com.skysql.manager.ui;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 
 import com.skysql.manager.ClusterComponent;
+import com.skysql.manager.ManagerUI;
 import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.CommandStates;
 import com.skysql.manager.api.Commands;
@@ -30,7 +33,6 @@ import com.skysql.manager.api.TaskInfo;
 import com.skysql.manager.api.UserInfo;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -46,18 +48,39 @@ public class PanelControl extends VerticalLayout {
 	private HorizontalLayout newLayout, logsLayout;
 	private ListSelect commandSelect;
 	private String[] oldcommands;
-	private UserInfo userInfo;
 	private Table logsTable;
 	private String lastNodeID;
-	final LinkedHashMap<String, String> names = Commands.getNames();
+	private int oldTasksCount;
+	private final LinkedHashMap<String, String> names = Commands.getNames();
+	private UpdaterThread updaterThread;
+
+	private ValueChangeListener commandListener = new ValueChangeListener() {
+		private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+		public void valueChange(ValueChangeEvent event) {
+
+			ManagerUI.log("commandListener()");
+
+			String name = (String) event.getProperty().getValue();
+			for (final String id : names.keySet()) {
+				if (names.get(id).equalsIgnoreCase(name)) {
+					selectCommand(id);
+				}
+			}
+		}
+	};
 
 	private ValueChangeListener refreshListener = new ValueChangeListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 		public void valueChange(ValueChangeEvent event) {
 
+			ManagerUI.log("refreshListener()");
+
 			lastNodeID = null;
-			refresh();
+			OverviewPanel overviewPanel = getSession().getAttribute(OverviewPanel.class);
+			overviewPanel.refresh();
+
 		}
 	};
 
@@ -90,18 +113,7 @@ public class PanelControl extends VerticalLayout {
 		commandSelect.setImmediate(true);
 		commandSelect.setNullSelectionAllowed(false);
 		commandSelect.setWidth("12em");
-		commandSelect.addValueChangeListener(new ValueChangeListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-			public void valueChange(ValueChangeEvent event) {
-				String name = (String) event.getProperty().getValue();
-				for (final String id : names.keySet()) {
-					if (names.get(id).equalsIgnoreCase(name)) {
-						selectCommand(id);
-					}
-				}
-			}
-		});
+		commandSelect.addValueChangeListener(commandListener);
 
 		commandsLayout.addComponent(commandSelect);
 		commandsLayout.setComponentAlignment(commandSelect, Alignment.MIDDLE_CENTER);
@@ -144,8 +156,6 @@ public class PanelControl extends VerticalLayout {
 		logsTable.addContainerProperty("User", String.class, null);
 		logsTable.addContainerProperty("Status", String.class, null);
 
-		userInfo = new UserInfo(null);
-
 		logsLayout.addComponent(logsTable);
 		logsLayout.setComponentAlignment(logsTable, Alignment.MIDDLE_CENTER);
 
@@ -153,79 +163,128 @@ public class PanelControl extends VerticalLayout {
 
 	public void refresh() {
 
-		nodeInfo = (NodeInfo) VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
-		String newNodeID = nodeInfo.getID();
+		ManagerUI.log("PanelControl refresh()");
+		updaterThread = new UpdaterThread(updaterThread);
+		updaterThread.start();
 
-		String taskID = nodeInfo.getTask();
+	}
+
+	class UpdaterThread extends Thread {
+		UpdaterThread oldUpdaterThread;
+		volatile boolean flagged = false;
+
+		UpdaterThread(UpdaterThread oldUpdaterThread) {
+			this.oldUpdaterThread = oldUpdaterThread;
+		}
+
+		@Override
+		public void run() {
+			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
+				ManagerUI.log("PanelControl - Old thread is alive: " + oldUpdaterThread);
+				oldUpdaterThread.flagged = true;
+				oldUpdaterThread.interrupt();
+				try {
+					ManagerUI.log("PanelControl - Before Join");
+					oldUpdaterThread.join();
+					ManagerUI.log("PanelControl - After Join");
+				} catch (InterruptedException iex) {
+					ManagerUI.log("PanelControl - Interrupted Exception");
+					return;
+				}
+
+			}
+
+			ManagerUI.log("PanelControl - UpdaterThread.this: " + this);
+			asynchRefresh(this);
+		}
+	}
+
+	private void asynchRefresh(final UpdaterThread updaterThread) {
+
+		ManagerUI managerUI = getSession().getAttribute(ManagerUI.class);
+
+		nodeInfo = (NodeInfo) getSession().getAttribute(ClusterComponent.class);
+		final String newNodeID = nodeInfo.getID();
+
+		final UserInfo userInfo = (UserInfo) getSession().getAttribute(UserInfo.class);
+
+		final String taskID = nodeInfo.getTask();
 		// String taskCommand = nodeInfo.getCommand();
-		RunningTask runningTask = nodeInfo.getCommandTask();
-		String commands[] = nodeInfo.getCommands();
+		final RunningTask runningTask = nodeInfo.getCommandTask();
+		final String commands[] = nodeInfo.getCommands();
 
-		if (!newNodeID.equalsIgnoreCase(lastNodeID)) {
-			lastNodeID = newNodeID;
+		// update command history section
+		TaskInfo taskInfo = new TaskInfo(null, nodeInfo.getID());
+		final ArrayList<TaskRecord> tasksList = taskInfo.getTasksList();
 
-			TaskInfo taskInfo = new TaskInfo(null, nodeInfo.getID());
-			logsTable.removeAllItems();
-			if (taskInfo.getTasksList() != null) {
-				for (TaskRecord taskRecord : taskInfo.getTasksList()) {
-					logsTable.addItem(new Object[] { taskRecord.getStart(), taskRecord.getEnd(), names.get(taskRecord.getCommand()), taskRecord.getParams(),
-							userInfo.findNameByID(taskRecord.getUserID()), CommandStates.getDescriptions().get(taskRecord.getStatus()) }, taskRecord.getID());
+		managerUI.access(new Runnable() {
+			@Override
+			public void run() {
+				// Here the UI is locked and can be updated
+
+				ManagerUI.log("PanelControl access run() - taskID: " + taskID);
+
+				if (!newNodeID.equalsIgnoreCase(lastNodeID) || (tasksList != null && tasksList.size() != oldTasksCount)) {
+
+					logsTable.removeAllItems();
+
+					if (tasksList != null) {
+						oldTasksCount = tasksList.size();
+						Collections.reverse(tasksList);
+						for (TaskRecord taskRecord : tasksList) {
+							logsTable.addItem(
+									new Object[] { taskRecord.getStart(), taskRecord.getEnd(), names.get(taskRecord.getCommand()), taskRecord.getParams(),
+											userInfo.findNameByID(taskRecord.getUserID()), CommandStates.getDescriptions().get(taskRecord.getStatus()) },
+									taskRecord.getID());
+						}
+					}
 				}
-			}
-		}
 
-		if (taskID != null) {
-			commandSelect.setEnabled(false);
+				if (!newNodeID.equalsIgnoreCase(lastNodeID) || !Arrays.equals(commands, oldcommands)) {
+					commandSelect.removeValueChangeListener(commandListener);
 
-			/**
-			 * if (runningTask == null &&
-			 * !taskCommand.equalsIgnoreCase(CMD_BACKUP) ||
-			 * !taskCommand.equalsIgnoreCase(CMD_BACKUP2) ||
-			 * !taskCommand.equalsIgnoreCase(CMD_RESTORE) ||
-			 * !taskCommand.equalsIgnoreCase(CMD_RESTORE2)) { runningTask = new
-			 * RunningTask(null, nodeInfo); runningTask.activateTimer(); }
-			 **/
+					// rebuild list of commands with what node is accepting
+					commandSelect.removeAllItems();
+					if ((commands != null) && (commands.length != 0)) {
+						for (String commandID : commands) {
+							String name = names.get(commandID);
+							if (name != null)
+								commandSelect.addItem(name);
+						}
+					}
+					oldcommands = commands;
 
-		} else {
-			commandSelect.setEnabled(true);
+					commandSelect.addValueChangeListener(commandListener);
+				}
 
-			if (!Arrays.equals(commands, oldcommands)) {
-				oldcommands = commands;
-				// rebuild list of commands with what node is accepting
+				commandSelect.removeValueChangeListener(commandListener);
 				String selected = (runningTask != null) ? runningTask.getCommand() : null;
-				commandSelect.removeAllItems();
-				if ((commands != null) && (commands.length != 0)) {
-					for (String commandID : commands) {
-						String name = names.get(commandID);
-						if (name != null)
-							commandSelect.addItem(name);
-					}
-					if (selected != null) {
-						commandSelect.select(names.get(selected));
-					}
+				commandSelect.select(selected != null ? names.get(selected) : null);
+				commandSelect.addValueChangeListener(commandListener);
+
+				commandSelect.setEnabled(taskID != null ? false : true);
+
+				if (runningTask != null) {
+					VerticalLayout newScriptingLayout = runningTask.getLayout();
+					newLayout.replaceComponent(runningContainerLayout, newScriptingLayout);
+					runningContainerLayout = newScriptingLayout;
+				} else if (runningContainerLayout != placeholderLayout) {
+					newLayout.replaceComponent(runningContainerLayout, placeholderLayout);
+					newLayout.setComponentAlignment(placeholderLayout, Alignment.MIDDLE_CENTER);
+					runningContainerLayout = placeholderLayout;
 				}
+
+				lastNodeID = newNodeID;
 			}
-
-		}
-
-		if (runningTask != null) {
-			VerticalLayout newScriptingLayout = runningTask.getLayout();
-			newLayout.replaceComponent(runningContainerLayout, newScriptingLayout);
-			runningContainerLayout = newScriptingLayout;
-		} else if (runningContainerLayout != placeholderLayout) {
-			newLayout.replaceComponent(runningContainerLayout, placeholderLayout);
-			newLayout.setComponentAlignment(placeholderLayout, Alignment.MIDDLE_CENTER);
-			runningContainerLayout = placeholderLayout;
-		}
+		});
 
 	}
 
 	public void selectCommand(String command) {
 		RunningTask runningTask = nodeInfo.getCommandTask();
 
-		if (runningTask != null)
-			runningTask.close();
-
+		ManagerUI.log("selectCommand() - runningTask: " + runningTask);
+		
 		runningTask = new RunningTask(command, nodeInfo, commandSelect);
 		runningTask.addRefreshListener(refreshListener);
 

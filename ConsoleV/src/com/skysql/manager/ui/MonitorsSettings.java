@@ -58,35 +58,37 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
 @SuppressWarnings("deprecation")
-public class MonitorsSettings implements Window.CloseListener {
+public class MonitorsSettings extends VerticalLayout implements Window.CloseListener {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private Window secondaryDialog;
-	private String systemID, nodeID;
+	private String systemID, nodeID, systemType;
 	private boolean validateSQL;
-	private Button deleteMonitor;
+	private Button editMonitor, deleteMonitor;
 	private ListSelect select;
 	private LinkedHashMap<String, MonitorRecord> monitorsAll;
 	private FormLayout monitorLayout;
 	private Label name = new Label(), description = new Label(), unit = new Label(), delta = new Label(), average = new Label(), chartType = new Label(),
 			interval = new Label(), sql = new Label();
 
-	MonitorsSettings(final HorizontalLayout monitorTab) {
+	MonitorsSettings() {
 
-		monitorTab.addStyleName("monitorsTab");
-		monitorTab.setSpacing(true);
+		addStyleName("monitorsTab");
+		setSizeFull();
+		setSpacing(true);
+		setMargin(true);
 
-		VerticalLayout selectLayout = new VerticalLayout();
-		monitorTab.addComponent(selectLayout);
-		selectLayout.setWidth("200px");
+		HorizontalLayout selectLayout = new HorizontalLayout();
+		addComponent(selectLayout);
+		selectLayout.setSizeFull();
 		selectLayout.setSpacing(true);
-		selectLayout.setMargin(true);
 
 		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
 		systemID = systemInfo.getCurrentID();
+		systemType = systemInfo.getCurrentSystem().getSystemType();
 
-		Monitors.reloadMonitors();
-		monitorsAll = Monitors.getMonitorsList();
+		Monitors.reloadMonitors(systemType);
+		monitorsAll = Monitors.getMonitorsList(systemType);
 
 		select = new ListSelect("Monitors");
 		select.setImmediate(true);
@@ -96,14 +98,13 @@ public class MonitorsSettings implements Window.CloseListener {
 			select.setItemCaption(id, monitor.getName());
 		}
 		select.setNullSelectionAllowed(false);
-		select.setWidth("12em");
 		selectLayout.addComponent(select);
 		select.addValueChangeListener(new ValueChangeListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void valueChange(ValueChangeEvent event) {
-				String id = (String) event.getProperty().getValue();
-				displayMonitorRecord(id);
+				String monitorID = (String) event.getProperty().getValue();
+				displayMonitorRecord(monitorID);
 			}
 		});
 
@@ -124,37 +125,9 @@ public class MonitorsSettings implements Window.CloseListener {
 			}
 		});
 
-		HorizontalLayout selectButtons = new HorizontalLayout();
-		selectLayout.addComponent(selectButtons);
-		selectButtons.setSpacing(true);
-
-		Button addMonitor = new Button("New...");
-		selectButtons.addComponent(addMonitor);
-		addMonitor.addClickListener(new Button.ClickListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-			public void buttonClick(ClickEvent event) {
-				addMonitor();
-			}
-		});
-
-		deleteMonitor = new Button("Delete");
-		deleteMonitor.setEnabled(false);
-		selectButtons.addComponent(deleteMonitor);
-		deleteMonitor.addClickListener(new Button.ClickListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-			public void buttonClick(ClickEvent event) {
-				String monitorID = (String) select.getValue();
-				if (monitorID != null) {
-					deleteMonitor(monitorsAll.get(monitorID));
-				}
-			}
-		});
-
 		monitorLayout = new FormLayout();
-		monitorTab.addComponent(monitorLayout);
-		monitorTab.setExpandRatio(monitorLayout, 1.0f);
+		selectLayout.addComponent(monitorLayout);
+		selectLayout.setExpandRatio(monitorLayout, 1.0f);
 		monitorLayout.setSpacing(false);
 
 		name.setCaption("Name:");
@@ -176,6 +149,53 @@ public class MonitorsSettings implements Window.CloseListener {
 		sql.setCaption("SQL:");
 		monitorLayout.addComponent(sql);
 
+		HorizontalLayout selectButtons = new HorizontalLayout();
+		selectButtons.setSizeFull();
+		addComponent(selectButtons);
+		selectButtons.setSpacing(true);
+
+		Button addMonitor = new Button("Add...");
+		selectButtons.addComponent(addMonitor);
+		selectButtons.setComponentAlignment(addMonitor, Alignment.MIDDLE_LEFT);
+		addMonitor.addClickListener(new Button.ClickListener() {
+			private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+			public void buttonClick(ClickEvent event) {
+				addMonitor();
+			}
+		});
+
+		deleteMonitor = new Button("Delete");
+		deleteMonitor.setEnabled(false);
+		selectButtons.addComponent(deleteMonitor);
+		selectButtons.setComponentAlignment(deleteMonitor, Alignment.MIDDLE_LEFT);
+		deleteMonitor.addClickListener(new Button.ClickListener() {
+			private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+			public void buttonClick(ClickEvent event) {
+				String monitorID = (String) select.getValue();
+				if (monitorID != null) {
+					deleteMonitor(monitorsAll.get(monitorID));
+				}
+			}
+		});
+
+		editMonitor = new Button("Edit...");
+		editMonitor.setEnabled(false);
+		selectButtons.addComponent(editMonitor);
+		selectButtons.setComponentAlignment(editMonitor, Alignment.MIDDLE_CENTER);
+		selectButtons.setExpandRatio(editMonitor, 1.0f);
+		editMonitor.addClickListener(new Button.ClickListener() {
+			private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+			public void buttonClick(ClickEvent event) {
+				String monitorID = (String) select.getValue();
+				if (monitorID != null) {
+					editMonitor(monitorsAll.get(monitorID));
+				}
+			}
+		});
+
 	}
 
 	public void windowClose(CloseEvent e) {
@@ -196,6 +216,7 @@ public class MonitorsSettings implements Window.CloseListener {
 			interval.setValue(String.valueOf(monitor.getInterval()));
 			chartType.setValue(monitor.getChartType());
 			deleteMonitor.setEnabled(true);
+			editMonitor.setEnabled(true);
 		} else {
 			name.setValue(null);
 			description.setValue(null);
@@ -207,6 +228,7 @@ public class MonitorsSettings implements Window.CloseListener {
 			interval.setValue(null);
 			chartType.setValue(null);
 			deleteMonitor.setEnabled(false);
+			editMonitor.setEnabled(false);
 		}
 
 	}
@@ -261,17 +283,12 @@ public class MonitorsSettings implements Window.CloseListener {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
-				try {
-					if (Monitors.deleteMonitor(monitor)) {
-						select.removeItem(monitor.getID());
-						monitorsAll = Monitors.getMonitorsList();
-						displayMonitorRecord(null);
-						secondaryDialog.close();
-					}
-
-				} catch (Exception e) {
-					e.printStackTrace();
-					return;
+				if (Monitors.deleteMonitor(monitor)) {
+					select.removeItem(monitor.getID());
+					Monitors.reloadMonitors(systemType);
+					monitorsAll = Monitors.getMonitorsList(systemType);
+					displayMonitorRecord(null);
+					secondaryDialog.close();
 				}
 
 			}
@@ -293,7 +310,7 @@ public class MonitorsSettings implements Window.CloseListener {
 
 	public void addMonitor() {
 		MonitorRecord monitor = new MonitorRecord();
-		monitorForm(monitor, "Create New Monitor", "Create a new SQL Monitor for Nodes and System", "Create Monitor");
+		monitorForm(monitor, "Add Monitor", "Add a new SQL Monitor for Nodes and System", "Add Monitor");
 	}
 
 	public void monitorForm(final MonitorRecord monitor, String title, String description, String button) {
@@ -353,7 +370,7 @@ public class MonitorsSettings implements Window.CloseListener {
 		validationTarget.setNullSelectionAllowed(false);
 		validationTarget.addItem(noValidation);
 		validationTarget.select(noValidation);
-		OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
+		OverviewPanel overviewPanel = getSession().getAttribute(OverviewPanel.class);
 		ArrayList<NodeInfo> nodes = overviewPanel.getNodes();
 		for (NodeInfo node : nodes) {
 			validationTarget.addItem(node.getID());
@@ -386,14 +403,14 @@ public class MonitorsSettings implements Window.CloseListener {
 		if (validIntervals.contains(monitor.getInterval())) {
 			monitorInterval.select(monitor.getInterval());
 		} else {
-			SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+			SystemInfo systemInfo = getSession().getAttribute(SystemInfo.class);
 			String defaultInterval = systemInfo.getCurrentSystem().getProperties().get(SystemInfo.PROPERTY_DEFAULTMONITORINTERVAL);
 			if (defaultInterval != null && validIntervals.contains(Integer.parseInt(defaultInterval))) {
 				monitorInterval.select(Integer.parseInt(defaultInterval));
 			} else if (!validIntervals.isEmpty()) {
 				monitorInterval.select(validIntervals.toArray()[0]);
 			} else {
-				throw new RuntimeException("No set of permissible monitor intervals found");
+				new ErrorDialog(null, "No set of permissible monitor intervals found");
 			}
 
 			monitorInterval.setNullSelectionAllowed(false);
@@ -453,7 +470,8 @@ public class MonitorsSettings implements Window.CloseListener {
 						if (monitorID != null) {
 							select.addItem(monitorID);
 							select.select(monitorID);
-							monitorsAll = Monitors.getMonitorsList();
+							Monitors.reloadMonitors(systemType);
+							monitorsAll = Monitors.getMonitorsList(systemType);
 						}
 					} else {
 						Monitors.setMonitor(monitor);
@@ -471,7 +489,6 @@ public class MonitorsSettings implements Window.CloseListener {
 					e.printStackTrace();
 					return;
 				}
-
 			}
 		});
 		buttonsBar.addComponent(okButton);

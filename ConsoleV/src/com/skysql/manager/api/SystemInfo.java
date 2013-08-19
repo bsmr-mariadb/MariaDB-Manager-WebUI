@@ -21,6 +21,7 @@ package com.skysql.manager.api;
 import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.google.gson.JsonArray;
@@ -30,6 +31,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.SystemRecord;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class SystemInfo {
 
@@ -67,9 +69,10 @@ public class SystemInfo {
 		return systemsMap.get(currentID);
 	}
 
-	public SystemRecord update(String ID) {
-		// TODO: this should get an update for the given system
-		return systemsMap.get(currentID);
+	public SystemRecord updateSystem(String systemID) {
+		SystemInfo newSystemInfo = new SystemInfo(systemID);
+		systemsMap.put(systemID, newSystemInfo.getCurrentSystem());
+		return newSystemInfo.getCurrentSystem();
 	}
 
 	public boolean add(SystemRecord systemRecord) {
@@ -78,6 +81,8 @@ public class SystemInfo {
 			APIrestful api = new APIrestful();
 			JSONObject jsonParam = new JSONObject();
 			jsonParam.put("name", systemRecord.getName());
+			jsonParam.put("systemtype", systemRecord.getSystemType());
+
 			if (api.put("system/" + systemRecord.getID(), jsonParam.toString())) {
 				WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
 				if (writeResponse != null && (!writeResponse.getInsertKey().isEmpty() || writeResponse.getUpdateCount() > 0)) {
@@ -85,37 +90,49 @@ public class SystemInfo {
 				}
 			}
 
-		} catch (Exception e) {
+		} catch (JSONException e) {
 			e.printStackTrace();
+			new ErrorDialog(e, "JSON error encoding API request");
 		}
 
 		return false;
 
 	}
 
-	public void saveName(String name) {
+	public boolean saveName(String name) {
 
 		try {
 			APIrestful api = new APIrestful();
 			JSONObject jsonParam = new JSONObject();
 			jsonParam.put("name", name);
 			api.put("system/" + currentID, jsonParam.toString());
+			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
+			new ErrorDialog(e, "Error encoding API request");
+			return false;
 		}
 
 	}
 
 	public boolean setProperty(String property, String value) {
 		APIrestful api = new APIrestful();
-		if (api.put("system/" + currentID + "/property/" + property, value)) {
-			WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
-			if (writeResponse != null && (!writeResponse.getInsertKey().isEmpty() || writeResponse.getUpdateCount() > 0)) {
-				return true;
-			}
-		}
-		return false;
 
+		try {
+			JSONObject jsonParam = new JSONObject();
+			jsonParam.put("value", value);
+			if (api.put("system/" + currentID + "/property/" + property, jsonParam.toString())) {
+				WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
+				if (writeResponse != null && (!writeResponse.getInsertKey().isEmpty() || writeResponse.getUpdateCount() > 0)) {
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			new ErrorDialog(e, "Error encoding API request");
+		}
+
+		return false;
 	}
 
 	public boolean deleteProperty(String property) {
@@ -134,37 +151,43 @@ public class SystemInfo {
 
 	}
 
-	public SystemInfo(String dummy) {
+	public SystemInfo(String systemID) {
 
 		APIrestful api = new APIrestful();
-		if (api.get("system")) {
-			SystemInfo systemInfo = APIrestful.getGson().fromJson(api.getResult(), SystemInfo.class);
-			this.systemsMap = systemInfo.systemsMap;
-			// currently, get first system in the array
-			if (systemsMap != null && !systemsMap.isEmpty()) {
-				SystemRecord systemRecord = (SystemRecord) systemsMap.values().toArray()[0];
-				this.currentID = systemRecord.getID();
+		if (api.get("system" + (systemID != null ? "/" + systemID : ""))) {
+			try {
+				SystemInfo systemInfo = APIrestful.getGson().fromJson(api.getResult(), SystemInfo.class);
+				this.systemsMap = systemInfo.systemsMap;
+				// currently, get first system in the array
+				if (systemsMap != null && !systemsMap.isEmpty()) {
+					SystemRecord systemRecord = (SystemRecord) systemsMap.values().toArray()[0];
+					this.currentID = systemRecord.getID();
+				}
+			} catch (NullPointerException e) {
+				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+				throw new RuntimeException("API response");
+			} catch (JsonParseException e) {
+				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+				throw new RuntimeException("API response");
 			}
 		}
 
 	}
-
 }
 
-// updated 2013-05-13
-//{"system":[{"system":"1","name":"Galera Cluster","startDate":null,"lastAccess":null,"state":"1","nodes":["1","2","3"],"lastBackup":"2013-04-30 10:00:00","properties":{"IPMonitor":"false"},"commands":["2","3"],"connections":[null],"packets":[null],"health":[null]},{"system":"2","name":"Pippo","startDate":"2013-05-09 21:56:37","lastAccess":"2013-05-09 21:56:37","state":null,"nodes":["1","33"],"lastBackup":null,"commands":null,"connections":[null],"packets":[null],"health":[null]}]}
-
 class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
-	public SystemInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public SystemInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		SystemInfo systemInfo = new SystemInfo();
 
-		JsonObject jsonObject = json.getAsJsonObject();
-		if (!jsonObject.has("system")) {
-			return null;
-		}
+		JsonArray array = null;
 
-		JsonArray array = jsonObject.get("system").getAsJsonArray();
-		int length = array.size();
+		int length = 0;
+		if (json.getAsJsonObject().has("systems")) {
+			array = json.getAsJsonObject().get("systems").getAsJsonArray();
+			length = array.size();
+		} else if (json.getAsJsonObject().has("system")) {
+			length = 1;
+		}
 
 		LinkedHashMap<String, SystemRecord> systemsMap = new LinkedHashMap<String, SystemRecord>(length);
 		systemInfo.setSystemsMap(systemsMap);
@@ -172,34 +195,47 @@ class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 			return systemInfo;
 		}
 
+		// {"system":{"systemid":"1","systemtype":"aws","name":"sistema1","started":"Wed, 31 Jul 2013 18:48:41 +0000","lastaccess":"Wed, 31 Jul 2013 18:48:41 +0000","state":"running","nodes":["1"],"lastbackup":null,"properties":{},"monitorlatest":{"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null}},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
+
 		for (int i = 0; i < length; i++) {
-			JsonObject systemObject = array.get(i).getAsJsonObject();
+			JsonObject systemObject = (array != null) ? array.get(i).getAsJsonObject() : json.getAsJsonObject().get("system").getAsJsonObject();
 			JsonElement element;
-			String ID = (element = systemObject.get("system")).isJsonNull() ? null : element.getAsString();
+			String ID = (element = systemObject.get("systemid")).isJsonNull() ? null : element.getAsString();
+			String type = (element = systemObject.get("systemtype")).isJsonNull() ? null : element.getAsString();
 			String name = (element = systemObject.get("name")).isJsonNull() ? null : element.getAsString();
-			String startDate = (element = systemObject.get("startDate")).isJsonNull() ? null : element.getAsString();
-			String lastAccess = (element = systemObject.get("lastAccess")).isJsonNull() ? null : element.getAsString();
-			String lastBackup = (element = systemObject.get("lastBackup")).isJsonNull() ? null : element.getAsString();
+			String startDate = (element = systemObject.get("started")).isJsonNull() ? null : element.getAsString();
+			String lastAccess = (element = systemObject.get("lastaccess")).isJsonNull() ? null : element.getAsString();
+			String lastBackup = (element = systemObject.get("lastbackup")).isJsonNull() ? null : element.getAsString();
 
-			String health = null;
-			if ((element = systemObject.get("health")) != null) {
-				if ((element = element.getAsJsonArray()) != null && ((element = ((JsonArray) element).get(0)) != null) && !element.isJsonNull()) {
-					health = element.getAsString();
-				}
-			}
+			String connections, traffic, availability, nodestate, capacity, hoststate, clustersize, reppaused, parallelism, recvqueue, flowcontrol, sendqueue;
+			if (!(element = systemObject.get("monitorlatest")).isJsonNull()) {
+				JsonObject monitorObject = element.getAsJsonObject();
 
-			String connections = null;
-			if ((element = systemObject.get("connections")) != null) {
-				if ((element = element.getAsJsonArray()) != null && ((element = ((JsonArray) element).get(0)) != null) && !element.isJsonNull()) {
-					connections = element.getAsString();
-				}
-			}
-
-			String packets = null;
-			if ((element = systemObject.get("packets")) != null) {
-				if ((element = element.getAsJsonArray()) != null && ((element = ((JsonArray) element).get(0)) != null) && !element.isJsonNull()) {
-					packets = element.getAsString();
-				}
+				connections = (element = monitorObject.get("connections")).isJsonNull() ? null : element.getAsString();
+				traffic = (element = monitorObject.get("traffic")).isJsonNull() ? null : element.getAsString();
+				availability = (element = monitorObject.get("availability")).isJsonNull() ? null : element.getAsString();
+				nodestate = (element = monitorObject.get("nodestate")).isJsonNull() ? null : element.getAsString();
+				capacity = (element = monitorObject.get("capacity")).isJsonNull() ? null : element.getAsString();
+				hoststate = (element = monitorObject.get("hoststate")).isJsonNull() ? null : element.getAsString();
+				clustersize = (element = monitorObject.get("clustersize")).isJsonNull() ? null : element.getAsString();
+				reppaused = (element = monitorObject.get("reppaused")).isJsonNull() ? null : element.getAsString();
+				parallelism = (element = monitorObject.get("parallelism")).isJsonNull() ? null : element.getAsString();
+				recvqueue = (element = monitorObject.get("recvqueue")).isJsonNull() ? null : element.getAsString();
+				flowcontrol = (element = monitorObject.get("flowcontrol")).isJsonNull() ? null : element.getAsString();
+				sendqueue = (element = monitorObject.get("sendqueue")).isJsonNull() ? null : element.getAsString();
+			} else {
+				connections = null;
+				traffic = null;
+				availability = null;
+				nodestate = null;
+				capacity = null;
+				hoststate = null;
+				clustersize = null;
+				reppaused = null;
+				parallelism = null;
+				recvqueue = null;
+				flowcontrol = null;
+				sendqueue = null;
 			}
 
 			String[] nodes = null;
@@ -252,7 +288,8 @@ class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 
 			}
 
-			SystemRecord systemRecord = new SystemRecord(ID, name, health, connections, packets, startDate, lastAccess, nodes, lastBackup, properties);
+			SystemRecord systemRecord = new SystemRecord(ID, type, name, availability, connections, traffic, startDate, lastAccess, nodes, lastBackup,
+					properties);
 			systemsMap.put(ID, systemRecord);
 		}
 

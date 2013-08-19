@@ -18,11 +18,13 @@
 
 package com.skysql.manager.ui;
 
+import com.skysql.manager.ManagerUI;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.api.UserInfo;
 import com.skysql.manager.api.UserObject;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -83,15 +85,20 @@ public class SetupDialog implements Window.CloseListener {
 
 	private void nextForm() {
 		SystemInfo systemInfo = new SystemInfo(null);
+		UserInfo userInfo = new UserInfo(null);
 		if (systemInfo == null || systemInfo.getCurrentID() == null) {
 			inputSystem(systemInfo);
 		} else if (systemInfo.getCurrentSystem().getNodes().length == 0) {
 			inputNodes(systemInfo.getCurrentID());
+		} else if (userInfo.getUsersList() == null || userInfo.getUsersList().size() == 0) {
+			inputUser();
 		} else {
-			UserInfo userInfo = new UserInfo(null);
-			if (userInfo.getUsersList() == null || userInfo.getUsersList().size() == 0) {
-				inputUser();
-			}
+			// we are done
+			windowClose(null);
+			VaadinSession.getCurrent().setAttribute(SystemInfo.class, systemInfo);
+			VaadinSession.getCurrent().setAttribute(UserInfo.class, userInfo);
+			ManagerUI current = (ManagerUI) UI.getCurrent();
+			current.refreshContentBasedOnSessionData();
 		}
 
 	}
@@ -107,11 +114,11 @@ public class SetupDialog implements Window.CloseListener {
 		}
 		final SystemRecord system = new SystemRecord();
 		system.setID("1"); // API requires us to create a unique, numerical ID
-		systemForm = new SystemForm(system, "Create new System");
+		systemForm = new SystemForm(system, "Add System");
 		wrapper.replaceComponent(currentForm, systemForm);
 		currentForm = systemForm;
 
-		final Button finishedButton = new Button("Create System");
+		final Button finishedButton = new Button("Add System");
 		buttonsBar.addComponent(finishedButton);
 		buttonsBar.setComponentAlignment(finishedButton, Alignment.MIDDLE_RIGHT);
 
@@ -133,7 +140,7 @@ public class SetupDialog implements Window.CloseListener {
 	NodeForm nodeForm;
 
 	private void inputNodes(final String systemID) {
-		nodeInfo = new NodeInfo();
+		nodeInfo = new NodeInfo(systemID);
 		nodeForm = new NodeForm(nodeInfo, "Add first Node to the System");
 		wrapper.replaceComponent(currentForm, nodeForm);
 		currentForm = nodeForm;
@@ -158,22 +165,17 @@ public class SetupDialog implements Window.CloseListener {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
-				try {
-					if (nodeForm.validateNode()) {
-						nodeInfo.setID(String.valueOf(nodeCount));
-						if (nodeInfo.saveNode(systemID)) {
-							finishedButton.setEnabled(true);
-							nodeCount++;
-							nodeInfo = new NodeInfo();
-							NodeForm newNodeForm = new NodeForm(nodeInfo, "Press Finished if done, or Add Node No. " + nodeCount + " to the System");
-							wrapper.replaceComponent(nodeForm, newNodeForm);
-							nodeForm = newNodeForm;
-							currentForm = nodeForm;
-						}
+				if (nodeForm.validateNode()) {
+					nodeInfo.setID(String.valueOf(nodeCount));
+					if (nodeInfo.saveNode()) {
+						finishedButton.setEnabled(true);
+						nodeCount++;
+						nodeInfo = new NodeInfo(systemID);
+						NodeForm newNodeForm = new NodeForm(nodeInfo, "Press Finished if done, or Add Node No. " + nodeCount + " to the System");
+						wrapper.replaceComponent(nodeForm, newNodeForm);
+						nodeForm = newNodeForm;
+						currentForm = nodeForm;
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					return;
 				}
 
 			}
@@ -194,7 +196,7 @@ public class SetupDialog implements Window.CloseListener {
 		wrapper.replaceComponent(currentForm, userForm);
 		currentForm = userForm;
 
-		final Button finishedButton = new Button("Create User");
+		final Button finishedButton = new Button("Add User");
 		buttonsBar.addComponent(finishedButton);
 		buttonsBar.setComponentAlignment(finishedButton, Alignment.MIDDLE_RIGHT);
 
@@ -203,7 +205,8 @@ public class SetupDialog implements Window.CloseListener {
 
 			public void buttonClick(ClickEvent event) {
 				if (userForm.validateUser() && user.set()) {
-					windowClose(null);
+					VaadinSession.getCurrent().setAttribute(UserObject.class, user);
+					nextForm();
 				}
 			}
 		});

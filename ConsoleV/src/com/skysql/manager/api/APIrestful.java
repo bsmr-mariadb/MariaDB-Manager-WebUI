@@ -43,15 +43,28 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.stream.MalformedJsonException;
+import com.skysql.manager.AppData.Debug;
+import com.skysql.manager.ManagerUI;
+import com.skysql.manager.ui.DebugPanel;
+import com.skysql.manager.ui.ErrorDialog;
+import com.vaadin.server.VaadinSession;
+import com.vaadin.ui.Notification;
 
 public class APIrestful {
 
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
 	private static String apiURI;
-	private static boolean tested;
 	private static String keyID, keyCode;
 	private static Gson gson;
 	private static APIrestful api;
+
+	private boolean success;
+	private int errorCode = 200;
+	private String lastCall;
+	private String result;
+	private String errors;
 
 	public static String getURI() {
 		return apiURI;
@@ -59,7 +72,6 @@ public class APIrestful {
 
 	public static void setURI(String URI) {
 		APIrestful.apiURI = URI;
-		APIrestful.tested = false;
 	}
 
 	public static void setKeys(Hashtable<String, String> keys) {
@@ -71,13 +83,11 @@ public class APIrestful {
 	}
 
 	public static APIrestful newInstance() {
-		if (tested != true) {
+		if (api == null) {
 			api = new APIrestful();
-			tested = api.get("system");
 		}
 
-		return (tested) ? api : null;
-
+		return api;
 	}
 
 	public static Gson getGson() {
@@ -94,23 +104,21 @@ public class APIrestful {
 			gsonBuilder.registerTypeAdapter(MonitorDataRaw.class, new MonitorDataRawDeserializer());
 			gsonBuilder.registerTypeAdapter(NodeInfo.class, new NodeInfoDeserializer());
 			gsonBuilder.registerTypeAdapter(NodeStates.class, new NodeStatesDeserializer());
-			gsonBuilder.registerTypeAdapter(WriteResponse.class, new ResponseDeserializer());
-			gsonBuilder.registerTypeAdapter(RestfulResponse.class, new RestfulResponseDeserializer());
 			gsonBuilder.registerTypeAdapter(SettingsValues.class, new SettingsValuesDeserializer());
 			gsonBuilder.registerTypeAdapter(Steps.class, new StepsDeserializer());
 			gsonBuilder.registerTypeAdapter(SystemInfo.class, new SystemInfoDeserializer());
 			gsonBuilder.registerTypeAdapter(TaskInfo.class, new TaskInfoDeserializer());
 			gsonBuilder.registerTypeAdapter(UserInfo.class, new UserInfoDeserializer());
 			gsonBuilder.registerTypeAdapter(UserObject.class, new UserObjectDeserializer());
+			gsonBuilder.registerTypeAdapter(WriteResponse.class, new ResponseDeserializer());
+
+			//
+			gsonBuilder.registerTypeAdapter(ChartProperties.class, new ChartPropertiesDeserializer());
 
 			gson = gsonBuilder.create();
 		}
 		return gson;
 	}
-
-	private boolean success;
-	private String result;
-	private String errors;
 
 	private enum CallType {
 		GET, PUT, POST, DELETE;
@@ -128,6 +136,10 @@ public class APIrestful {
 		return errors;
 	}
 
+	public String getCall() {
+		return lastCall;
+	}
+
 	protected void setSuccess(boolean success) {
 		this.success = success;
 	}
@@ -138,6 +150,12 @@ public class APIrestful {
 
 	protected void setErrors(String errors) {
 		this.errors = errors;
+	}
+
+	public String errorString() {
+		return "<p class=\"api-response\">" + getCall() + "</p>" + "HTTP " + errorCode + " - "
+				+ (getResult() != null ? "Response: <p class=\"api-response\">" + getResult() + "</p>" : "")
+				+ (getErrors() != null ? "Errors: <p class=\"api-response\">" + getErrors() + "</p>" : "");
 	}
 
 	public boolean get(String uri) {
@@ -171,19 +189,21 @@ public class APIrestful {
 	}
 
 	private boolean call(String uri, CallType type, String value) {
-		try {
-			return test(uri, type, value);
-		} catch (ConnectException e) {
-			return false;
-		}
-	}
-
-	private boolean test(String uri, CallType type, String value) throws ConnectException {
 
 		HttpURLConnection httpConnection = null;
+		URL url = null;
+		long startTime;
+
+		DebugPanel debugPanel = VaadinSession.getCurrent().getAttribute(DebugPanel.class);
+
+		if (Debug.ON) {
+			startTime = System.nanoTime();
+		}
 
 		try {
-			URL url = new URL(apiURI + "/" + uri + ((type == CallType.GET && value != null) ? value : ""));
+			url = new URL(apiURI + "/" + uri + ((type == CallType.GET && value != null) ? value : ""));
+			lastCall = type + " " + url.toString() + (type != CallType.GET && value != null ? " parameters: " + value : "");
+			ManagerUI.log("API " + lastCall, debugPanel);
 			URLConnection sc = url.openConnection();
 			httpConnection = (HttpURLConnection) sc;
 			String date = sdf.format(new Date());
@@ -201,6 +221,7 @@ public class APIrestful {
 
 			switch (type) {
 			case GET:
+				//httpConnection.setRequestProperty("Accept-Encoding", "gzip");
 				break;
 
 			case PUT:
@@ -221,60 +242,96 @@ public class APIrestful {
 				break;
 			}
 
+			int timeout = httpConnection.getConnectTimeout();
+			httpConnection.setConnectTimeout(timeout);
+
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			result = in.readLine();
+
+			//			Map<String, List<String>> headers = httpConnection.getHeaderFields();
+			//			for (String header : headers.keySet()) {
+			//				for (String string : headers.get(header)) {
+			//					System.out.println("header: " + header + ", value: " + string);
+			//				}
+			//			}
+
 			in.close();
+
+			if (Debug.ON) {
+				long estimatedTime = (System.nanoTime() - startTime) / 1000000;
+				ManagerUI.log("Response Time: " + estimatedTime + "ms, inputStream: " + result, debugPanel);
+			}
 
 			APIrestful api = getGson().fromJson(result, APIrestful.class);
 
 			return api.success;
 
 		} catch (NoSuchAlgorithmException e) {
+			new ErrorDialog(e, "Could not use MD5 to encode HTTP request header");
 			e.printStackTrace();
-			throw new RuntimeException("Could not use MD5 to encode HTTP request header");
+			throw new RuntimeException();
 		} catch (MalformedURLException e) {
+			new ErrorDialog(e, "Bad URL: " + url.toString());
 			e.printStackTrace();
-			throw new RuntimeException("Bad URL");
+			throw new RuntimeException();
 		} catch (ConnectException e) {
+			new ErrorDialog(e, "API not responding at: " + getURI());
 			e.printStackTrace();
-			if (tested) {
-				throw new RuntimeException("Could not get response from API");
-			} else {
-				throw e;
-			}
+			throw new RuntimeException("API not responding");
+		} catch (MalformedJsonException e) {
+			new ErrorDialog(e, "API did not return JSON for:" + api.errorString());
+			throw new RuntimeException("MalformedJson inputStream");
+
 		} catch (IOException e) {
-			int errorCode = 0;
 			try {
 				errorCode = httpConnection.getResponseCode();
+
 				BufferedReader in = new BufferedReader(new InputStreamReader(httpConnection.getErrorStream()));
 				errors = in.readLine();
 				in.close();
 
+				if (Debug.ON) {
+					long estimatedTime = (System.nanoTime() - startTime) / 1000000;
+					ManagerUI.log("Response Time: " + estimatedTime + "ms, errorStream: " + errors, debugPanel);
+				}
+
 				APIrestful api = getGson().fromJson(errors, APIrestful.class);
 				errors = api.getErrors();
 
-			} catch (IOException f) {
-				f.printStackTrace();
+			} catch (JsonSyntaxException f) {
+				new ErrorDialog(f, "API did not return JSON for:" + errorString());
+				throw new RuntimeException("JsonSyntax errorStream");
+			} catch (MalformedJsonException f) {
+				new ErrorDialog(f, "API did not return JSON for:" + errorString());
+				throw new RuntimeException("MalformedJson errorStream");
+			} catch (Exception f) {
+				System.err.println("API call: " + url.toString() + " returned: " + errors);
+				new ErrorDialog(f, "API call: " + url.toString());
+				throw new RuntimeException("Exception errorStream");
 			}
 
 			switch (errorCode) {
 			case 400:
 			case 404:
-				//Notification.show("API Error", errors, Notification.Type.HUMANIZED_MESSAGE);
+				Notification.show(errors, Notification.Type.WARNING_MESSAGE);
+				return false;
+
 			case 409:
-				String logString = "API returned HTTP error code: " + errorCode + " with error stream: " + errors;
-				System.out.println(logString);
 				return false;
 
 			default:
 				break;
 			}
 			e.printStackTrace();
-			throw new RuntimeException(e + " - " + errors);
+			new ErrorDialog(e, "API returned an error for:" + errorString());
+			throw new RuntimeException("API Error");
 
+		} catch (JsonSyntaxException e) {
+			new ErrorDialog(e, "API did not return HTTP error nor valid JSON for:" + api.errorString());
+			throw new RuntimeException("JsonSyntax inputStream");
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
+			new ErrorDialog(e, "API call: " + url.toString());
+			throw new RuntimeException("Exception inputStream");
 		}
 
 	}

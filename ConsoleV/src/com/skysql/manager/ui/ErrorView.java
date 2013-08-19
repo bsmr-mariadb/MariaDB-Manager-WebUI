@@ -41,7 +41,7 @@ public class ErrorView extends VerticalLayout {
 		@Override
 		public void buttonClick(ClickEvent event) {
 
-			//Tell the UI to refresh itself - this is not the only way to do this, just one possibility
+			//Tell the UI to refresh itself
 			ManagerUI current = (ManagerUI) UI.getCurrent();
 			current.close();
 		}
@@ -63,17 +63,17 @@ public class ErrorView extends VerticalLayout {
 		addComponent(logo);
 		setComponentAlignment(logo, Alignment.TOP_CENTER);
 
-		String reloadMsg = (type == Notification.Type.ERROR_MESSAGE) ? "To try again, please refresh/reload the current page."
-				: "When done, please refresh/reload the current page.";
-		Label refreshLabel = new Label(reloadMsg);
-		refreshLabel.setSizeUndefined();
-		refreshLabel.addStyleName("instructions");
-		addComponent(refreshLabel);
-		setComponentAlignment(refreshLabel, Alignment.TOP_CENTER);
-		//		retryButton.setClickShortcut(KeyCode.ENTER);
-		//		retryButton.addClickListener(listener);
-		//		addComponent(retryButton);
-		//		setComponentAlignment(retryButton, Alignment.TOP_CENTER);
+		if (type == Notification.Type.ERROR_MESSAGE) {
+			Label refreshLabel = new Label("To try again, please refresh/reload the current page.");
+			refreshLabel.setSizeUndefined();
+			refreshLabel.addStyleName("instructions");
+			addComponent(refreshLabel);
+			setComponentAlignment(refreshLabel, Alignment.TOP_CENTER);
 
+			//		retryButton.setClickShortcut(KeyCode.ENTER);
+			//		retryButton.addClickListener(listener);
+			//		addComponent(retryButton);
+			//		setComponentAlignment(retryButton, Alignment.TOP_CENTER);
+		}
 	}
 }

@@ -24,6 +24,7 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.EmptyValueException;
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
@@ -63,14 +64,16 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 		usersLayout.setSpacing(true);
 		usersLayout.setMargin(true);
 
+		// make sure we're working with current info
 		userInfo = new UserInfo(null);
+		VaadinSession.getCurrent().setAttribute(UserInfo.class, userInfo);
 
 		select = new ListSelect("Users");
 		select.setImmediate(true);
 		for (UserObject user : userInfo.getUsersList().values()) {
 			String id = user.getUserID();
 			select.addItem(id);
-			if (id.equalsIgnoreCase(currentUserID)) {
+			if (id.equals(currentUserID)) {
 				select.select(id);
 				userName.setValue(user.getName());
 				selectedUserID = id;
@@ -87,7 +90,7 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 
 				selectedUserID = (String) event.getProperty().getValue();
 
-				if (selectedUserID == null || selectedUserID.equalsIgnoreCase(currentUserID)) {
+				if (selectedUserID == null || selectedUserID.equals(currentUserID)) {
 					removeUser.setEnabled(false);
 				} else {
 					removeUser.setEnabled(true);
@@ -110,7 +113,7 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 		userButtonsLayout.setSpacing(true);
 		usersLayout.addComponent(userButtonsLayout);
 
-		Button addUser = new Button("Add User...");
+		Button addUser = new Button("Add...");
 		addUser.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -148,9 +151,9 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 				if (selectedUserID != null) {
 					String newName = (String) event.getProperty().getValue();
 					String currentName = userInfo.findNameByID(selectedUserID);
-					if (!newName.equalsIgnoreCase(currentName)) {
+					if (!newName.equals(currentName)) {
 						userInfo.setUser(selectedUserID, newName, null);
-						TopPanel topPanel = VaadinSession.getCurrent().getAttribute(TopPanel.class);
+						TopPanel topPanel = getSession().getAttribute(TopPanel.class);
 						topPanel.setUserName(newName);
 					}
 					select.focus();
@@ -172,7 +175,9 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 	}
 
 	public void windowClose(CloseEvent e) {
-
+		// reload current UserInfo after possible adds and removes
+		userInfo = new UserInfo(null);
+		VaadinSession.getCurrent().setAttribute(UserInfo.class, userInfo);
 	}
 
 	public void addUser(Button.ClickEvent event) {
@@ -180,7 +185,7 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 		final TextField fullname = new TextField("Full Name");
 		final PasswordField newPassword;
 		final PasswordField newPassword2;
-		final Button okButton = new Button("Create User");
+		final Button okButton = new Button("Add User");
 
 		secondaryDialog = new DialogWindow("Add User");
 		UI.getCurrent().addWindow(secondaryDialog);
@@ -194,7 +199,7 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 		formContainer.addComponent(form);
 		form.setFooter(null);
 		form.setImmediate(false);
-		form.setDescription("Create a new administrator user");
+		form.setDescription("Add a new administrator user");
 
 		form.addField("newUsername", newUsername);
 		form.getField("newUsername").setRequired(true);
@@ -424,8 +429,7 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 					}
 				} catch (EmptyValueException e) {
 					return;
-				} catch (Exception e) {
-					e.printStackTrace();
+				} catch (InvalidValueException e) {
 					return;
 				}
 				secondaryDialog.close();

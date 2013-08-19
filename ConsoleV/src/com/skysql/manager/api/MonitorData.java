@@ -27,8 +27,8 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.skysql.manager.AppData.Debug;
 import com.skysql.manager.MonitorRecord;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class MonitorData {
 
@@ -78,7 +78,7 @@ public class MonitorData {
 		return (timeStamps == null) ? null : timeStamps.get(timeStamps.size() - 1);
 	}
 
-	public boolean update(String system, String node, String endTime, String timeSpan, String count) {
+	public boolean update(String system, String node, String endTime, String timeSpan, int count) {
 
 		MonitorData newMonitorData;
 		if ((system != null && !system.equals(this.system)) || (node != null && !node.equals(this.node)) || (!timeSpan.equals(this.timeSpan))) {
@@ -122,16 +122,13 @@ public class MonitorData {
 	public MonitorData() {
 	}
 
-	public MonitorData(MonitorRecord monitor, String system, String node, String endTime, String spanTime, String count, String method) {
+	public MonitorData(MonitorRecord monitor, String system, String node, String endTime, String spanTime, int count, String method) {
 		this.monitor = monitor;
 		this.system = system;
 		this.node = node;
 		this.method = method;
 
 		Long timeEnd = (endTime == null) ? null : Long.valueOf(endTime);
-		if (Debug.ON) {
-			timeEnd = (endTime == null) ? 1367511000L : Long.valueOf(endTime);
-		}
 		Long interval = Long.valueOf(spanTime) / Long.valueOf(count);
 
 		APIrestful api = new APIrestful();
@@ -139,21 +136,29 @@ public class MonitorData {
 		String params = "?finish=" + String.valueOf(timeEnd) + "&interval=" + String.valueOf(interval) + "&count=" + count + "&method=" + method;
 
 		if (api.get(uri, params)) {
-			MonitorData monitorData = APIrestful.getGson().fromJson(api.getResult(), MonitorData.class);
-			avgPoints = monitorData.avgPoints;
-			minPoints = monitorData.minPoints;
-			maxPoints = monitorData.maxPoints;
-			timeStamps = monitorData.timeStamps;
+			try {
+				MonitorData monitorData = APIrestful.getGson().fromJson(api.getResult(), MonitorData.class);
+				avgPoints = monitorData.avgPoints;
+				minPoints = monitorData.minPoints;
+				maxPoints = monitorData.maxPoints;
+				timeStamps = monitorData.timeStamps;
+			} catch (NullPointerException e) {
+				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+				throw new RuntimeException("API response");
+			} catch (JsonParseException e) {
+				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+				throw new RuntimeException("API response");
+			}
 		}
 	}
 }
 
 class MonitorDataDeserializer implements JsonDeserializer<MonitorData> {
-	public MonitorData deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public MonitorData deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		MonitorData monitorData = new MonitorData();
 
 		JsonElement jsonElement = json.getAsJsonObject().get("monitor_data");
-		if (jsonElement == null || jsonElement.isJsonNull() || jsonElement.isJsonArray()) {
+		if (jsonElement.isJsonNull() || jsonElement.isJsonArray()) {
 			return monitorData;
 		}
 

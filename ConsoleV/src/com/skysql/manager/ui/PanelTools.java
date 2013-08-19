@@ -46,7 +46,7 @@ public class PanelTools extends HorizontalLayout {
 		setSpacing(true);
 
 		// External Tools Vertical Module
-		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+		SystemInfo systemInfo = getSession().getAttribute(SystemInfo.class);
 		LinkedHashMap<String, String> properties = systemInfo.getCurrentSystem().getProperties();
 		if (properties != null) {
 			VerticalLayout externalsLayout = new VerticalLayout();
@@ -105,7 +105,7 @@ public class PanelTools extends HorizontalLayout {
 
 	public void refresh() {
 
-		ClusterComponent componentInfo = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
+		ClusterComponent componentInfo = getSession().getAttribute(ClusterComponent.class);
 
 		switch (componentInfo.getType()) {
 		case system:

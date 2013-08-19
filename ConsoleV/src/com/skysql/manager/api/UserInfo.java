@@ -29,9 +29,11 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.vaadin.ui.Notification;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class UserInfo {
+
+	private static final String NOT_AVAILABLE = "n/a";
 
 	LinkedHashMap<String, UserObject> usersList;
 
@@ -47,12 +49,16 @@ public class UserInfo {
 
 		APIrestful api = new APIrestful();
 		if (api.get("user")) {
-			UserInfo userInfo = APIrestful.getGson().fromJson(api.getResult(), UserInfo.class);
-			if (userInfo != null) {
+			try {
+				UserInfo userInfo = APIrestful.getGson().fromJson(api.getResult(), UserInfo.class);
 				this.usersList = userInfo.usersList;
+			} catch (NullPointerException e) {
+				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+				throw new RuntimeException("API response");
+			} catch (JsonParseException e) {
+				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+				throw new RuntimeException("API response");
 			}
-		} else {
-			Notification.show(api.getErrors());
 		}
 
 	}
@@ -64,7 +70,8 @@ public class UserInfo {
 	public String findNameByID(String id) {
 		UserObject userObject = usersList.get(id);
 		if (userObject == null) {
-			return null;
+			// TODO: reload UserInfo from API, in case this user was created after the last load
+			return NOT_AVAILABLE;
 		}
 		return userObject.getName();
 	}
@@ -98,7 +105,7 @@ public class UserInfo {
 			success = api.put("user/" + userID, jsonParam.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new RuntimeException("Could not get response from API");
+			new ErrorDialog(e, "Error encoding API request");
 		}
 
 		// TODO: check this code!  Shouldn't it be like Monitors? 
@@ -111,7 +118,7 @@ public class UserInfo {
 			userObject.setName(name);
 		}
 
-		return true;
+		return success;
 	}
 
 	public boolean deleteUser(String userID) {
@@ -132,11 +139,11 @@ public class UserInfo {
 }
 
 class UserInfoDeserializer implements JsonDeserializer<UserInfo> {
-	public UserInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public UserInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		UserInfo userInfo = new UserInfo();
 
 		JsonElement jsonElement = json.getAsJsonObject().get("users");
-		if (jsonElement == null || jsonElement.isJsonNull()) {
+		if (jsonElement.isJsonNull()) {
 			userInfo.setUsersList(new LinkedHashMap<String, UserObject>());
 		} else {
 			JsonArray array = jsonElement.getAsJsonArray();

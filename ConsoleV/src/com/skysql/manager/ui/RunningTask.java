@@ -28,14 +28,14 @@ import java.util.LinkedHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.vaadin.artur.icepush.ICEPush;
-
 import com.skysql.manager.BackupRecord;
 import com.skysql.manager.ExecutorFactory;
+import com.skysql.manager.ManagerUI;
 import com.skysql.manager.StepRecord;
 import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.BackupStates;
 import com.skysql.manager.api.Backups;
+import com.skysql.manager.api.CommandStates;
 import com.skysql.manager.api.Commands;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.Steps;
@@ -60,7 +60,6 @@ import com.vaadin.ui.Link;
 import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
 public final class RunningTask {
@@ -98,6 +97,8 @@ public final class RunningTask {
 		this.command = command;
 		this.nodeInfo = nodeInfo;
 		this.commandSelect = commandSelect;
+
+		ManagerUI.log("RunningTask - command: " + command + ", node: " + nodeInfo.getName());
 
 		if (command == null) {
 			observerMode = true;
@@ -162,8 +163,8 @@ public final class RunningTask {
 			selectPrevBackup = new ListSelect("Backups");
 			selectPrevBackup.setImmediate(true);
 			final Backups backups = new Backups(nodeInfo.getSystemID(), null);
-			final LinkedHashMap<String, BackupRecord> backupsList = backups.getBackupsList();
-			if (backupsList != null) {
+			final LinkedHashMap<String, BackupRecord> backupsList = backups.getBackupsForNode(nodeInfo.getID());
+			if (backupsList != null && backupsList.size() > 0) {
 				Collection<BackupRecord> set = backupsList.values();
 				Iterator<BackupRecord> iter = set.iterator();
 				while (iter.hasNext()) {
@@ -288,7 +289,7 @@ public final class RunningTask {
 		if (observerMode) {
 			// String userName = Users.getUserNames().get(taskRecord.getUser());
 			String userID = taskRecord.getUserID();
-			UserInfo userInfo = new UserInfo(userID);
+			UserInfo userInfo = (UserInfo) VaadinSession.getCurrent().getAttribute(UserInfo.class);
 			String userName = userInfo.findNameByID(userID);
 			String started = taskRecord.getStart();
 
@@ -339,8 +340,7 @@ public final class RunningTask {
 		 * Alignment.TOP_CENTER); }
 		 ***/
 
-		Steps steps = new Steps("bogus"); // bogus param not to call empty constructor
-		LinkedHashMap<String, StepRecord> stepRecords = steps.getStepsList();
+		LinkedHashMap<String, StepRecord> stepRecords = Steps.getStepsList();
 
 		String[] stepsIDs = Commands.getSteps(command);
 
@@ -349,16 +349,15 @@ public final class RunningTask {
 														// for the "done" icon
 		// add steps icons
 		for (int index = 0; index < stepsIDs.length; index++) {
-			StepRecord stepRecord = stepRecords.get(stepsIDs[index]);
-			String stepName = stepRecord.getScript(); // this should really be
-														// another column!
+			String stepID = stepsIDs[index];
+			StepRecord stepRecord = stepRecords.get(stepID);
 			String iconName = stepRecord.getIcon();
 			String description = stepRecord.getDescription();
 
 			Embedded image = new Embedded(null, new ThemeResource("img/scripting/pending/" + iconName + ".png"));
 			image.addStyleName("stepIcons");
 			image.setImmediate(true);
-			image.setAlternateText(stepName);
+			image.setAlternateText(stepID);
 			image.setDescription(description);
 			progressIconsLayout.addComponent(image);
 			primitives[index] = iconName;
@@ -383,14 +382,14 @@ public final class RunningTask {
 		return command;
 	}
 
-	private String backupLabels[] = { "Node", "Level", "State", "Size", "Updated", "Restored" };
+	private String backupLabels[] = { "Node", "Level", "State", "Size", "Completed", "Restored" };
 
 	final public void displayBackupInfo(VerticalLayout layout, BackupRecord record) {
 		String value;
 		String values[] = { (value = record.getID()) != null ? value : NOT_AVAILABLE, (value = record.getLevel()) != null ? value : NOT_AVAILABLE,
 				((value = record.getStatus()) != null) && (value = BackupStates.getDescriptions().get(value)) != null ? value : "Invalid",
 				(value = record.getSize()) != null ? value : NOT_AVAILABLE, (value = record.getUpdated()) != null ? value : NOT_AVAILABLE,
-				(value = record.getRestored()) != null ? value : "" };
+				(value = record.getRestored()) != null ? value : NOT_AVAILABLE };
 
 		GridLayout newBackupInfoGrid = new GridLayout(2, backupLabels.length);
 		for (int i = 0; i < backupLabels.length; i++) {
@@ -459,7 +458,7 @@ public final class RunningTask {
 		parameterLayout.setEnabled(false);
 
 		startTime = System.currentTimeMillis();
-		resultLabel.setValue("Running...");
+		resultLabel.setValue("Launching");
 
 		UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
 		String userID = userObject.getUserID();
@@ -477,7 +476,6 @@ public final class RunningTask {
 	}
 
 	void stop() {
-
 	}
 
 	void pause() {
@@ -487,6 +485,7 @@ public final class RunningTask {
 	public void close() {
 		// make sure timers get stopped
 		if (runTimerFuture != null) {
+			ManagerUI.log(nodeInfo.getTask() + " - removeTimer");
 			ExecutorFactory.removeTimer(runTimerFuture);
 			runTimerFuture = null;
 		}
@@ -494,7 +493,11 @@ public final class RunningTask {
 		//		if (cancelTimerFuture != null)
 		//			cancelTimerFuture.cancel(DONT_INTERRUPT_IF_RUNNING);
 
-		listener.valueChange(null);
+		commandSelect.setEnabled(true);
+
+		if (listener != null) {
+			listener.valueChange(null);
+		}
 
 	}
 
@@ -505,7 +508,7 @@ public final class RunningTask {
 	public void activateTimer() {
 		// if timer not running yet
 		if (runTimerFuture == null) {
-			log(nodeInfo.getTask() + " - activateTimer");
+			ManagerUI.log(nodeInfo.getTask() + " - activateTimer");
 
 			final long fDelayBetweenRuns = 3;
 			Runnable runTimerTask = new RunTimerTask();
@@ -526,48 +529,58 @@ public final class RunningTask {
 
 		public void run() {
 			++fCount;
-			log(nodeInfo.getTask() + " - " + fCount);
+			ManagerUI.log("timer - task:" + nodeInfo.getTask() + " - " + fCount);
 
-			VaadinSession vaadinSession = UI.getCurrent().getSession();
+			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null);
+			TaskRecord taskRecord = taskInfo.getTasksList().get(0);
+
+			VaadinSession vaadinSession = VaadinSession.getCurrent();
 			vaadinSession.lock();
 
 			try {
+				String statusString;
+				if ((statusString = taskRecord.getStatus()) == null) {
+					return; // we're waiting for something to happen
+				}
+				resultLabel.setValue(CommandStates.getDescriptions().get(statusString));
+				int status = Integer.parseInt(statusString);
 
-				TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null);
-				TaskRecord taskRecord = taskInfo.getTasksList().get(0);
-				int index = Integer.parseInt(taskRecord.getIndex()) - 1;
-				int status = Integer.parseInt(taskRecord.getStatus());
+				String indexString;
+				if ((indexString = taskRecord.getIndex()) == null) {
+					return; // we're waiting for something to happen
+				}
+				int index = Integer.parseInt(indexString) - 1;
 
 				if (scriptingProgressLayout.isVisible()) {
 					while (lastProgressIndex < index) {
-						log(nodeInfo.getTask() + " - updating last position");
+						ManagerUI.log(nodeInfo.getTask() + " - updating last position");
 
 						taskImages[lastProgressIndex].setSource(new ThemeResource("img/scripting/done/" + primitives[lastProgressIndex] + ".png"));
 						lastProgressIndex++;
 					}
 				} else {
-					log(nodeInfo.getTask() + " - cannot update display");
+					ManagerUI.log(nodeInfo.getTask() + " - cannot update display");
 				}
 
 				if ((status == 2) && (index != lastIndex)) {
 					if (scriptingProgressLayout.isVisible()) {
-						log(nodeInfo.getTask() + " - updating running position");
+						ManagerUI.log(nodeInfo.getTask() + " - updating running position");
 
 						taskImages[index].setSource(new ThemeResource("img/scripting/active/" + primitives[index] + ".png"));
 						progressLabel.setValue(taskImages[index].getDescription());
-						// progressLabel.setValue(primitives[index]);
+
 					} else {
-						log(nodeInfo.getTask() + " - cannot update display");
+						ManagerUI.log(nodeInfo.getTask() + " - cannot update display");
 					}
 					lastIndex = index;
 
 				} else if (status == 5) {
 					runningTime = System.currentTimeMillis() - startTime;
 					if (scriptingProgressLayout.isVisible()) {
-						log(nodeInfo.getTask() + " - updating done position");
+						ManagerUI.log(nodeInfo.getTask() + " - updating done position");
 
-						taskImages[index].setSource(new ThemeResource("img/scripting/done/" + primitives[index] + ".png"));
-						taskImages[index + 1].setSource(new ThemeResource("img/scripting/done/done.png"));
+						taskImages[lastIndex].setSource(new ThemeResource("img/scripting/done/" + primitives[lastIndex] + ".png"));
+						taskImages[lastIndex + 1].setSource(new ThemeResource("img/scripting/done/done.png"));
 						String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime),
 								TimeUnit.MILLISECONDS.toSeconds(runningTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
 						DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -576,17 +589,18 @@ public final class RunningTask {
 						resultLabel.setValue("Completed successfully<br><br>on " + dateFormat.format(date) + "<br><br>in " + time);
 
 					} else {
-						log(nodeInfo.getTask() + " - cannot update display");
+						ManagerUI.log(nodeInfo.getTask() + " - cannot update display");
 					}
 
-					log(nodeInfo.getTask() + " - Canceling Timer (done)");
+					ManagerUI.log(nodeInfo.getTask() + " - Canceling Timer (done)");
+
 					close();
 					lastIndex = -1;
 					lastProgressIndex = 0;
 
 				} else if (status == 6) {
 					if (scriptingProgressLayout.isVisible()) {
-						log(nodeInfo.getTask() + " - updating error position");
+						ManagerUI.log(nodeInfo.getTask() + " - updating error position");
 
 						taskImages[taskImages.length - 1].setSource(new ThemeResource("img/scripting/error.png"));
 						progressLabel.setValue("Error!");
@@ -596,12 +610,14 @@ public final class RunningTask {
 						Date date = new Date();
 						resultLabel.setValue("Command failed<br><br>on " + dateFormat.format(date) + "<br><br>after " + time);
 					} else {
-						log(nodeInfo.getTask() + " - cannot update display");
+						ManagerUI.log(nodeInfo.getTask() + " - cannot update display");
 					}
 
-					log(nodeInfo.getTask() + " - Canceling Timer (canceled, error)");
+					ManagerUI.log(nodeInfo.getTask() + " - Canceling Timer (canceled, error)");
+
 					close();
 					// lastIndex = 0; lastProgressIndex = 0;
+
 				}
 
 				// update enable/disabled state of control buttons
@@ -614,15 +630,10 @@ public final class RunningTask {
 				 * true : false); } }
 				 ***/
 
-				// Push the changes
-				ICEPush icePush = VaadinSession.getCurrent().getAttribute(ICEPush.class);
-				icePush.push();
-
 			} finally {
 				vaadinSession.unlock();
 			}
 		}
-
 	}
 
 	//	private final class StopTimerTask implements Runnable {
@@ -631,7 +642,7 @@ public final class RunningTask {
 	//		}
 	//
 	//		public void run() {
-	//			log(nodeInfo.getTask() + " - Stopping Timer.");
+	//			ManagerUI.log(nodeInfo.getTask() + " - Stopping Timer.");
 	//			fSchedFuture.cancel(true);
 	//
 	//			lastIndex = -1;
@@ -641,7 +652,4 @@ public final class RunningTask {
 	//		private ScheduledFuture<?> fSchedFuture;
 	//	}
 
-	private static void log(String aMsg) {
-		// System.out.println(aMsg);
-	}
 }

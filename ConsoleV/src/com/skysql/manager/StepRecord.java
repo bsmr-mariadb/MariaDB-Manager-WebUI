@@ -20,13 +20,8 @@ package com.skysql.manager;
 
 public class StepRecord {
 
-	private String script;
 	private String icon;
 	private String description;
-
-	public String getScript() {
-		return script;
-	}
 
 	public String getIcon() {
 		return icon;
@@ -36,8 +31,7 @@ public class StepRecord {
 		return description;
 	}
 
-	public StepRecord(String script, String icon, String description) {
-		this.script = script;
+	public StepRecord(String icon, String description) {
 		this.icon = icon;
 		this.description = description;
 	}

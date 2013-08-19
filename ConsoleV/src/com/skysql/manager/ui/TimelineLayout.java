@@ -89,10 +89,13 @@ public class TimelineLayout extends VerticalLayout {
 			containers.put(monitor, container);
 
 			Long latestTime = monitorData.getLatestTime();
-			Calendar cal = Calendar.getInstance();
-			cal.setTimeInMillis(latestTime * 1000L);
-			if (latestCal == null || cal.after(latestCal)) {
-				latestCal = cal;
+			if (latestTime != null) {
+				//Calendar cal = new GregorianCalendar();
+				Calendar cal = Calendar.getInstance();
+				cal.setTimeInMillis(latestTime * 1000L);
+				if (latestCal == null || cal.after(latestCal)) {
+					latestCal = cal;
+				}
 			}
 
 		}
@@ -135,21 +138,28 @@ public class TimelineLayout extends VerticalLayout {
 		int i = 0;
 		for (MonitorRecord monitor : containers.keySet()) {
 			IndexedContainer container = containers.get(monitor);
-			timeline.addGraphDataSource(container, Timeline.PropertyId.TIMESTAMP, Timeline.PropertyId.VALUE);
-			timeline.setGraphCaption(container, monitor.getName());
-			timeline.setGraphOutlineColor(container, colorArray[i++]);
-			timeline.setGraphFillColor(container, null);
-			timeline.setVerticalAxisLegendUnit(container, monitor.getUnit());
-			if (i > colorArray.length) {
-				i = 0; // reuse colors
+			if (container.size() > 0) {
+				timeline.addGraphDataSource(container, Timeline.PropertyId.TIMESTAMP, Timeline.PropertyId.VALUE);
+				timeline.setGraphCaption(container, monitor.getName());
+				timeline.setGraphOutlineColor(container, colorArray[i++]);
+				timeline.setGraphFillColor(container, null);
+				timeline.setVerticalAxisLegendUnit(container, monitor.getUnit());
+				if (i > colorArray.length) {
+					i = 0; // reuse colors
+				}
 			}
 		}
 
 		// Set the date range
-		Date endTime = latestCal.getTime();
-		latestCal.add(Calendar.MONTH, -1);
-		Date startTime = latestCal.getTime();
-		timeline.setVisibleDateRange(startTime, endTime);
+		if (!containers.keySet().isEmpty() && !timeline.getGraphDatasources().isEmpty()) {
+			if (latestCal == null) {
+				latestCal = Calendar.getInstance();
+			}
+			Date endTime = latestCal.getTime();
+			latestCal.add(Calendar.MONTH, -1);
+			Date startTime = latestCal.getTime();
+			timeline.setVisibleDateRange(startTime, endTime);
+		}
 		return timeline;
 	}
 

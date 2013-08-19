@@ -29,17 +29,18 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.VerticalLayout;
 
-public class BackupSettings {
+public class BackupSettings extends HorizontalLayout {
+	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private String maxBackupSize, maxBackupCount;
 
-	BackupSettings(final HorizontalLayout backupTab) {
+	BackupSettings() {
 
-		backupTab.addStyleName("backupTab");
-		backupTab.setSpacing(true);
+		addStyleName("backupTab");
+		setSpacing(true);
 
 		VerticalLayout layout = new VerticalLayout();
-		backupTab.addComponent(layout);
+		addComponent(layout);
 		layout.setSpacing(true);
 		layout.setMargin(true);
 

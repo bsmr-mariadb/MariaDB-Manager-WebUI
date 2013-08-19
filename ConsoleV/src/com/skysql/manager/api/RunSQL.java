@@ -21,6 +21,8 @@ package com.skysql.manager.api;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
+import com.skysql.manager.ui.ErrorDialog;
+
 public class RunSQL {
 
 	private boolean success;
@@ -55,6 +57,7 @@ public class RunSQL {
 			errors = api.getErrors();
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
+			new ErrorDialog(e, "Error encoding API request");
 		}
 	}
 }

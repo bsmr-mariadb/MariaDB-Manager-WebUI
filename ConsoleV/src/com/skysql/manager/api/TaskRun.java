@@ -21,7 +21,9 @@ package com.skysql.manager.api;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
+import com.google.gson.JsonParseException;
 import com.skysql.manager.TaskRecord;
+import com.skysql.manager.ui.ErrorDialog;
 
 public class TaskRun {
 	private String task;
@@ -37,7 +39,7 @@ public class TaskRun {
 	public TaskRun() {
 	}
 
-	public TaskRun(String systemID, String nodeID, String userID, String command, String params) {
+	public TaskRun(String systemID, String nodeID, String userID, String commandID, String params) {
 
 		APIrestful api = new APIrestful();
 
@@ -50,20 +52,26 @@ public class TaskRun {
 			if (params != null) {
 				regParam.append("&parameters=" + URLEncoder.encode(params, "UTF-8"));
 			}
-			success = api.post("command/" + Commands.getIcons().get(command), regParam.toString());
+			success = api.post("command/" + Commands.getNames().get(commandID).toLowerCase(), regParam.toString());
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new RuntimeException("Errors preparing API call");
+			new ErrorDialog(e, "Error encoding API request");
 		}
 
 		if (success) {
-			TaskInfo taskInfo = APIrestful.getGson().fromJson(api.getResult(), TaskInfo.class);
-			if (taskInfo != null) {
+			try {
+				TaskInfo taskInfo = APIrestful.getGson().fromJson(api.getResult(), TaskInfo.class);
 				ArrayList<TaskRecord> tasksList = taskInfo.getTasksList();
 				if (tasksList != null && !tasksList.isEmpty()) {
 					this.task = tasksList.get(0).getID();
 				}
+			} catch (NullPointerException e) {
+				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+				throw new RuntimeException("API response");
+			} catch (JsonParseException e) {
+				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+				throw new RuntimeException("API response");
 			}
 		}
 	}
