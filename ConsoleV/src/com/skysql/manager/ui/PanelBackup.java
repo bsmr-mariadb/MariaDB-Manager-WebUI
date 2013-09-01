@@ -150,7 +150,7 @@ public class PanelBackup extends VerticalLayout {
 
 		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
 		LinkedHashMap<String, String> sysProperties = systemInfo.getCurrentSystem().getProperties();
-		final String EIP = sysProperties.get(SystemInfo.PROPERTY_EIP);
+		final String EIP = null; // sysProperties.get(SystemInfo.PROPERTY_EIP);
 
 		Backups backups = new Backups(systemInfo.getCurrentID(), null);
 		backupsList = backups.getBackupsList();

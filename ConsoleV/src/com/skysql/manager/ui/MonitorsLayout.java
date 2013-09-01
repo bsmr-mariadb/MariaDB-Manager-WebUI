@@ -58,8 +58,8 @@ public class MonitorsLayout extends VerticalLayout {
 		setSpacing(true);
 		setMargin(true);
 
-		Monitors.reloadMonitors(null);
-		availableMonitors = Monitors.getMonitorsList(null);
+		Monitors.reloadMonitors();
+		availableMonitors = Monitors.getMonitorsList();
 		initializeMonitors();
 
 	}

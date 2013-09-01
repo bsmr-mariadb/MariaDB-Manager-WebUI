@@ -36,7 +36,6 @@ public class NodeInfo extends ClusterComponent {
 
 	private static final String NOT_AVAILABLE = "n/a";
 
-	private String systemID;
 	private String[] commands;
 	private String task;
 	private String command;
@@ -47,11 +46,6 @@ public class NodeInfo extends ClusterComponent {
 	private String username;
 	private String password;
 	private RunningTask commandTask;
-	private String capacity;
-
-	public String getSystemID() {
-		return systemID;
-	}
 
 	public String[] getCommands() {
 		return commands;
@@ -133,15 +127,7 @@ public class NodeInfo extends ClusterComponent {
 		this.commandTask = commandTask;
 	}
 
-	public String getCapacity() {
-		return capacity;
-	}
-
-	public void setCapacity(String capacity) {
-		this.capacity = capacity;
-	}
-
-	public boolean saveNode() {
+	public boolean save() {
 
 		try {
 			APIrestful api = new APIrestful();
@@ -152,8 +138,10 @@ public class NodeInfo extends ClusterComponent {
 			jsonParam.put("publicip", this.publicIP);
 			jsonParam.put("privateip", this.privateIP);
 			jsonParam.put("username", this.username);
-			jsonParam.put("passwd", this.password);
-			if (api.put("system/" + systemID + "/node" + (ID == null || ID.isEmpty() ? "" : "/" + ID), jsonParam.toString())) {
+			if (this.password != null) {
+				jsonParam.put("passwd", this.password);
+			}
+			if (api.put("system/" + parentID + "/node" + (ID == null || ID.isEmpty() ? "" : "/" + ID), jsonParam.toString())) {
 				WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
 				if (writeResponse != null) {
 					if (ID == null && !writeResponse.getInsertKey().isEmpty()) {
@@ -175,10 +163,10 @@ public class NodeInfo extends ClusterComponent {
 
 	}
 
-	public synchronized boolean deleteNode() {
+	public boolean delete() {
 
 		APIrestful api = new APIrestful();
-		if (api.delete("system/" + systemID + "/node/" + ID)) {
+		if (api.delete("system/" + parentID + "/node/" + ID)) {
 			WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
 			if (writeResponse != null && writeResponse.getDeleteCount() > 0) {
 				return true;
@@ -190,22 +178,25 @@ public class NodeInfo extends ClusterComponent {
 	public NodeInfo() {
 	}
 
-	public NodeInfo(String systemID) {
+	public NodeInfo(String systemID, String systemType) {
 		this.type = CCType.node;
-		this.systemID = systemID;
+		this.parentID = systemID;
+		this.systemType = systemType;
 	}
 
-	public NodeInfo(String systemID, String nodeID) {
+	public NodeInfo(String systemID, String systemType, String nodeID) {
 
 		APIrestful api = new APIrestful();
 		if (api.get("system/" + systemID + "/node/" + nodeID)) {
 			try {
 				NodeInfo nodeInfo = APIrestful.getGson().fromJson(api.getResult(), NodeInfo.class);
 				this.type = CCType.node;
-				this.systemID = systemID;
+				this.parentID = systemID;
+				this.systemType = systemType;
 				this.ID = nodeID;
 				this.name = nodeInfo.name;
 				this.status = nodeInfo.status;
+				this.capacity = nodeInfo.capacity;
 				this.health = nodeInfo.health;
 				this.connections = nodeInfo.connections;
 				this.packets = nodeInfo.packets;

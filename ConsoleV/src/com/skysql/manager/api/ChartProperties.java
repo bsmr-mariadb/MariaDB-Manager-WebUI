@@ -21,8 +21,7 @@ package com.skysql.manager.api;
 import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-
-import javax.xml.bind.DatatypeConverter;
+import java.util.LinkedHashMap;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
@@ -33,15 +32,13 @@ import com.google.gson.JsonParseException;
 import com.skysql.manager.ChartMappings;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.UserChart;
-import com.skysql.manager.ui.ErrorDialog;
 import com.skysql.manager.ui.components.ChartControls;
-import com.sun.xml.bind.DatatypeConverterImpl;
 import com.vaadin.server.VaadinSession;
 
 public class ChartProperties implements Serializable {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	protected ArrayList<ChartMappings> chartMappings;
+	protected LinkedHashMap<String, ArrayList<ChartMappings>> chartsMap;
 	protected int timeSpan;
 	protected String theme;
 	private UserObject userObject;
@@ -50,7 +47,7 @@ public class ChartProperties implements Serializable {
 
 	}
 
-	public ChartProperties(String mappings, String settings) {
+	public ChartProperties(String dummy) {
 
 		userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
 
@@ -64,62 +61,63 @@ public class ChartProperties implements Serializable {
 			theme = ChartControls.DEFAULT_THEME;
 		}
 
-		// First, try to get newer mappings
+		// Try to get mappings from user properties
 		String propertyChartMappings = userObject.getProperty(UserObject.PROPERTY_CHART_MAPPINGS);
-		if (propertyChartMappings == null) {
-
-			// Second, try to get old CHARTS
-			String propertyOldCharts = userObject.getProperty(UserObject.PROPERTY_CHARTS);
-			if (propertyOldCharts != null) {
-				DatatypeConverter.setDatatypeConverter(DatatypeConverterImpl.theInstance);
-				try {
-					chartMappings = (ArrayList<ChartMappings>) ChartMappings.fromString(propertyOldCharts);
-				} catch (Exception e) {
-					e.printStackTrace();
-					new ErrorDialog(e, "Error while trying to convert old charts mappings");
-				}
-				setChartMappings(chartMappings);
-				userObject.deleteProperty(UserObject.PROPERTY_CHARTS);
-				return;
-
-			} else {
-				// TODO: Then, attempt to retrieve new CHART MAPPINGS from ApplicationProperties
-			}
-
-		}
-
 		if (propertyChartMappings != null) {
 			ChartProperties chartProperties = APIrestful.getGson().fromJson(propertyChartMappings, ChartProperties.class);
-			chartMappings = chartProperties.getChartMappings();
+			this.chartsMap = chartProperties.getChartsMap();
 		}
 
-		if (chartMappings == null) {
-
-			// Finally, if not available, create fresh mappings from all available Monitors
-			chartMappings = new ArrayList<ChartMappings>();
-			for (MonitorRecord monitor : Monitors.getMonitorsList(null).values()) {
-				ArrayList<String> monitorsForChart = new ArrayList<String>();
-				monitorsForChart.add(monitor.getID());
-				UserChart userChart = new UserChart(monitor.getName(), monitor.getDescription(), monitor.getUnit(), monitor.getChartType(), 15,
-						monitorsForChart);
-				ChartMappings chartMapping = new ChartMappings(userChart);
-				chartMappings.add(chartMapping);
+		// If not available, create fresh mappings from all available Monitors
+		if (chartsMap == null) {
+			chartsMap = new LinkedHashMap<String, ArrayList<ChartMappings>>();
+			for (String type : SystemTypes.getList().keySet()) {
+				ArrayList<ChartMappings> chartMappings = new ArrayList<ChartMappings>();
+				for (MonitorRecord monitor : Monitors.getMonitorsList(type).values()) {
+					ArrayList<String> monitorsForChart = new ArrayList<String>();
+					monitorsForChart.add(monitor.getID());
+					UserChart userChart = new UserChart(monitor.getName(), monitor.getDescription(), monitor.getUnit(), monitor.getChartType(), 15,
+							monitorsForChart);
+					ChartMappings chartMapping = new ChartMappings(userChart);
+					chartMappings.add(chartMapping);
+				}
+				chartsMap.put(type, chartMappings);
 			}
 		}
 
 	}
 
-	public ArrayList<ChartMappings> getChartMappings() {
-		return chartMappings;
+	protected LinkedHashMap<String, ArrayList<ChartMappings>> getChartsMap() {
+		return chartsMap;
 	}
 
-	public void setChartMappings(ArrayList<ChartMappings> chartMappings) {
-		this.chartMappings = chartMappings;
+	protected void setChartsMap(LinkedHashMap<String, ArrayList<ChartMappings>> chartsMap) {
+		this.chartsMap = chartsMap;
+	}
+
+	public ArrayList<ChartMappings> getChartMappings(String key) {
+		return chartsMap.get(key);
+	}
+
+	public void setChartMappings(String key, ArrayList<ChartMappings> value) {
+		chartsMap.put(key, value);
+		save();
+	}
+
+	// {"chartProperties":[{"systemtype":"aws","mappings":[{...},...]},{"systemid":"1","mappings":[{...},...]}]}
+	public void save() {
 
 		StringBuilder sb = new StringBuilder();
-		sb.append("{\"chartMappings\":[");
-		for (ChartMappings chartMapping : chartMappings) {
-			sb.append(mappingToJSON(chartMapping) + ",");
+		sb.append("{\"chartProperties\":[");
+		for (String type : chartsMap.keySet()) {
+			sb.append("{\"systemtype\":\"" + type + "\",\"mappings\":[");
+			for (ChartMappings chartMapping : chartsMap.get(type)) {
+				sb.append(mappingToJSON(chartMapping) + ",");
+			}
+			if (sb.charAt(sb.length() - 1) == ',') {
+				sb.deleteCharAt(sb.length() - 1);
+			}
+			sb.append("]},");
 		}
 		if (sb.charAt(sb.length() - 1) == ',') {
 			sb.deleteCharAt(sb.length() - 1);
@@ -166,7 +164,14 @@ public class ChartProperties implements Serializable {
 		sb.append(",\"unit\":" + (mapping.getUnit() == null ? "null" : "\"" + mapping.getUnit() + "\""));
 		sb.append(",\"type\":" + (mapping.getType() == null ? "null" : "\"" + mapping.getType() + "\""));
 		sb.append(",\"points\":" + mapping.getPoints());
-		sb.append(",\"monitorIDs\":" + mapping.getMonitorIDs().toString() + "}");
+		sb.append(",\"monitorIDs\":[");
+		for (String monitorID : mapping.getMonitorIDs()) {
+			sb.append("\"" + monitorID + "\",");
+		}
+		if (sb.charAt(sb.length() - 1) == ',') {
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		sb.append("]}");
 
 		return sb.toString();
 	}
@@ -177,42 +182,71 @@ public class ChartProperties implements Serializable {
 	}
 }
 
+/***
+{"chartProperties":[
+{"systemtype":"aws","mappings":[
+	{"name":"Connections","description":"","unit":null,"type":"LineChart","points":15,"monitorIDs":["connections"]},
+	{"name":"Mixed","description":"","unit":"kB/min","type":"LineChart","points":15,"monitorIDs":["traffic","connections"]},
+	{"name":"Availability","description":"","unit":"%","type":"LineChart","points":15,"monitorIDs":["availability"]}
+]},
+{"systemtype":"galera","mappings":[
+	{"name":"Connections","description":"","unit":null,"type":"LineChart","points":15,"monitorIDs":["connections"]},
+    {"name":"Network Traffic","description":"","unit":"kB/min","type":"LineChart","points":15,"monitorIDs":["traffic"]},
+    {"name":"Availability","description":"","unit":"%","type":"LineChart","points":15,"monitorIDs":["availability"]},
+    {"name":"Cluster Size","description":"Number of nodes in the cluster","unit":null,"type":"LineChart","points":15,"monitorIDs":["clustersize"]},
+    {"name":"Replication Paused","description":"Percentage of time for which replication was paused","unit":"%","type":"LineChart","points":15,"monitorIDs":["reppaused"]},
+    {"name":"Parallelism","description":"Average No. of parallel transactions","unit":null,"type":"LineChart","points":15,"monitorIDs":["parallelism"]},
+    {"name":"Avg Receive Queue","description":"Average receive queue length","unit":null,"type":"LineChart","points":15,"monitorIDs":["recvqueue"]},
+    {"name":"Flow Controlled","description":"Flow control messages sent","unit":null,"type":"LineChart","points":15,"monitorIDs":["flowcontrol"]},
+    {"name":"Avg Send Queue","description":"Average length of send queue","unit":null,"type":"LineChart","points":15,"monitorIDs":["sendqueue"]}
+]}]}
+***/
 class ChartPropertiesDeserializer implements JsonDeserializer<ChartProperties> {
 	public ChartProperties deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
 		ChartProperties chartProperties = new ChartProperties();
 
-		JsonElement jsonElement = json.getAsJsonObject().get("chartMappings");
+		JsonElement jsonElement = json.getAsJsonObject().get("chartProperties");
 		if (jsonElement != null && !jsonElement.isJsonNull()) {
 
-			ArrayList<ChartMappings> chartMappings = new ArrayList<ChartMappings>();
+			LinkedHashMap<String, ArrayList<ChartMappings>> chartsMap = new LinkedHashMap<String, ArrayList<ChartMappings>>();
+			chartProperties.setChartsMap(chartsMap);
 
 			JsonArray array = jsonElement.getAsJsonArray();
-			int length = array.size();
+			for (int i = 0; i < array.size(); i++) {
+				JsonObject jsonObject = array.get(i).getAsJsonObject();
 
-			for (int i = 0; i < length; i++) {
-				JsonObject mappingJson = array.get(i).getAsJsonObject();
+				String systemType = (jsonElement = jsonObject.get("systemtype")).isJsonNull() ? null : jsonElement.getAsString();
+				JsonArray mappingJson = jsonObject.get("mappings").getAsJsonArray();
+				int length = mappingJson.size();
 
-				JsonElement element;
-				String name = (element = mappingJson.get("name")).isJsonNull() ? null : element.getAsString();
-				String description = (element = mappingJson.get("description")).isJsonNull() ? null : element.getAsString();
-				String unit = (element = mappingJson.get("unit")).isJsonNull() ? null : element.getAsString();
-				String type = (element = mappingJson.get("type")).isJsonNull() ? null : element.getAsString();
-				int points = (element = mappingJson.get("points")).isJsonNull() ? null : element.getAsInt();
-				element = mappingJson.get("monitorIDs");
-				ArrayList<String> monitorIDs = new ArrayList<String>();
-				if (element != null && !element.isJsonNull()) {
-					JsonArray IDs = element.getAsJsonArray();
-					for (int j = 0; j < IDs.size(); j++) {
-						String id = String.valueOf(IDs.get(j).getAsString());
-						monitorIDs.add(id);
+				ArrayList<ChartMappings> chartsList = new ArrayList<ChartMappings>(length);
+
+				for (int j = 0; j < length; j++) {
+					JsonObject mappingObject = mappingJson.get(j).getAsJsonObject();
+
+					JsonElement element;
+					String name = (element = mappingObject.get("name")).isJsonNull() ? null : element.getAsString();
+					String description = (element = mappingObject.get("description")).isJsonNull() ? null : element.getAsString();
+					String unit = (element = mappingObject.get("unit")).isJsonNull() ? null : element.getAsString();
+					String type = (element = mappingObject.get("type")).isJsonNull() ? null : element.getAsString();
+					int points = (element = mappingObject.get("points")).isJsonNull() ? null : element.getAsInt();
+					element = mappingObject.get("monitorIDs");
+					ArrayList<String> monitorIDs = new ArrayList<String>();
+					if (element != null && !element.isJsonNull()) {
+						JsonArray IDs = element.getAsJsonArray();
+						for (int k = 0; k < IDs.size(); k++) {
+							String id = String.valueOf(IDs.get(k).getAsString());
+							monitorIDs.add(id);
+						}
 					}
+					ChartMappings chartMapping = new ChartMappings(name, description, unit, type, points, monitorIDs);
+					chartsList.add(chartMapping);
 				}
-				ChartMappings chartMapping = new ChartMappings(name, description, unit, type, points, monitorIDs);
-				chartMappings.add(chartMapping);
+
+				chartsMap.put(systemType, chartsList);
 			}
 
-			chartProperties.chartMappings = chartMappings;
 		}
 
 		jsonElement = json.getAsJsonObject().get("chartSettings");

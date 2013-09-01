@@ -36,7 +36,6 @@ import com.skysql.manager.ui.ErrorDialog;
 
 public class UserObject {
 
-	public static final String PROPERTY_CHARTS = "com.skysql.manager.charts";
 	public static final String PROPERTY_CHART_MAPPINGS = "com.skysql.manager.chart.mappings";
 	public static final String PROPERTY_CHART_SETTINGS = "com.skysql.manager.chart.settings";
 
@@ -151,13 +150,9 @@ public class UserObject {
 				}
 				this.userID = userID;
 				this.name = login.name;
+				this.properties = login.properties;
+				return true;
 
-				api = new APIrestful();
-				if (api.get("user/" + userID)) {
-					UserObject user = APIrestful.getGson().fromJson(api.getResult(), UserObject.class);
-					this.properties = user.properties;
-					return true;
-				}
 			} catch (NullPointerException e) {
 				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
 				throw new RuntimeException("API response");

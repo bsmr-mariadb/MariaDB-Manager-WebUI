@@ -20,6 +20,7 @@ package com.skysql.manager;
 
 public class MonitorRecord {
 
+	private String systemType;
 	private String ID;
 	private String name;
 	private String description;
@@ -30,6 +31,14 @@ public class MonitorRecord {
 	private String chartType;
 	private int interval;
 	private String sql;
+
+	public String getSystemType() {
+		return systemType;
+	}
+
+	public void setSystemType(String systemType) {
+		this.systemType = systemType;
+	}
 
 	public String getID() {
 		return ID;
@@ -115,8 +124,9 @@ public class MonitorRecord {
 
 	}
 
-	public MonitorRecord(String ID, String name, String description, String unit, String type, boolean delta, boolean average, String chartType, int interval,
-			String sql) {
+	public MonitorRecord(String systemType, String ID, String name, String description, String unit, String type, boolean delta, boolean average,
+			String chartType, int interval, String sql) {
+		this.systemType = systemType;
 		this.ID = ID;
 		this.name = name;
 		this.description = description;

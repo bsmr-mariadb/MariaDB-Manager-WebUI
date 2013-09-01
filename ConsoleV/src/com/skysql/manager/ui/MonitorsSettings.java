@@ -36,7 +36,6 @@ import com.vaadin.data.Validator.EmptyValueException;
 import com.vaadin.event.LayoutEvents.LayoutClickEvent;
 import com.vaadin.event.LayoutEvents.LayoutClickListener;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -71,7 +70,9 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 	private Label name = new Label(), description = new Label(), unit = new Label(), delta = new Label(), average = new Label(), chartType = new Label(),
 			interval = new Label(), sql = new Label();
 
-	MonitorsSettings() {
+	MonitorsSettings(String systemID, String systemType) {
+		this.systemID = systemID;
+		this.systemType = systemType;
 
 		addStyleName("monitorsTab");
 		setSizeFull();
@@ -83,11 +84,7 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 		selectLayout.setSizeFull();
 		selectLayout.setSpacing(true);
 
-		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
-		systemID = systemInfo.getCurrentID();
-		systemType = systemInfo.getCurrentSystem().getSystemType();
-
-		Monitors.reloadMonitors(systemType);
+		Monitors.reloadMonitors();
 		monitorsAll = Monitors.getMonitorsList(systemType);
 
 		select = new ListSelect("Monitors");
@@ -285,7 +282,6 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 			public void buttonClick(ClickEvent event) {
 				if (Monitors.deleteMonitor(monitor)) {
 					select.removeItem(monitor.getID());
-					Monitors.reloadMonitors(systemType);
 					monitorsAll = Monitors.getMonitorsList(systemType);
 					displayMonitorRecord(null);
 					secondaryDialog.close();
@@ -470,7 +466,7 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 						if (monitorID != null) {
 							select.addItem(monitorID);
 							select.select(monitorID);
-							Monitors.reloadMonitors(systemType);
+							Monitors.reloadMonitors();
 							monitorsAll = Monitors.getMonitorsList(systemType);
 						}
 					} else {

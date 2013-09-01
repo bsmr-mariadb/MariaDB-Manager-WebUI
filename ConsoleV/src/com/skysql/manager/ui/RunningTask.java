@@ -162,7 +162,7 @@ public final class RunningTask {
 
 			selectPrevBackup = new ListSelect("Backups");
 			selectPrevBackup.setImmediate(true);
-			final Backups backups = new Backups(nodeInfo.getSystemID(), null);
+			final Backups backups = new Backups(nodeInfo.getParentID(), null);
 			final LinkedHashMap<String, BackupRecord> backupsList = backups.getBackupsForNode(nodeInfo.getID());
 			if (backupsList != null && backupsList.size() > 0) {
 				Collection<BackupRecord> set = backupsList.values();
@@ -463,7 +463,7 @@ public final class RunningTask {
 		UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
 		String userID = userObject.getUserID();
 
-		TaskRun taskRun = new TaskRun(nodeInfo.getSystemID(), nodeInfo.getID(), userID, command, params);
+		TaskRun taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, command, params);
 		nodeInfo.setTask(taskRun.getTask());
 
 		activateTimer();

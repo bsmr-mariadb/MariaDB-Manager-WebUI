@@ -21,29 +21,22 @@ package com.skysql.manager;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 
-public class SystemRecord extends ClusterComponent {
+import org.json.JSONException;
+import org.json.JSONObject;
 
-	public static String[] systemTypes() {
-		String[] array = { "aws", "galera" };
-		return array;
-	}
+import com.skysql.manager.api.APIrestful;
+import com.skysql.manager.api.WriteResponse;
+import com.skysql.manager.ui.ErrorDialog;
+
+public class SystemRecord extends ClusterComponent {
 
 	private static final String NOT_AVAILABLE = "n/a";
 
-	private String systemType;
 	private String startDate;
 	private String lastAccess;
 	private String[] nodes;
 	private LinkedHashMap<String, String> properties;
 	private String lastBackup;
-
-	public String getSystemType() {
-		return systemType;
-	}
-
-	public void setSystemType(String systemType) {
-		this.systemType = systemType;
-	}
 
 	public String getStartDate() {
 		return startDate;
@@ -65,7 +58,7 @@ public class SystemRecord extends ClusterComponent {
 		return nodes;
 	}
 
-	protected void setNodes(String[] nodes) {
+	public void setNodes(String[] nodes) {
 		this.nodes = nodes;
 	}
 
@@ -85,13 +78,15 @@ public class SystemRecord extends ClusterComponent {
 		this.lastBackup = lastBackup;
 	}
 
-	public SystemRecord() {
+	public SystemRecord(String parentID) {
 		this.type = ClusterComponent.CCType.system;
+		this.parentID = parentID;
 	}
 
-	public SystemRecord(String ID, String systemType, String name, String health, String connections, String packets, String startDate, String lastAccess,
-			String[] nodes, String lastBackup, LinkedHashMap<String, String> properties) {
+	public SystemRecord(String parentID, String ID, String systemType, String name, String health, String connections, String packets, String startDate,
+			String lastAccess, String[] nodes, String lastBackup, LinkedHashMap<String, String> properties) {
 		this.type = ClusterComponent.CCType.system;
+		this.parentID = parentID;
 		this.ID = ID;
 		this.systemType = systemType;
 		this.name = name;
@@ -107,11 +102,47 @@ public class SystemRecord extends ClusterComponent {
 
 	public String ToolTip() {
 
-		return "<h2>System</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Type:</b> " + this.systemType + "</li>" + "<li><b>Name:</b> "
-				+ this.name + "</li>" + "<li><b>Nodes:</b> " + ((this.nodes == null) ? NOT_AVAILABLE : Arrays.toString(this.nodes)) + "</li>"
-				+ "<li><b>Start Date:</b> " + ((this.startDate == null) ? NOT_AVAILABLE : this.startDate) + "</li>" + "<li><b>Last Access:</b> "
+		return "<h2>System - (Double-click to open)</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Type:</b> " + this.systemType + "</li>"
+				+ "<li><b>Name:</b> " + this.name + "</li>" + "<li><b>Nodes:</b> " + ((this.nodes == null) ? NOT_AVAILABLE : Arrays.toString(this.nodes))
+				+ "</li>" + "<li><b>Start Date:</b> " + ((this.startDate == null) ? NOT_AVAILABLE : this.startDate) + "</li>" + "<li><b>Last Access:</b> "
 				+ ((this.lastAccess == null) ? NOT_AVAILABLE : this.lastAccess) + "</li>" + "<li><b>Last Backup:</b> "
 				+ ((this.lastBackup == null) ? NOT_AVAILABLE : this.lastBackup) + "</li>" + "</ul>";
+	}
+
+	public boolean save() {
+
+		try {
+			APIrestful api = new APIrestful();
+			JSONObject jsonParam = new JSONObject();
+			jsonParam.put("name", name);
+			jsonParam.put("systemtype", systemType);
+
+			if (api.put("system/" + ID, jsonParam.toString())) {
+				WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
+				if (writeResponse != null && (!writeResponse.getInsertKey().isEmpty() || writeResponse.getUpdateCount() > 0)) {
+					return true;
+				}
+			}
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+			new ErrorDialog(e, "JSON error encoding API request");
+		}
+
+		return false;
+
+	}
+
+	public boolean delete() {
+
+		APIrestful api = new APIrestful();
+		if (api.delete("system/" + ID)) {
+			WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
+			if (writeResponse != null && writeResponse.getDeleteCount() > 0) {
+				return true;
+			}
+		}
+		return false;
 
 	}
 

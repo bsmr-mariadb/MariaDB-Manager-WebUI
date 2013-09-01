@@ -32,49 +32,45 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.ui.ErrorDialog;
-import com.vaadin.server.VaadinSession;
 
 public class Monitors {
 
 	//public static final String MONITOR_CAPACITY = "5";
 
-	private static LinkedHashMap<String, MonitorRecord> monitorsList;
+	private static LinkedHashMap<String, LinkedHashMap<String, MonitorRecord>> monitorsMap;
+	private static LinkedHashMap<String, MonitorRecord> currentList;
+
+	public static LinkedHashMap<String, MonitorRecord> getMonitorsList() {
+		return currentList;
+	}
 
 	public static LinkedHashMap<String, MonitorRecord> getMonitorsList(String systemType) {
-		if (monitorsList == null) {
-			reloadMonitors(systemType);
+		if (monitorsMap == null) {
+			reloadMonitors();
 		}
-		return monitorsList;
+		currentList = monitorsMap.get(systemType);
+		return currentList;
 	}
 
 	public static MonitorRecord getMonitor(String ID) {
-		if (monitorsList == null) {
-			reloadMonitors(null);
-		}
+		return (currentList != null ? currentList.get(ID) : null);
+	}
 
-		if (monitorsList != null) {
-			return monitorsList.get(ID);
-		} else {
-			return null;
-		}
+	protected void setMonitorsMap(LinkedHashMap<String, LinkedHashMap<String, MonitorRecord>> monitorsMap) {
+		Monitors.monitorsMap = monitorsMap;
 	}
 
 	public Monitors() {
 
 	}
 
-	public synchronized static void reloadMonitors(String systemType) {
-
-		if (systemType == null) {
-			SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
-			systemType = systemInfo.getCurrentSystem().getSystemType();
-		}
+	public synchronized static void reloadMonitors() {
 
 		APIrestful api = new APIrestful();
-		if (api.get("monitorclass/" + systemType)) {
+		if (api.get("monitorclass")) {
 			try {
 				Monitors monitors = APIrestful.getGson().fromJson(api.getResult(), Monitors.class);
-				Monitors.monitorsList = monitors.monitorsList;
+				Monitors.monitorsMap = monitors.monitorsMap;
 			} catch (NullPointerException e) {
 				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
 				throw new RuntimeException("API response");
@@ -137,7 +133,7 @@ public class Monitors {
 		if (writeResponse != null && !writeResponse.getInsertKey().isEmpty()) {
 			String monitorID = writeResponse.getInsertKey();
 			monitor.setID(monitorID);
-			monitorsList.put(monitorID, monitor);
+			currentList.put(monitorID, monitor);
 			return monitorID;
 		} else if (writeResponse != null && writeResponse.getUpdateCount() > 0) {
 			return monitor.getID();
@@ -153,23 +149,19 @@ public class Monitors {
 		if (api.delete("monitorclass/" + monitor.getID())) {
 			WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
 			if (writeResponse != null && writeResponse.getDeleteCount() > 0) {
-				monitorsList.remove(monitor.getID());
+				currentList.remove(monitor.getID());
 				return true;
 			}
 		}
 		return false;
 	}
 
-	protected void setMonitorsList(LinkedHashMap<String, MonitorRecord> monitorsList) {
-		Monitors.monitorsList = monitorsList;
-	}
-
 }
 
-/*
+/***
 // {"monitorclasses":[
-	//{"systemtype":"aws","monitor":"connections","name":"Connections","sql":"select variable_value from global_status where variable_name = \"THREADS_CONNECTED\";","description":"","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"0","interval":"30","unit":null,"monitorid":"1"},
-	//{"systemtype":"aws","monitor":"traffic","name":"Network Traffic","sql":"select round(sum(variable_value) \/ 1024) from global_status where variable_name in (\"BYTES_RECEIVED\", \"BYTES_SENT\");","description":"","charttype":"LineChart","delta":"1","monitortype":"SQL","systemaverage":"0","interval":"30","unit":"kB\/min","monitorid":"2"},
+{"systemtype":"aws","monitor":"connections","name":"Connections","sql":"select variable_value from global_status where variable_name = \"THREADS_CONNECTED\";","description":"","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"0","interval":"30","unit":null,"monitorid":"1"},
+{"systemtype":"aws","monitor":"traffic","name":"Network Traffic","sql":"select round(sum(variable_value) \/ 1024) from global_status where variable_name in (\"BYTES_RECEIVED\", \"BYTES_SENT\");","description":"","charttype":"LineChart","delta":"1","monitortype":"SQL","systemaverage":"0","interval":"30","unit":"kB\/min","monitorid":"2"},
 {"systemtype":"aws","monitor":"availability","name":"Availability","sql":"select 100;","description":"","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":"%","monitorid":"3"},
 {"systemtype":"aws","monitor":"nodestate","name":"Node State","sql":"crm status bynode","description":"","charttype":null,"delta":"0","monitortype":"CRM","systemaverage":"0","interval":"30","unit":null,"monitorid":"4"},
 {"systemtype":"aws","monitor":"capacity","name":"Capacity","sql":"select round(((select variable_value from global_status where variable_name = \"THREADS_CONNECTED\") * 100) \/ variable_value) from global_variables where variable_name = \"MAX_CONNECTIONS\";","description":"","charttype":null,"delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":"%","monitorid":"5"},
@@ -186,43 +178,59 @@ public class Monitors {
 {"systemtype":"galera","monitor":"recvqueue","name":"Avg Receive Queue","sql":"select variable_value from global_status where variable_name = \"WSREP_LOCAL_RECV_QUEUE_AVG\";","description":"Average receive queue length","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":null,"monitorid":"16"},
 {"systemtype":"galera","monitor":"flowcontrol","name":"Flow Controlled","sql":"select variable_value from global_status where variable_name = \"WSREP_FLOW_CONTROL_SENT\";","description":"Flow control messages sent","charttype":"LineChart","delta":"1","monitortype":"SQL","systemaverage":"0","interval":"30","unit":null,"monitorid":"17"},
 {"systemtype":"galera","monitor":"sendqueue","name":"Avg Send Queue","sql":"select variable_value from global_status where variable_name = \"WSREP_LOCAL_SEND_QUEUE_AVG\";","description":"Average length of send queue","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":null,"monitorid":"18"}],
-"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
-*/
+
+// {"monitorclass":[
+{"systemtype":"aws","monitor":"connections","name":"Connections","sql":"select variable_value from global_status where variable_name = \"THREADS_CONNECTED\";","description":"","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"0","interval":"30","unit":null,"monitorid":"1"},
+{"systemtype":"aws","monitor":"traffic","name":"Network Traffic","sql":"select round(sum(variable_value) \/ 1024) from global_status where variable_name in (\"BYTES_RECEIVED\", \"BYTES_SENT\");","description":"","charttype":"LineChart","delta":"1","monitortype":"SQL","systemaverage":"0","interval":"30","unit":"kB\/min","monitorid":"2"},
+{"systemtype":"aws","monitor":"availability","name":"Availability","sql":"select 100;","description":"","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":"%","monitorid":"3"},
+{"systemtype":"aws","monitor":"nodestate","name":"Node State","sql":"crm status bynode","description":"","charttype":null,"delta":"0","monitortype":"CRM","systemaverage":"0","interval":"30","unit":null,"monitorid":"4"},
+{"systemtype":"aws","monitor":"capacity","name":"Capacity","sql":"select round(((select variable_value from global_status where variable_name = \"THREADS_CONNECTED\") * 100) \/ variable_value) from global_variables where variable_name = \"MAX_CONNECTIONS\";","description":"","charttype":null,"delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":"%","monitorid":"5"},
+{"systemtype":"aws","monitor":"hoststate","name":"Host State","sql":"","description":"","charttype":null,"delta":"0","monitortype":"PING","systemaverage":"0","interval":"30","unit":null,"monitorid":"6"}]
+***/
 
 class MonitorsDeserializer implements JsonDeserializer<Monitors> {
 	public Monitors deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		Monitors monitors = new Monitors();
 
-		JsonElement jsonElement = json.getAsJsonObject().get("monitorclass");
-		if (jsonElement.isJsonNull()) {
-			monitors.setMonitorsList(null);
+		JsonArray array = null;
+
+		int length = 0;
+		if (json.getAsJsonObject().has("monitorclasses")) {
+			array = json.getAsJsonObject().get("monitorclasses").getAsJsonArray();
+		} else if (json.getAsJsonObject().has("monitorclass")) {
+			array = json.getAsJsonObject().get("monitorclass").getAsJsonArray();
 		} else {
-			JsonArray array = jsonElement.getAsJsonArray();
-			int length = array.size();
+			monitors.setMonitorsMap(null);
+			return monitors;
+		}
 
-			LinkedHashMap<String, MonitorRecord> monitorsList = new LinkedHashMap<String, MonitorRecord>(length);
-			for (int i = 0; i < length; i++) {
-				JsonObject jsonObject = array.get(i).getAsJsonObject();
-				JsonElement element;
-				String id = (element = jsonObject.get("monitor")).isJsonNull() ? null : element.getAsString();
-				String name = (element = jsonObject.get("name")).isJsonNull() ? null : element.getAsString();
-				String description = (element = jsonObject.get("description")).isJsonNull() ? null : element.getAsString();
-				String unit = (element = jsonObject.get("unit")).isJsonNull() ? null : element.getAsString();
-				String type = (element = jsonObject.get("monitortype")).isJsonNull() ? null : element.getAsString();
-				boolean delta = (element = jsonObject.get("delta")).isJsonNull() ? false : element.getAsBoolean();
-				boolean average = (element = jsonObject.get("systemaverage")).isJsonNull() ? false : element.getAsBoolean();
-				String chartType = (element = jsonObject.get("charttype")).isJsonNull() ? null : element.getAsString();
-				String intervalString = (element = jsonObject.get("interval")).isJsonNull() ? null : element.getAsString();
-				int interval = (intervalString != null && !intervalString.isEmpty()) ? Integer.valueOf(intervalString) : 0;
-				String sql = (element = jsonObject.get("sql")).isJsonNull() ? null : element.getAsString();
-				if (type.equals("SQL") && chartType != null) {
-					// take only SQL monitors with chartType != null
-					MonitorRecord monitorRecord = new MonitorRecord(id, name, description, unit, type, delta, average, chartType, interval, sql);
-					monitorsList.put(id, monitorRecord);
-				}
+		LinkedHashMap<String, LinkedHashMap<String, MonitorRecord>> monitorsMap = new LinkedHashMap<String, LinkedHashMap<String, MonitorRecord>>();
+		monitors.setMonitorsMap(monitorsMap);
+		for (String type : SystemTypes.getList().keySet()) {
+			monitorsMap.put(type, new LinkedHashMap<String, MonitorRecord>());
+		}
+
+		length = array.size();
+		for (int i = 0; i < length; i++) {
+			JsonObject jsonObject = array.get(i).getAsJsonObject();
+			JsonElement element;
+			String systemType = (element = jsonObject.get("systemtype")).isJsonNull() ? null : element.getAsString();
+			String id = (element = jsonObject.get("monitor")).isJsonNull() ? null : element.getAsString();
+			String name = (element = jsonObject.get("name")).isJsonNull() ? null : element.getAsString();
+			String description = (element = jsonObject.get("description")).isJsonNull() ? null : element.getAsString();
+			String unit = (element = jsonObject.get("unit")).isJsonNull() ? null : element.getAsString();
+			String type = (element = jsonObject.get("monitortype")).isJsonNull() ? null : element.getAsString();
+			boolean delta = (element = jsonObject.get("delta")).isJsonNull() ? false : element.getAsBoolean();
+			boolean average = (element = jsonObject.get("systemaverage")).isJsonNull() ? false : element.getAsBoolean();
+			String chartType = (element = jsonObject.get("charttype")).isJsonNull() ? null : element.getAsString();
+			String intervalString = (element = jsonObject.get("interval")).isJsonNull() ? null : element.getAsString();
+			int interval = (intervalString != null && !intervalString.isEmpty()) ? Integer.valueOf(intervalString) : 0;
+			String sql = (element = jsonObject.get("sql")).isJsonNull() ? null : element.getAsString();
+			if (type.equals("SQL") && chartType != null) {
+				// take only SQL monitors with chartType != null
+				MonitorRecord monitorRecord = new MonitorRecord(systemType, id, name, description, unit, type, delta, average, chartType, interval, sql);
+				monitorsMap.get(systemType).put(id, monitorRecord);
 			}
-			monitors.setMonitorsList(monitorsList);
-
 		}
 
 		return monitors;

@@ -28,12 +28,15 @@ public class ClusterComponent {
 
 	protected String ID;
 	protected String name;
-	protected ComponentButton button;
 	protected CCType type;
+	protected String parentID;
+	protected String systemType;
 	protected String status;
+	protected String capacity;
 	protected String health;
 	protected String connections;
 	protected String packets;
+	protected ComponentButton button;
 
 	public String getID() {
 		return ID;
@@ -51,14 +54,6 @@ public class ClusterComponent {
 		this.name = name;
 	}
 
-	public ComponentButton getButton() {
-		return button;
-	}
-
-	public void setButton(ComponentButton button) {
-		this.button = button;
-	}
-
 	public CCType getType() {
 		return type;
 	}
@@ -67,12 +62,36 @@ public class ClusterComponent {
 		this.type = type;
 	}
 
+	public String getParentID() {
+		return parentID;
+	}
+
+	public void setParentID(String parentID) {
+		this.parentID = parentID;
+	}
+
+	public String getSystemType() {
+		return systemType;
+	}
+
+	public void setSystemType(String systemType) {
+		this.systemType = systemType;
+	}
+
 	public String getStatus() {
 		return status;
 	}
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public String getCapacity() {
+		return capacity;
+	}
+
+	public void setCapacity(String capacity) {
+		this.capacity = capacity;
 	}
 
 	public String getHealth() {
@@ -97,6 +116,14 @@ public class ClusterComponent {
 
 	public void setPackets(String packets) {
 		this.packets = packets;
+	}
+
+	public ComponentButton getButton() {
+		return button;
+	}
+
+	public void setButton(ComponentButton button) {
+		this.button = button;
 	}
 
 }

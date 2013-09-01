@@ -73,8 +73,8 @@ public class NodeDialog implements Window.CloseListener {
 
 		if (nodeInfo == null) {
 			SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
-			this.nodeInfo = new NodeInfo(systemInfo.getCurrentID());
-			nodeForm = new NodeForm(this.nodeInfo, "Add a Node to the System");
+			this.nodeInfo = new NodeInfo(systemInfo.getCurrentID(), systemInfo.getCurrentSystem().getSystemType());
+			nodeForm = new NodeForm(this.nodeInfo, "Add a Node to the System: " + systemInfo.getCurrentSystem().getName());
 			saveNode("Add Node");
 		} else {
 			this.nodeInfo = nodeInfo;
@@ -106,7 +106,7 @@ public class NodeDialog implements Window.CloseListener {
 
 			public void buttonClick(ClickEvent event) {
 				if (nodeForm.validateNode()) {
-					if (nodeInfo.saveNode()) {
+					if (nodeInfo.save()) {
 						if (button != null) {
 							button.setName(nodeInfo.getName());
 							button.setDescription(nodeInfo.ToolTip());

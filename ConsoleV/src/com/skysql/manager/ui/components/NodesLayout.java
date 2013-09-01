@@ -19,12 +19,15 @@
 package com.skysql.manager.ui.components;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import com.skysql.manager.ClusterComponent;
+import com.skysql.manager.ClusterComponent.CCType;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.NodeInfo;
-import com.skysql.manager.ui.NodeDialog;
+import com.skysql.manager.api.SystemInfo;
+import com.skysql.manager.ui.ComponentDialog;
 import com.skysql.manager.ui.OverviewPanel;
 import com.vaadin.event.LayoutEvents.LayoutClickEvent;
 import com.vaadin.event.LayoutEvents.LayoutClickListener;
@@ -32,12 +35,17 @@ import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
 
 @SuppressWarnings("serial")
 public class NodesLayout extends HorizontalLayout {
 
 	private boolean isEditable;
 	private ArrayList<ComponentButton> buttons = new ArrayList<ComponentButton>();
+	private String[] components;
+	private String systemID;
+	private VerticalLayout placeholderLayout;
 
 	public NodesLayout(SystemRecord systemRecord) {
 
@@ -48,18 +56,32 @@ public class NodesLayout extends HorizontalLayout {
 			public void layoutClick(LayoutClickEvent event) {
 
 				Component child;
+				VaadinSession session = getSession();
+				boolean isDoubleClick = event.isDoubleClick();
+				ManagerUI.log("is DoubleClick: " + isDoubleClick);
 				if (event.isDoubleClick() && (child = event.getChildComponent()) != null && (child instanceof ComponentButton)) {
 					// Get the child component which was double-clicked
 					ComponentButton button = (ComponentButton) child;
-					NodeInfo nodeInfo = (NodeInfo) button.getData();
+					ClusterComponent clusterComponent = (ClusterComponent) button.getData();
 					if (isEditable) {
-						new NodeDialog(nodeInfo, null);
+						new ComponentDialog(clusterComponent, button);
+					} else {
+						if (clusterComponent.getType() == ClusterComponent.CCType.system) {
+							SystemInfo systemInfo = session.getAttribute(SystemInfo.class);
+							String clusterID = clusterComponent.getID();
+							systemInfo.setCurrentSystem(clusterID);
+							session.setAttribute(SystemInfo.class, systemInfo);
+							ManagerUI.log("new systemID: " + clusterID);
+							clusterComponent.setButton(button);
+							OverviewPanel overviewPanel = session.getAttribute(OverviewPanel.class);
+							overviewPanel.refresh();
+						}
 					}
 
 				} else if (!isEditable && (child = event.getChildComponent()) != null && (child instanceof ComponentButton)) {
 					// Get the child component which was clicked
 					ComponentButton button = (ComponentButton) child;
-					OverviewPanel overviewPanel = getSession().getAttribute(OverviewPanel.class);
+					OverviewPanel overviewPanel = session.getAttribute(OverviewPanel.class);
 					overviewPanel.clickLayout(button);
 				}
 
@@ -68,16 +90,34 @@ public class NodesLayout extends HorizontalLayout {
 
 	}
 
-	public ArrayList<ComponentButton> getButtons() {
-		return buttons;
+	public ComponentButton getButton(int index) {
+		if (!buttons.isEmpty() && index < buttons.size()) {
+			return buttons.get(index);
+		} else {
+			return null;
+		}
 	}
 
 	public ArrayList<NodeInfo> getNodes() {
 		ArrayList<NodeInfo> nodes = new ArrayList<NodeInfo>(buttons.size());
 		for (ComponentButton button : buttons) {
-			nodes.add((NodeInfo) button.getData());
+			ClusterComponent clusterComponent = (ClusterComponent) button.getData();
+			if (clusterComponent.getType() == ClusterComponent.CCType.node) {
+				nodes.add((NodeInfo) clusterComponent);
+			}
 		}
 		return nodes;
+	}
+
+	public ComponentButton findButton(ClusterComponent component) {
+		for (ComponentButton button : buttons) {
+			ClusterComponent oldComponent = (ClusterComponent) button.getData();
+			if (oldComponent.getID().equals(component.getID()) && (oldComponent.getType().equals(component.getType()))) {
+				button.setData(component);
+				return button;
+			}
+		}
+		return null;
 	}
 
 	public void deleteComponent(ComponentButton button) {
@@ -85,7 +125,7 @@ public class NodesLayout extends HorizontalLayout {
 		removeComponent(button);
 		OverviewPanel overviewPanel = getSession().getAttribute(OverviewPanel.class);
 		if (button.isSelected()) {
-			overviewPanel.clickLayout(0);
+			overviewPanel.clickComponentButton(0);
 		}
 		overviewPanel.refresh();
 	}
@@ -97,14 +137,76 @@ public class NodesLayout extends HorizontalLayout {
 		}
 	}
 
-	public synchronized void refresh(final OverviewPanel.UpdaterThread updaterThread, final SystemRecord systemRecord) {
-		boolean refresh = false;
+	public void placeholderLayout() {
+
+		if (placeholderLayout == null) {
+
+			removeAllComponents();
+			components = null;
+
+			placeholderLayout = new VerticalLayout();
+			placeholderLayout.addStyleName("placeholderLayout");
+			placeholderLayout.setHeight(ComponentButton.COMPONENT_HEIGHT);
+
+			Label placeholderLabel = new Label("No components available");
+			placeholderLabel.addStyleName("instructions");
+			placeholderLabel.setSizeUndefined();
+			placeholderLayout.addComponent(placeholderLabel);
+			placeholderLayout.setComponentAlignment(placeholderLabel, Alignment.MIDDLE_CENTER);
+
+			/***
+			Label placeholderLabel2 = new Label(isEditable ? "Press \"Add...\" to add a new component" : "Press \"Edit\" to begin adding");
+			placeholderLabel2.addStyleName("instructions");
+			placeholderLabel2.setSizeUndefined();
+			placeholderLayout.addComponent(placeholderLabel2);
+			placeholderLayout.setComponentAlignment(placeholderLabel2, Alignment.MIDDLE_CENTER);
+			***/
+
+			addComponent(placeholderLayout);
+			setComponentAlignment(placeholderLayout, Alignment.MIDDLE_CENTER);
+
+			setStyleName(getStyleName().replace("network", ""));
+		}
+
+	}
+
+	public synchronized void refresh(final OverviewPanel.UpdaterThread updaterThread, final SystemRecord parentSystemRecord) {
 
 		VaadinSession session = getSession();
 		ManagerUI managerUI = session.getAttribute(ManagerUI.class);
+		SystemInfo systemInfo = session.getAttribute(SystemInfo.class);
+		OverviewPanel overviewPanel = session.getAttribute(OverviewPanel.class);
 
-		if (systemRecord != null) {
-			refresh = true;
+		if (parentSystemRecord == null) {
+			systemID = null;
+			placeholderLayout();
+			return;
+		} else if (parentSystemRecord.getNodes().length == 0) {
+			placeholderLayout();
+			return;
+		} else {
+			if (placeholderLayout != null) {
+				removeComponent(placeholderLayout);
+				placeholderLayout = null;
+
+				addStyleName("network");
+			}
+		}
+
+		String[] newComponents = parentSystemRecord.getNodes();
+		if (!parentSystemRecord.getID().equals(systemID) || (newComponents != null && !Arrays.equals(newComponents, components))) {
+			systemID = parentSystemRecord.getID();
+			components = newComponents;
+
+			ManagerUI.log("Reload Components");
+
+			String currentSelectedID = null;
+			CCType currentSelectedType = null;
+			ClusterComponent currentClusterComponent = session.getAttribute(ClusterComponent.class);
+			if (currentClusterComponent != null) {
+				currentSelectedID = currentClusterComponent.getID();
+				currentSelectedType = currentClusterComponent.getType();
+			}
 
 			session.lock();
 			try {
@@ -113,29 +215,48 @@ public class NodesLayout extends HorizontalLayout {
 				ManagerUI.log("NodesLayout access run() removeall");
 				removeAllComponents();
 
-				buttons = new ArrayList<ComponentButton>();
-				for (String nodeID : systemRecord.getNodes()) {
-					final NodeInfo nodeInfo = new NodeInfo(systemRecord.getID());
-					nodeInfo.setID(nodeID);
+				ArrayList<ComponentButton> newButtons = new ArrayList<ComponentButton>();
+				for (String componentID : parentSystemRecord.getNodes()) {
+
+					final ClusterComponent clusterComponent;
+					if (parentSystemRecord.getParentID() == null) {
+						// this is the ROOT record, where "nodes" is really the flat list of systems
+						clusterComponent = systemInfo.getSystemRecord(componentID);
+					} else {
+						// this is a normal System record
+						clusterComponent = new NodeInfo(parentSystemRecord.getID(), parentSystemRecord.getSystemType());
+						clusterComponent.setID(componentID);
+					}
 
 					if (updaterThread.flagged) {
 						ManagerUI.log("NodesLayout - flagged is set while adding nodes");
 						return;
 					}
 
-					ManagerUI.log("NodesLayout access run() adding nodes");
-
-					ComponentButton button = new ComponentButton(nodeInfo, null);
+					ComponentButton button = clusterComponent.getButton();
+					if (button == null) {
+						ManagerUI.log("NodesLayout access run() button not in component");
+						button = findButton(clusterComponent);
+					}
+					if (button == null) {
+						ManagerUI.log("NodesLayout access run() button not found");
+						button = new ComponentButton(clusterComponent);
+					}
 					addComponent(button);
-					button.setEditable(isEditable);
 					setComponentAlignment(button, Alignment.MIDDLE_CENTER);
-					buttons.add(button);
+					button.setEditable(isEditable);
+					if (clusterComponent.getID().equals(currentSelectedID) && clusterComponent.getType().equals(currentSelectedType) && !button.isSelected()) {
+						overviewPanel.clickLayout(button);
+					}
+					newButtons.add(button);
 				}
+				buttons = newButtons;
 			} finally {
 				session.unlock();
 			}
 
 		}
+
 		if (updaterThread.flagged) {
 			ManagerUI.log("NodesLayout - flagged is set after removeall");
 			return;
@@ -143,12 +264,24 @@ public class NodesLayout extends HorizontalLayout {
 
 		ManagerUI.log("NodesLayout - before for loop - buttons: " + buttons.size());
 
-		final boolean finalRefresh = refresh;
-
 		for (final ComponentButton button : buttons) {
-			final NodeInfo nodeInfo = (NodeInfo) button.getData();
-			final NodeInfo newInfo = new NodeInfo(nodeInfo.getSystemID(), nodeInfo.getID());
-			newInfo.setButton(button);
+			final ClusterComponent currentComponent = (ClusterComponent) button.getData();
+
+			final ClusterComponent newComponent;
+
+			switch (currentComponent.getType()) {
+			case system:
+				newComponent = systemInfo.updateSystem(currentComponent.getID());
+				break;
+
+			case node:
+				NodeInfo nodeInfo = (NodeInfo) currentComponent;
+				newComponent = new NodeInfo(nodeInfo.getParentID(), nodeInfo.getSystemType(), nodeInfo.getID());
+				break;
+
+			default:
+				continue;
+			}
 
 			// fetch current capacity from monitor
 			/***  disabled until we figure out availability of MONITOR_CAPACITY
@@ -170,41 +303,43 @@ public class NodesLayout extends HorizontalLayout {
 				public void run() {
 					// Here the UI is locked and can be updated
 
-					ManagerUI.log("NodesLayout access run() button " + newInfo.getName());
+					ManagerUI.log("NodesLayout access run() button " + newComponent.getName());
 
-					boolean refresh = finalRefresh;
-
-					String newName;
-					if ((newName = newInfo.getName()) != null && !newName.equals(nodeInfo.getName())) {
-						refresh = true;
+					String newName = newComponent.getName();
+					if (newName != null && !newName.equals(currentComponent.getName())) {
 						button.setName(newName);
 					}
 
-					String newStatus = newInfo.getStatus();
-					String newCapacity = newInfo.getCapacity();
-					if ((newStatus != null && !newStatus.equals(nodeInfo.getStatus()))
-							|| ((newStatus != null) && newCapacity != null && !newCapacity.equals(nodeInfo.getCapacity()))) {
-						refresh = true;
+					String newStatus = newComponent.getStatus();
 
-						button.setIcon(nodeInfo.getType().toString(), newStatus, newCapacity);
+					String newCapacity = newComponent.getCapacity();
+					if ((newStatus != null && (!newStatus.equals(currentComponent.getStatus())) || (newCapacity != null && !newCapacity.equals(currentComponent
+							.getCapacity())))) {
+
+						button.setIcon(currentComponent.getType().toString(), newStatus, newCapacity);
 					}
 
-					String newTask = newInfo.getTask();
-					String oldTask = nodeInfo.getTask();
-					if (((newTask == null) && (oldTask != null)) || (newTask != null) && ((oldTask == null) || (!newTask.equals(oldTask)))) {
-						refresh = true;
-					}
-
-					if (refresh) {
-						newInfo.setButton(button);
+					String toolTip = null;
+					switch (newComponent.getType()) {
+					case system:
+						toolTip = ((SystemRecord) newComponent).ToolTip();
+						break;
+					case node:
+						NodeInfo nodeInfo = (NodeInfo) newComponent;
+						toolTip = nodeInfo.ToolTip();
 						// carry over RunningTask(s)
-						newInfo.setCommandTask(nodeInfo.getCommandTask());
-
-						if (nodeInfo == getSession().getAttribute(ClusterComponent.class)) {
-							getSession().setAttribute(ClusterComponent.class, newInfo);
-						}
-						button.setData(newInfo);
-						button.setDescription(newInfo.ToolTip());
+						nodeInfo.setCommandTask(((NodeInfo) currentComponent).getCommandTask());
+						break;
+					default:
+						toolTip = "Unknown component type";
+						System.err.println(toolTip);
+						break;
+					}
+					// add to imagelayout instead?
+					button.setDescription(toolTip);
+					button.setData(newComponent);
+					if (button.isSelected()) {
+						getSession().setAttribute(ClusterComponent.class, newComponent);
 					}
 				}
 			});

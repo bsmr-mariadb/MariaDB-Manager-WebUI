@@ -27,11 +27,11 @@ import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.ChartProperties;
 import com.skysql.manager.api.Commands;
+import com.skysql.manager.api.Monitors;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.NodeStates;
 import com.skysql.manager.ui.components.ChartControls;
 import com.skysql.manager.ui.components.ChartsLayout;
-import com.skysql.manager.ui.components.ComponentButton;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.shared.ui.MarginInfo;
@@ -56,6 +56,7 @@ import fi.jasoft.dragdroplayouts.client.ui.LayoutDragMode;
 public class PanelInfo extends HorizontalSplitPanel {
 
 	private static final String NOT_AVAILABLE = "n/a";
+	private static final int PANEL_SPLIT_X = 305;
 
 	private ClusterComponent lastComponent;
 	private Component systemGrid, nodeGrid;
@@ -68,6 +69,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 	private Label systemLabels[], nodeLabels[];
 	private ChartControls chartControls;
 	private ChartsLayout chartsArrayLayout;
+	private Panel chartsPanel;
 	private Label nameLabel;
 	private TextField nameField;
 	private ChartProperties chartProperties;
@@ -83,12 +85,22 @@ public class PanelInfo extends HorizontalSplitPanel {
 		}
 	};
 
+	private ValueChangeListener chartThemeListener = new ValueChangeListener() {
+		private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+		public void valueChange(ValueChangeEvent event) {
+			String themeName = (String) event.getProperty().getValue();
+			chartProperties.setTheme(themeName);
+		}
+
+	};
+
 	PanelInfo() {
 
-		setSizeFull();
 		addStyleName("infoTab");
+		setSizeFull();
+		setSplitPosition(PANEL_SPLIT_X, Unit.PIXELS);
 
-		setSplitPosition(300, Unit.PIXELS);
 		createInfoLayout();
 		createChartsLayout();
 
@@ -98,30 +110,32 @@ public class PanelInfo extends HorizontalSplitPanel {
 
 		infoLayout = new VerticalLayout();
 		infoLayout.addStyleName("infoLayout");
-		infoLayout.setWidth("300px");
+		infoLayout.setWidth(PANEL_SPLIT_X, Unit.PIXELS);
 		infoLayout.setSpacing(true);
 		addComponent(infoLayout);
 
-		final HorizontalLayout nameLayout = new HorizontalLayout();
-		nameLayout.addStyleName("panelHeaderLayout");
-		nameLayout.setWidth("100%");
-		nameLayout.setSpacing(true);
-		nameLayout.setMargin(new MarginInfo(false, true, false, true));
-		infoLayout.addComponent(nameLayout);
+		final HorizontalLayout headerLayout = new HorizontalLayout();
+		headerLayout.addStyleName("panelHeaderLayout");
+		headerLayout.setWidth("100%");
+		headerLayout.setSpacing(true);
+		headerLayout.setMargin(new MarginInfo(false, true, false, true));
+		infoLayout.addComponent(headerLayout);
 
 		nameLabel = new Label();
 		nameLabel.addStyleName("nameLabel");
 		nameLabel.setSizeUndefined();
-		nameLayout.addComponent(nameLabel);
-		nameLayout.setComponentAlignment(nameLabel, Alignment.MIDDLE_LEFT);
+		headerLayout.addComponent(nameLabel);
+		headerLayout.setComponentAlignment(nameLabel, Alignment.MIDDLE_LEFT);
 
 		final Button editButton = new Button("Edit");
-		// TODO: this will become the editing function of what properties are displayed in the info layout - now the system/node name can be edited from the respective dialogs in the Navigation/Overview panel
+		// TODO: this will become the editing function of what properties are displayed in the info layout
 		editButton.setEnabled(false);
 		final Button saveButton = new Button("Done");
 
-		nameLayout.addComponent(editButton);
-		nameLayout.setComponentAlignment(editButton, Alignment.MIDDLE_RIGHT);
+		headerLayout.addComponent(editButton);
+		headerLayout.setComponentAlignment(editButton, Alignment.MIDDLE_RIGHT);
+
+		/***
 		editButton.addClickListener(new Button.ClickListener() {
 
 			public void buttonClick(ClickEvent event) {
@@ -136,10 +150,10 @@ public class PanelInfo extends HorizontalSplitPanel {
 						saveButton.click();
 					}
 				});
-				nameLayout.replaceComponent(nameLabel, nameField);
-				nameLayout.setComponentAlignment(nameField, Alignment.MIDDLE_LEFT);
-				nameLayout.replaceComponent(editButton, saveButton);
-				nameLayout.setComponentAlignment(saveButton, Alignment.MIDDLE_RIGHT);
+				headerLayout.replaceComponent(nameLabel, nameField);
+				headerLayout.setComponentAlignment(nameField, Alignment.MIDDLE_LEFT);
+				headerLayout.replaceComponent(editButton, saveButton);
+				headerLayout.setComponentAlignment(saveButton, Alignment.MIDDLE_RIGHT);
 			}
 		});
 
@@ -148,10 +162,10 @@ public class PanelInfo extends HorizontalSplitPanel {
 			public void buttonClick(ClickEvent event) {
 				String name = nameField.getValue();
 				nameLabel.setValue(name);
-				nameLayout.replaceComponent(nameField, nameLabel);
-				nameLayout.setComponentAlignment(nameLabel, Alignment.MIDDLE_LEFT);
-				nameLayout.replaceComponent(saveButton, editButton);
-				nameLayout.setComponentAlignment(editButton, Alignment.MIDDLE_RIGHT);
+				headerLayout.replaceComponent(nameField, nameLabel);
+				headerLayout.setComponentAlignment(nameLabel, Alignment.MIDDLE_LEFT);
+				headerLayout.replaceComponent(saveButton, editButton);
+				headerLayout.setComponentAlignment(editButton, Alignment.MIDDLE_RIGHT);
 				lastComponent.setName(name);
 				if (lastComponent instanceof NodeInfo) {
 					//((NodeInfo) lastComponent).saveName(name);
@@ -162,6 +176,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 				componentButton.setName(name);
 			}
 		});
+		 ***/
 
 		systemLabels = new Label[systemLabelsStrings.length];
 		systemGrid = createCurrentInfo(systemLabels, systemLabelsStrings);
@@ -177,7 +192,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 		GridLayout currentGrid = new GridLayout(2, labels.length);
 		currentGrid.addStyleName("currentInfo");
 		currentGrid.setSpacing(true);
-		currentGrid.setMargin(new MarginInfo(false, true, false, true));
+		currentGrid.setMargin(new MarginInfo(false, false, false, true));
 		currentGrid.setSizeUndefined();
 
 		for (int i = 0; i < labels.length; i++) {
@@ -193,7 +208,6 @@ public class PanelInfo extends HorizontalSplitPanel {
 	}
 
 	private void createChartsLayout() {
-		chartProperties = new ChartProperties(null, null);
 
 		chartsLayout = new VerticalLayout();
 		chartsLayout.addStyleName("chartsLayout");
@@ -202,14 +216,15 @@ public class PanelInfo extends HorizontalSplitPanel {
 		addComponent(chartsLayout);
 
 		final HorizontalLayout chartsHeaderLayout = new HorizontalLayout();
-		chartsHeaderLayout.addStyleName("panelHeaderLayout");
+		chartsHeaderLayout.setStyleName("panelHeaderLayout");
 		chartsHeaderLayout.setWidth("100%");
 		chartsHeaderLayout.setSpacing(true);
 		chartsHeaderLayout.setMargin(new MarginInfo(false, true, false, true));
 		chartsLayout.addComponent(chartsHeaderLayout);
 
-		chartControls = new ChartControls(chartProperties);
+		chartControls = new ChartControls();
 		chartControls.addIntervalSelectionListener(chartIntervalListener);
+		chartControls.addThemeSelectionListener(chartThemeListener);
 		chartsHeaderLayout.addComponent(chartControls);
 		chartsHeaderLayout.setComponentAlignment(chartControls, Alignment.MIDDLE_LEFT);
 
@@ -234,7 +249,9 @@ public class PanelInfo extends HorizontalSplitPanel {
 		});
 
 		final Button editButton = new Button("Edit");
+		editButton.setDescription("Enter Editing mode");
 		final Button saveButton = new Button("Done");
+		saveButton.setDescription("Exit Editing mode");
 		buttonsLayout.addComponent(editButton);
 		editButton.addClickListener(new Button.ClickListener() {
 
@@ -242,8 +259,12 @@ public class PanelInfo extends HorizontalSplitPanel {
 				buttonsLayout.replaceComponent(editButton, saveButton);
 				chartsArrayLayout.setDragMode(LayoutDragMode.CLONE);
 				chartsArrayLayout.setEditable(true);
+				chartsHeaderLayout.setStyleName("panelHeaderLayout-editable");
 				editMonitorsButton.setVisible(true);
 				addChartButton.setVisible(true);
+				OverviewPanel overviewPanel = getSession().getAttribute(OverviewPanel.class);
+				overviewPanel.setEnabled(false);
+
 			}
 		});
 
@@ -253,13 +274,17 @@ public class PanelInfo extends HorizontalSplitPanel {
 				buttonsLayout.replaceComponent(saveButton, editButton);
 				chartsArrayLayout.setDragMode(LayoutDragMode.NONE);
 				chartsArrayLayout.setEditable(false);
+				chartsHeaderLayout.setStyleName("panelHeaderLayout");
 				editMonitorsButton.setVisible(false);
 				addChartButton.setVisible(false);
+				OverviewPanel overviewPanel = getSession().getAttribute(OverviewPanel.class);
+				overviewPanel.setEnabled(true);
 			}
 		});
 
 		final Button expandButton = new NativeButton();
 		expandButton.setStyleName("expandButton");
+		expandButton.setDescription("Expand/Reduce viewing area");
 		buttonsLayout.addComponent(expandButton);
 		buttonsLayout.setComponentAlignment(expandButton, Alignment.MIDDLE_CENTER);
 		expandButton.addClickListener(new Button.ClickListener() {
@@ -296,23 +321,11 @@ public class PanelInfo extends HorizontalSplitPanel {
 			}
 		});
 
-		Panel panel = new Panel();
-		panel.setSizeFull();
-		panel.addStyleName(Runo.PANEL_LIGHT);
-		chartsLayout.addComponent(panel);
-		chartsLayout.setExpandRatio(panel, 1.0f);
-
-		chartsArray = chartsArray(chartProperties);
-		panel.setContent(chartsArray);
-
-	}
-
-	public DDCssLayout chartsArray(ChartProperties chartProperties) {
-
-		chartsArrayLayout = new ChartsLayout(false);
-		chartsArrayLayout.initializeCharts(chartProperties);
-
-		return chartsArrayLayout;
+		chartsPanel = new Panel();
+		chartsPanel.setSizeFull();
+		chartsPanel.addStyleName(Runo.PANEL_LIGHT);
+		chartsLayout.addComponent(chartsPanel);
+		chartsLayout.setExpandRatio(chartsPanel, 1.0f);
 
 	}
 
@@ -351,8 +364,28 @@ public class PanelInfo extends HorizontalSplitPanel {
 				}
 			}
 
-			// zero out existing display in order to eliminate false user readings if new data is slow to be retireved
-			chartsArrayLayout.hideCharts();
+			// call to make Monitors set "current" systemType set of Monitors... to be changed
+			Monitors.getMonitorsList(componentInfo.getSystemType());
+
+			// zero out existing display in order to eliminate false user readings if new data is slow to be retrieved
+			if (chartsArrayLayout != null) {
+				chartsArrayLayout.hideCharts();
+			}
+
+			// fetch user-based chart properties once per session
+			chartProperties = getSession().getAttribute(ChartProperties.class);
+			if (chartProperties == null) {
+				chartProperties = new ChartProperties(null);
+				getSession().setAttribute(ChartProperties.class, chartProperties);
+				chartControls.selectInterval(chartProperties.getTimeSpan());
+				chartControls.selectTheme(chartProperties.getTheme());
+			}
+
+			chartsArrayLayout = new ChartsLayout(false);
+			chartsArrayLayout.initializeCharts(chartProperties, componentInfo.getSystemType());
+			chartsArray = chartsArrayLayout;
+			chartsPanel.setContent(chartsArray);
+
 		}
 
 		nameLabel.setValue(componentInfo.getName());

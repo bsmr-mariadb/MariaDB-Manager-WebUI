@@ -19,7 +19,6 @@
 package com.skysql.manager.ui;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.ManagerUI;
@@ -29,7 +28,6 @@ import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.ui.components.ComponentButton;
 import com.skysql.manager.ui.components.NodesLayout;
 import com.skysql.manager.ui.components.SystemLayout;
-import com.vaadin.server.Sizeable;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
@@ -49,8 +47,10 @@ public class OverviewPanel extends Panel {
 	public ComponentButton selectedButton;
 	private NodesLayout nodesLayout;
 	private SystemLayout systemLayout;
-	private HorizontalLayout backButton;
 	private UpdaterThread updaterThread;
+	private boolean isEditable = false;
+	private Button addSystemButton, addNodeButton;
+	final Label nodesLabel;
 
 	public OverviewPanel() {
 
@@ -59,42 +59,22 @@ public class OverviewPanel extends Panel {
 		overviewContainer.setWidth("100%");
 		setContent(overviewContainer);
 
-		VerticalLayout systemSlot = new VerticalLayout();
-		systemSlot.addStyleName("systemSlot");
-		systemSlot.setWidth(Sizeable.SIZE_UNDEFINED, Sizeable.Unit.PERCENTAGE);
-		systemSlot.setMargin(new MarginInfo(false, false, true, false));
-		overviewContainer.addComponent(systemSlot);
-
-		final HorizontalLayout systemHeader = new HorizontalLayout();
-		systemHeader.addStyleName("panelHeaderLayout");
-		systemHeader.setWidth("100%");
-		systemHeader.setHeight("23px");
-		systemSlot.addComponent(systemHeader);
-		final Label systemLabel = new Label("System");
-		systemLabel.setSizeUndefined();
-		systemHeader.addComponent(systemLabel);
-		systemHeader.setComponentAlignment(systemLabel, Alignment.MIDDLE_CENTER);
-
 		systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
 		systemRecord = systemInfo.getCurrentSystem();
 		systemLayout = new SystemLayout(systemRecord);
-		systemSlot.addComponent(systemLayout);
-
-		backButton = new HorizontalLayout();
-		backButton.setStyleName("backButton");
-		systemSlot.addComponent(backButton);
+		overviewContainer.addComponent(systemLayout);
 
 		VerticalLayout nodesSlot = new VerticalLayout();
 		nodesSlot.addStyleName("nodesSlot");
-		nodesSlot.setMargin(new MarginInfo(false, false, false, true));
+		nodesSlot.setMargin(new MarginInfo(false, false, false, false));
 		overviewContainer.addComponent(nodesSlot);
 		overviewContainer.setExpandRatio(nodesSlot, 1.0f);
 
 		final HorizontalLayout nodesHeader = new HorizontalLayout();
-		nodesHeader.addStyleName("panelHeaderLayout");
+		nodesHeader.setStyleName("panelHeaderLayout");
 		nodesHeader.setWidth("100%");
 		nodesSlot.addComponent(nodesHeader);
-		final Label nodesLabel = new Label("Nodes");
+		nodesLabel = new Label(" ");
 		nodesLabel.setSizeUndefined();
 		nodesHeader.addComponent(nodesLabel);
 		nodesHeader.setComponentAlignment(nodesLabel, Alignment.MIDDLE_CENTER);
@@ -106,7 +86,19 @@ public class OverviewPanel extends Panel {
 		nodesHeader.addComponent(buttonsLayout);
 		nodesHeader.setComponentAlignment(buttonsLayout, Alignment.MIDDLE_RIGHT);
 
-		final Button addNodeButton = new Button("Add Node...");
+		addSystemButton = new Button("Add System...");
+		addSystemButton.setDescription("Add System");
+		addSystemButton.setVisible(false);
+		buttonsLayout.addComponent(addSystemButton);
+		addSystemButton.addClickListener(new Button.ClickListener() {
+
+			public void buttonClick(ClickEvent event) {
+				new SystemDialog(null, null);
+			}
+		});
+
+		addNodeButton = new Button("Add Node...");
+		addNodeButton.setDescription("Add Node to the current System");
 		addNodeButton.setVisible(false);
 		buttonsLayout.addComponent(addNodeButton);
 		addNodeButton.addClickListener(new Button.ClickListener() {
@@ -117,15 +109,27 @@ public class OverviewPanel extends Panel {
 		});
 
 		final Button editButton = new Button("Edit");
+		editButton.setDescription("Enter Editing mode");
 		final Button saveButton = new Button("Done");
+		saveButton.setDescription("Exit Editing mode");
 		buttonsLayout.addComponent(editButton);
+
 		editButton.addClickListener(new Button.ClickListener() {
 
 			public void buttonClick(ClickEvent event) {
 				buttonsLayout.replaceComponent(editButton, saveButton);
+				isEditable = true;
 				systemLayout.setEditable(true);
 				nodesLayout.setEditable(true);
-				addNodeButton.setVisible(true);
+				nodesHeader.setStyleName("panelHeaderLayout-editable");
+				if (systemRecord != null && !SystemInfo.SYSTEM_ROOT.equals(systemRecord.getID())) {
+					addNodeButton.setVisible(true);
+				} else {
+					addSystemButton.setVisible(true);
+				}
+				if (systemRecord != null && systemRecord.getNodes().length == 0) {
+					nodesLayout.placeholderLayout();
+				}
 			}
 		});
 
@@ -133,9 +137,15 @@ public class OverviewPanel extends Panel {
 
 			public void buttonClick(ClickEvent event) {
 				buttonsLayout.replaceComponent(saveButton, editButton);
+				isEditable = false;
 				systemLayout.setEditable(false);
 				nodesLayout.setEditable(false);
+				nodesHeader.setStyleName("panelHeaderLayout");
+				if (systemRecord != null && systemRecord.getNodes().length == 0) {
+					nodesLayout.placeholderLayout();
+				}
 				addNodeButton.setVisible(false);
+				addSystemButton.setVisible(false);
 			}
 		});
 
@@ -151,31 +161,59 @@ public class OverviewPanel extends Panel {
 
 	}
 
+	public void setEnabled(boolean enabled) {
+		systemLayout.setEnabled(enabled);
+		nodesLayout.setEnabled(enabled);
+	}
+
 	public ArrayList<NodeInfo> getNodes() {
 		return nodesLayout.getNodes();
 	}
 
-	public void clickLayout(final int buttonIndex) {
-		if (buttonIndex > 0) {
-			clickLayout(getNodes().get(buttonIndex - 1).getButton());
-		} else {
-			clickLayout(systemLayout.getButton());
-		}
+	public void clickComponentButton(final int buttonIndex) {
+		clickLayout(nodesLayout.getButton(buttonIndex));
+	}
+
+	public void clickSystemButton() {
+		clickLayout(systemLayout.getButton());
 	}
 
 	public void clickLayout(final ComponentButton button_node) {
+		ManagerUI.log("clickLayout: " + button_node);
+
+		if (button_node == selectedButton) {
+			return;
+		}
+
 		if (selectedButton != null) {
 			selectedButton.setSelected(false);
 		}
-		selectedButton = button_node;
-		selectedButton.setSelected(true);
 
-		ClusterComponent componentInfo = (ClusterComponent) button_node.getData();
-		getSession().setAttribute(ClusterComponent.class, componentInfo);
+		if (button_node != null) {
+			button_node.setSelected(true);
+			ClusterComponent componentInfo = (ClusterComponent) button_node.getData();
+			getSession().setAttribute(ClusterComponent.class, componentInfo);
+		} else {
+			getSession().setAttribute(ClusterComponent.class, null);
+		}
 
 		TabbedPanel tabbedPanel = getSession().getAttribute(TabbedPanel.class);
 		tabbedPanel.refresh();
 
+		selectedButton = button_node;
+
+	}
+
+	public void selectCurrentButton(SystemRecord systemRecord) {
+		if (systemRecord == null) {
+			return;
+		}
+
+		if (systemRecord.getParentID() == null) {
+			clickComponentButton(0);
+		} else {
+			clickSystemButton();
+		}
 	}
 
 	public void refresh() {
@@ -213,58 +251,47 @@ public class OverviewPanel extends Panel {
 
 			ManagerUI.log("OverviewPanel- UpdaterThread.this: " + this);
 			asynchRefresh(this);
-			
+
 		}
 	}
 
 	private void asynchRefresh(UpdaterThread updaterThread) {
 
-		boolean refresh = false;
-		ManagerUI managerUI = getSession().getAttribute(ManagerUI.class);
+		VaadinSession session = getSession();
+		ManagerUI managerUI = session.getAttribute(ManagerUI.class);
+		SystemInfo systemInfo = session.getAttribute(SystemInfo.class);
+		SystemRecord newSystemRecord = systemInfo.updateSystem(systemInfo.getCurrentID());
 
-		SystemRecord newSystemRecord = systemInfo.updateSystem(systemRecord.getID());
-		final ComponentButton button = systemRecord.getButton();
-
-		final String newName;
-		if ((newName = newSystemRecord.getName()) != null && !newName.equals(systemRecord.getName())) {
-			refresh = true;
+		if (isEditable) {
+			if (newSystemRecord != null && !SystemInfo.SYSTEM_ROOT.equals(newSystemRecord.getID())) {
+				addNodeButton.setVisible(true);
+				addSystemButton.setVisible(false);
+			} else {
+				addSystemButton.setVisible(true);
+				addNodeButton.setVisible(false);
+			}
 		}
 
-		String[] newNodes;
-		boolean reloadNodes = false;
-		if ((newNodes = newSystemRecord.getNodes()) != null && (!Arrays.equals(newNodes, systemRecord.getNodes()) || nodesLayout.getButtons().isEmpty())) {
-			ManagerUI.log("ReloadNodes");
-			refresh = true;
-			reloadNodes = true;
-		}
-
-		if (refresh) {
-			newSystemRecord.setButton(systemRecord.getButton());
-			systemRecord = newSystemRecord;
-			// will this have already been updated?
-			//getSession().setAttribute(SystemInfo.class, systemInfo);
-
-			managerUI.access(new Runnable() {
-				@Override
-				public void run() {
-					// Here the UI is locked and can be updated
-
-					ManagerUI.log("OverviewPanel access run()");
-
-					button.setName(newName);
-					button.setData(systemRecord);
-					button.setDescription(systemRecord.ToolTip());
-				}
-			});
-
-		}
+		systemLayout.refresh(updaterThread, newSystemRecord);
 
 		if (updaterThread.flagged) {
-			ManagerUI.log("OverviewPanel - flagged is set before Nodes refresh");
 			return;
 		}
 
-		nodesLayout.refresh(updaterThread, reloadNodes ? newSystemRecord : null);
+		nodesLayout.refresh(updaterThread, newSystemRecord);
+		nodesLabel.setValue(SystemInfo.SYSTEM_ROOT.equals(newSystemRecord.getID()) ? "Systems" : "Components");
+
+		if (updaterThread.flagged) {
+			return;
+		}
+
+		ManagerUI.log("OverviewPanel.refresh() selectedButton: " + selectedButton);
+
+		if (selectedButton == null) {
+			selectCurrentButton(newSystemRecord);
+		}
+
+		systemRecord = newSystemRecord;
 
 		managerUI.access(new Runnable() {
 			@Override
@@ -278,7 +305,6 @@ public class OverviewPanel extends Panel {
 
 			}
 		});
-
 
 	}
 }

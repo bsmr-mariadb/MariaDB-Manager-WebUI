@@ -19,6 +19,7 @@
 package com.skysql.manager.ui;
 
 import com.skysql.manager.SystemRecord;
+import com.skysql.manager.api.SystemTypes;
 import com.vaadin.data.Validator.EmptyValueException;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Form;
@@ -30,6 +31,7 @@ import com.vaadin.ui.VerticalLayout;
 public class SystemForm extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
+	final TextField id = new TextField("ID");
 	final TextField name = new TextField("Name");
 	final NativeSelect systemType = new NativeSelect("Type");
 
@@ -48,18 +50,28 @@ public class SystemForm extends VerticalLayout {
 		form.setDescription(description);
 
 		String value;
+		form.addField("id", id);
+		if ((value = system.getID()) == null) {
+			id.setRequired(true);
+			id.setRequiredError("ID is a required field");
+			id.focus();
+		} else {
+			id.setValue(value);
+			id.setVisible(false);
+		}
+
 		if ((value = system.getName()) != null) {
 			name.setValue(value);
 		}
 		form.addField("name", name);
-		name.setRequired(true);
-		name.setRequiredError("Name is a required field");
-		name.focus();
+		if (system.getID() != null) {
+			name.focus();
+		}
 
-		for (String systemType : SystemRecord.systemTypes()) {
+		for (String systemType : SystemTypes.getList().keySet()) {
 			this.systemType.addItem(systemType);
 		}
-		systemType.select(SystemRecord.systemTypes()[0]);
+		systemType.select(system.getSystemType() != null ? system.getSystemType() : SystemTypes.getList().keySet().toArray()[0]);
 		systemType.setNullSelectionAllowed(false);
 		form.addField("systemType", systemType);
 
@@ -71,6 +83,9 @@ public class SystemForm extends VerticalLayout {
 			form.setComponentError(null);
 			form.commit();
 
+			if (id.getValue() != null) {
+				system.setID(id.getValue());
+			}
 			system.setName(name.getValue());
 			system.setSystemType((String) systemType.getValue());
 
@@ -84,5 +99,4 @@ public class SystemForm extends VerticalLayout {
 		}
 
 	}
-
 }

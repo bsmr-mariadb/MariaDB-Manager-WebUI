@@ -32,7 +32,6 @@ import com.skysql.manager.UserChart;
 import com.skysql.manager.api.ChartProperties;
 import com.skysql.manager.api.MonitorData;
 import com.skysql.manager.api.Monitors;
-import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemInfo;
 import com.vaadin.addon.charts.Chart;
 import com.vaadin.addon.charts.model.Configuration;
@@ -60,6 +59,7 @@ public class ChartsLayout extends DDCssLayout {
 
 	private boolean isChartsEditing;
 	private ChartProperties chartProperties;
+	private String systemType;
 	private UpdaterThread updaterThread;
 
 	public ChartsLayout(boolean previewMode) {
@@ -86,10 +86,11 @@ public class ChartsLayout extends DDCssLayout {
 
 	}
 
-	public void initializeCharts(ChartProperties chartProperties) {
+	public void initializeCharts(ChartProperties chartProperties, String systemType) {
 		this.chartProperties = chartProperties;
+		this.systemType = systemType;
 
-		ArrayList<ChartMappings> chartMappings = chartProperties.getChartMappings();
+		ArrayList<ChartMappings> chartMappings = chartProperties.getChartMappings(systemType);
 		if (chartMappings != null) {
 			for (ChartMappings chartMapping : chartMappings) {
 				UserChart userChart = new UserChart(chartMapping);
@@ -110,7 +111,7 @@ public class ChartsLayout extends DDCssLayout {
 			ChartMappings chartMapping = new ChartMappings(userChart);
 			chartMappings.add(chartMapping);
 		}
-		chartProperties.setChartMappings(chartMappings);
+		chartProperties.setChartMappings(systemType, chartMappings);
 	}
 
 	public void deleteChart(Component chartButton) {
@@ -135,7 +136,7 @@ public class ChartsLayout extends DDCssLayout {
 			chartButton.setEditable(editable);
 		}
 
-		// if getting out of editable mode, save mappings
+		// when getting out of editable mode, save mappings
 		if (editable == false) {
 			saveChartsToProperties();
 		}
@@ -199,6 +200,8 @@ public class ChartsLayout extends DDCssLayout {
 
 	private void asynchRefresh(UpdaterThread updaterThread) {
 
+		ManagerUI.log("ChartsLayout - asynchRefresh updaterThread: " + updaterThread);
+
 		String systemID, nodeID;
 
 		VaadinSession session = getSession();
@@ -215,7 +218,7 @@ public class ChartsLayout extends DDCssLayout {
 			break;
 
 		case node:
-			systemID = ((NodeInfo) componentInfo).getSystemID();
+			systemID = componentInfo.getParentID();
 			nodeID = componentInfo.getID();
 			break;
 
@@ -236,7 +239,6 @@ public class ChartsLayout extends DDCssLayout {
 				final Configuration configuration = chart.getConfiguration();
 
 				for (String monitorID : userChart.getMonitorIDs()) {
-					ManagerUI.log("ChartsLayout - asynchRefresh updaterThread: " + updaterThread);
 
 					if (updaterThread.flagged) {
 						ManagerUI.log("ChartsLayout - flagged is set before API call");
@@ -247,6 +249,7 @@ public class ChartsLayout extends DDCssLayout {
 					final MonitorRecord monitor = Monitors.getMonitor(monitorID);
 					if (monitor == null) {
 						// monitor was removed from the system: skip
+						ManagerUI.log("monitor was removed from the system");
 						continue;
 					}
 

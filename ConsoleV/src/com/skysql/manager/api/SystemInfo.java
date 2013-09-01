@@ -36,7 +36,7 @@ import com.skysql.manager.ui.ErrorDialog;
 public class SystemInfo {
 
 	public static final String SYSTEM_NODEID = "0";
-
+	public static final String SYSTEM_ROOT = "0";
 	public static final String PROPERTY_EIP = "EIP";
 	public static final String PROPERTY_MONYOG = "MONyog";
 	public static final String PROPERTY_PHPMYADMIN = "phpMyAdmin";
@@ -47,7 +47,7 @@ public class SystemInfo {
 	public static final String PROPERTY_SKIPLOGIN = "SKIPLOGIN";
 
 	private LinkedHashMap<String, SystemRecord> systemsMap;
-	private String currentID;
+	private String currentID = SYSTEM_ROOT;
 
 	public LinkedHashMap<String, SystemRecord> getSystemsMap() {
 		return systemsMap;
@@ -69,10 +69,23 @@ public class SystemInfo {
 		return systemsMap.get(currentID);
 	}
 
+	public void setCurrentSystem(String systemID) {
+		this.currentID = systemID;
+	}
+
 	public SystemRecord updateSystem(String systemID) {
 		SystemInfo newSystemInfo = new SystemInfo(systemID);
-		systemsMap.put(systemID, newSystemInfo.getCurrentSystem());
-		return newSystemInfo.getCurrentSystem();
+		SystemRecord systemRecord = newSystemInfo.getSystemRecord(systemID);
+		if (systemID.equals(SYSTEM_ROOT)) {
+			systemsMap = newSystemInfo.systemsMap;
+		} else {
+			SystemRecord oldSystemRecord = systemsMap.get(systemID);
+			if (oldSystemRecord != null) {
+				systemRecord.setButton(oldSystemRecord.getButton());
+			}
+			systemsMap.put(systemID, systemRecord);
+		}
+		return (systemRecord);
 	}
 
 	public boolean add(SystemRecord systemRecord) {
@@ -96,22 +109,6 @@ public class SystemInfo {
 		}
 
 		return false;
-
-	}
-
-	public boolean saveName(String name) {
-
-		try {
-			APIrestful api = new APIrestful();
-			JSONObject jsonParam = new JSONObject();
-			jsonParam.put("name", name);
-			api.put("system/" + currentID, jsonParam.toString());
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-			new ErrorDialog(e, "Error encoding API request");
-			return false;
-		}
 
 	}
 
@@ -154,12 +151,12 @@ public class SystemInfo {
 	public SystemInfo(String systemID) {
 
 		APIrestful api = new APIrestful();
-		if (api.get("system" + (systemID != null ? "/" + systemID : ""))) {
+		if (api.get("system" + (systemID != null && !systemID.equals(SYSTEM_ROOT) ? "/" + systemID : ""))) {
 			try {
 				SystemInfo systemInfo = APIrestful.getGson().fromJson(api.getResult(), SystemInfo.class);
 				this.systemsMap = systemInfo.systemsMap;
-				// currently, get first system in the array
-				if (systemsMap != null && !systemsMap.isEmpty()) {
+				// if there's only one system, select it
+				if (systemID.equals(SYSTEM_ROOT) && systemsMap != null && systemsMap.size() == 2) {
 					SystemRecord systemRecord = (SystemRecord) systemsMap.values().toArray()[0];
 					this.currentID = systemRecord.getID();
 				}
@@ -288,9 +285,23 @@ class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 
 			}
 
-			SystemRecord systemRecord = new SystemRecord(ID, type, name, availability, connections, traffic, startDate, lastAccess, nodes, lastBackup,
-					properties);
+			SystemRecord systemRecord = new SystemRecord(SystemInfo.SYSTEM_ROOT, ID, type, name, availability, connections, traffic, startDate, lastAccess,
+					nodes, lastBackup, properties);
 			systemsMap.put(ID, systemRecord);
+		}
+
+		if (array != null) {
+			// create a "ROOT" system record to contain the series of flat systems; in a hierarchical organization of systems, this might be provided by the API
+			SystemRecord rootRecord = new SystemRecord(null);
+			rootRecord.setID(SystemInfo.SYSTEM_ROOT);
+			rootRecord.setName("Root");
+			String[] systems = new String[systemsMap.keySet().size()];
+			int i = 0;
+			for (String systemID : systemsMap.keySet()) {
+				systems[i++] = systemID;
+			}
+			rootRecord.setNodes(systems);
+			systemsMap.put(SystemInfo.SYSTEM_ROOT, rootRecord);
 		}
 
 		return systemInfo;

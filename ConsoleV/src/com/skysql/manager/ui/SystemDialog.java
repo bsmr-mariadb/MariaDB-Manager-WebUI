@@ -42,11 +42,10 @@ public class SystemDialog implements Window.CloseListener {
 	private final SystemForm systemForm;
 	private final ComponentButton button;
 
-	public SystemDialog(SystemRecord systemRecord, ComponentButton button) {
-		this.systemRecord = systemRecord;
+	public SystemDialog(final SystemRecord systemRecord, final ComponentButton button) {
 		this.button = button;
 
-		String windowTitle = "Edit System: " + systemRecord.getName();
+		String windowTitle = (systemRecord != null) ? "Edit System: " + systemRecord.getName() : "Add System";
 		dialogWindow = new ModalWindow(windowTitle, "350px");
 		dialogWindow.addCloseListener(this);
 		UI.getCurrent().addWindow(dialogWindow);
@@ -72,8 +71,16 @@ public class SystemDialog implements Window.CloseListener {
 		windowLayout.addComponent(wrapper);
 		windowLayout.addComponent(buttonsBar);
 
-		systemForm = new SystemForm(systemRecord, "Edit an existing System");
-		saveSystem("Save Changes");
+		if (systemRecord == null) {
+			this.systemRecord = new SystemRecord(SystemInfo.SYSTEM_ROOT);
+			systemForm = new SystemForm(this.systemRecord, "Add a System");
+			saveSystem("Add System");
+
+		} else {
+			this.systemRecord = systemRecord;
+			systemForm = new SystemForm(systemRecord, "Edit an existing System");
+			saveSystem("Save Changes");
+		}
 
 		wrapper.addComponent(systemForm);
 
@@ -99,16 +106,17 @@ public class SystemDialog implements Window.CloseListener {
 
 			public void buttonClick(ClickEvent event) {
 				if (systemForm.validateSystem()) {
-					String name = systemRecord.getName();
-					SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
-					if (systemInfo.saveName(name)) {
+					if (systemRecord.save()) {
 						if (button != null) {
-							button.setName(name);
+							button.setName(systemRecord.getName());
 							button.setDescription(systemRecord.ToolTip());
 							if (button.isSelected()) {
 								TabbedPanel tabbedPanel = VaadinSession.getCurrent().getAttribute(TabbedPanel.class);
 								tabbedPanel.refresh();
 							}
+						} else {
+							OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
+							overviewPanel.refresh();
 						}
 						windowClose(null);
 					}

@@ -18,7 +18,6 @@
 
 package com.skysql.manager.ui.components;
 
-import com.skysql.manager.api.ChartProperties;
 import com.vaadin.addon.charts.ChartOptions;
 import com.vaadin.addon.charts.model.style.Theme;
 import com.vaadin.addon.charts.themes.GrayTheme;
@@ -26,7 +25,6 @@ import com.vaadin.addon.charts.themes.GridTheme;
 import com.vaadin.addon.charts.themes.HighChartsDefaultTheme;
 import com.vaadin.addon.charts.themes.SkiesTheme;
 import com.vaadin.addon.charts.themes.VaadinTheme;
-import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.HorizontalLayout;
@@ -53,10 +51,9 @@ public class ChartControls extends HorizontalLayout {
 	public static final String DEFAULT_THEME = Themes.Vaadin.name();
 
 	private NativeSelect selectInterval, selectTheme;
-	private ChartProperties chartProperties;
+	private ValueChangeListener intervalListener, themeListener;
 
-	public ChartControls(ChartProperties chartProps) {
-		chartProperties = chartProps;
+	public ChartControls() {
 
 		setSpacing(true);
 
@@ -67,6 +64,7 @@ public class ChartControls extends HorizontalLayout {
 
 		selectInterval = new NativeSelect("Charts Time Span");
 		selectInterval.setImmediate(true);
+		selectInterval.setNullSelectionAllowed(false);
 
 		selectInterval.addItem(INTERVAL_5_MIN);
 		selectInterval.addItem(INTERVAL_10_MIN);
@@ -88,43 +86,39 @@ public class ChartControls extends HorizontalLayout {
 		selectInterval.setItemCaption(INTERVAL_1_WEEK, "1 Week");
 		selectInterval.setItemCaption(INTERVAL_1_MONTH, "1 Month");
 
-		selectInterval.select(chartProperties.getTimeSpan());
-		selectInterval.setNullSelectionAllowed(false);
 		form1.addComponent(selectInterval);
 
-		FormLayout form2 = new FormLayout();
+		final FormLayout form2 = new FormLayout();
 		form2.setSpacing(false);
 		form2.setMargin(false);
 		addComponent(form2);
 
 		selectTheme = new NativeSelect("Theme");
 		selectTheme.setImmediate(true);
+		selectTheme.setNullSelectionAllowed(false);
 
 		for (Themes theme : Themes.values()) {
 			selectTheme.addItem(theme.name());
 		}
-		String themeName = chartProperties.getTheme();
-		if (!Themes.Vaadin.name().equals(themeName)) {
-			setTheme(themeName);
-		}
-		selectTheme.select(themeName);
-		selectTheme.setNullSelectionAllowed(false);
 		form2.addComponent(selectTheme);
-
-		selectTheme.addValueChangeListener(new ValueChangeListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-			public void valueChange(ValueChangeEvent event) {
-				String themeName = (String) event.getProperty().getValue();
-				setTheme(themeName);
-				chartProperties.setTheme(themeName);
-			}
-
-		});
 
 	}
 
+	public void selectInterval(int timeSpan) {
+		selectInterval.removeValueChangeListener(intervalListener);
+		selectInterval.select(timeSpan);
+		selectInterval.addValueChangeListener(intervalListener);
+	}
+
+	public void selectTheme(String themeName) {
+		selectTheme.removeValueChangeListener(themeListener);
+		setTheme(themeName);
+		selectTheme.addValueChangeListener(themeListener);
+	}
+
 	private void setTheme(String themeName) {
+
+		selectTheme.select(themeName);
 
 		Theme theme = null;
 		switch (Themes.valueOf(themeName)) {
@@ -153,7 +147,13 @@ public class ChartControls extends HorizontalLayout {
 	}
 
 	public void addIntervalSelectionListener(ValueChangeListener listener) {
+		intervalListener = listener;
 		selectInterval.addValueChangeListener(listener);
+	}
+
+	public void addThemeSelectionListener(ValueChangeListener listener) {
+		themeListener = listener;
+		selectTheme.addValueChangeListener(listener);
 	}
 
 }

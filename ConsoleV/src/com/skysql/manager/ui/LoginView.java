@@ -18,12 +18,14 @@
 
 package com.skysql.manager.ui;
 
+import com.skysql.manager.AppData.Debug;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.api.BackupStates;
 import com.skysql.manager.api.CommandStates;
 import com.skysql.manager.api.Commands;
 import com.skysql.manager.api.NodeStates;
 import com.skysql.manager.api.Steps;
+import com.skysql.manager.api.SystemTypes;
 import com.skysql.manager.api.UserObject;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -48,7 +50,7 @@ public class LoginView extends VerticalLayout {
 
 	private TextField userName = new TextField("Username");
 	private PasswordField password = new PasswordField("Password");
-	private Button login = new Button("Login");
+	final private Button login = new Button("Login");
 
 	private Button.ClickListener loginListener = new Button.ClickListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
@@ -131,7 +133,8 @@ public class LoginView extends VerticalLayout {
 		loginFormLayout.addComponent(password);
 		loginFormLayout.setComponentAlignment(password, Alignment.MIDDLE_CENTER);
 
-		login.addClickListener(loginListener);
+		login.setEnabled(false);
+
 		loginFormLayout.addComponent(login);
 		loginFormLayout.setComponentAlignment(login, Alignment.BOTTOM_CENTER);
 
@@ -143,6 +146,10 @@ public class LoginView extends VerticalLayout {
 		}
 
 		preload();
+
+		if (Debug.ON) {
+		}
+
 	}
 
 	public void preload() {
@@ -181,11 +188,18 @@ public class LoginView extends VerticalLayout {
 
 			ManagerUI.log("LoginView - UpdaterThread.this: " + this);
 
+			// pre-load all global values
 			BackupStates.load();
 			Commands.load();
 			CommandStates.load();
 			Steps.load();
 			NodeStates.load();
+			SystemTypes.load();
+
+			// enable Login button when all is done
+			login.addClickListener(loginListener);
+			login.setEnabled(true);
+
 		}
 	}
 

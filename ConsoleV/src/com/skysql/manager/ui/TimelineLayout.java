@@ -29,7 +29,6 @@ import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.api.MonitorDataRaw;
 import com.skysql.manager.api.Monitors;
-import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemInfo;
 import com.vaadin.addon.timeline.Timeline;
 import com.vaadin.addon.timeline.Timeline.ChartMode;
@@ -72,7 +71,7 @@ public class TimelineLayout extends VerticalLayout {
 			break;
 
 		case node:
-			systemID = ((NodeInfo) componentInfo).getSystemID();
+			systemID = componentInfo.getParentID();
 			nodeID = componentInfo.getID();
 			break;
 

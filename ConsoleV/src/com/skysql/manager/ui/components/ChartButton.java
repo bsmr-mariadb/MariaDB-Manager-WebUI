@@ -163,8 +163,7 @@ public class ChartButton extends CustomComponent {
 		} else {
 			chart.setEnabled(true);
 
-			String styleName = getStyleName();
-			setStyleName(styleName.replace("draggable", ""));
+			setStyleName(getStyleName().replace("draggable", ""));
 
 			layout.removeComponent(draggable);
 			draggable = null;

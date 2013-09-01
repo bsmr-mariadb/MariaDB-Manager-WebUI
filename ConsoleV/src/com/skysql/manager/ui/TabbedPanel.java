@@ -19,10 +19,8 @@
 package com.skysql.manager.ui;
 
 import java.io.Serializable;
-import java.util.LinkedHashMap;
 
 import com.skysql.manager.ClusterComponent;
-import com.skysql.manager.api.SystemInfo;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
@@ -62,16 +60,16 @@ public class TabbedPanel implements Serializable {
 		tabsheet.addTab(panelBackup).setCaption("Backups");
 
 		// TOOLS TAB
-		SystemInfo systemInfo = session.getAttribute(SystemInfo.class);
-		LinkedHashMap<String, String> properties = systemInfo.getCurrentSystem().getProperties();
-		String EIP = properties.get(SystemInfo.PROPERTY_EIP);
-		String MONyog = properties.get(SystemInfo.PROPERTY_MONYOG);
-		String phpUrl = properties.get(SystemInfo.PROPERTY_PHPMYADMIN);
-		if ((EIP != null && MONyog != null) || phpUrl != null) {
-			panelTools = new PanelTools();
-			panelTools.setImmediate(true);
-			tabsheet.addTab(panelTools).setCaption("Tools");
-		}
+		//		SystemInfo systemInfo = session.getAttribute(SystemInfo.class);
+		//		LinkedHashMap<String, String> properties = systemInfo.getCurrentSystem().getProperties();
+		//		String EIP = properties.get(SystemInfo.PROPERTY_EIP);
+		//		String MONyog = properties.get(SystemInfo.PROPERTY_MONYOG);
+		//		String phpUrl = properties.get(SystemInfo.PROPERTY_PHPMYADMIN);
+		//		if ((EIP != null && MONyog != null) || phpUrl != null) {
+		//			panelTools = new PanelTools();
+		//			panelTools.setImmediate(true);
+		//			tabsheet.addTab(panelTools).setCaption("Tools");
+		//		}
 
 		// ADD LISTENERS TO TABS
 		tabsheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
@@ -96,6 +94,26 @@ public class TabbedPanel implements Serializable {
 	public void refresh() {
 
 		ClusterComponent componentInfo = session.getAttribute(ClusterComponent.class);
+		if (componentInfo == null || (componentInfo.getType() == ClusterComponent.CCType.system && componentInfo.getParentID() == null)) {
+			if (panelInfo != null)
+				panelInfo.setVisible(false);
+			if (panelControl != null)
+				panelControl.setVisible(false);
+			if (panelBackup != null)
+				panelBackup.setVisible(false);
+			if (panelTools != null)
+				panelTools.setVisible(false);
+			return;
+		} else {
+			if (panelInfo != null)
+				panelInfo.setVisible(true);
+			if (panelControl != null)
+				panelControl.setVisible(true);
+			if (panelBackup != null)
+				panelBackup.setVisible(true);
+			if (panelTools != null)
+				panelTools.setVisible(true);
+		}
 
 		tabsheet.getTab(panelBackup).setVisible(componentInfo.getType() == ClusterComponent.CCType.system ? true : false);
 		tabsheet.getTab(panelControl).setVisible(componentInfo.getType() == ClusterComponent.CCType.system ? false : true);

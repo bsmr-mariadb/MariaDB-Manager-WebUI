@@ -23,6 +23,9 @@ SS
 
 package com.skysql.manager.ui;
 
+import com.skysql.manager.ClusterComponent;
+import com.skysql.manager.api.SystemInfo;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComponentContainer;
@@ -71,10 +74,21 @@ public class SettingsDialog implements Window.CloseListener {
 			}
 
 			// Monitors Tab
-			MonitorsSettings monitorsTab = new MonitorsSettings();
-			tab = tabsheet.addTab(monitorsTab, "Monitors");
-			if (selectedTab != null && selectedTab.equals("Monitors")) {
-				tabsheet.setSelectedTab(tab);
+			SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+			String systemID = systemInfo.getCurrentID();
+			String systemType;
+			if (systemID.equals(SystemInfo.SYSTEM_ROOT)) {
+				ClusterComponent clusterComponent = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
+				systemType = clusterComponent.getSystemType();
+			} else {
+				systemType = systemInfo.getCurrentSystem().getSystemType();
+			}
+			if (systemType != null) {
+				MonitorsSettings monitorsTab = new MonitorsSettings(systemID, systemType);
+				tab = tabsheet.addTab(monitorsTab, "Monitors");
+				if (selectedTab != null && selectedTab.equals("Monitors")) {
+					tabsheet.setSelectedTab(tab);
+				}
 			}
 
 			((ComponentContainer) dialogWindow.getContent()).addComponent(tabsheet);

@@ -18,7 +18,6 @@
 
 package com.skysql.manager;
 
-import java.util.LinkedHashMap;
 import java.util.concurrent.ScheduledFuture;
 
 import org.vaadin.jouni.animator.AnimatorProxy;
@@ -67,52 +66,48 @@ public class ManagerUI extends UI {
 
 		log("init session: - " + session + " UI: " + this.toString());
 
-		try {
-			do {
-				session.setAttribute(ManagerUI.class, this);
+		do {
+			session.setAttribute(ManagerUI.class, this);
 
-				AppData appData = AppData.newInstance();
-				if (appData == null) {
-					break;
-				}
-				session.setAttribute(AppData.class, appData);
+			AppData appData = AppData.newInstance();
+			if (appData == null) {
+				break;
+			}
+			session.setAttribute(AppData.class, appData);
 
-				APIrestful.setURI(appData.getApiURI());
-				APIrestful.setKeys(appData.getApiKeys());
+			APIrestful.setURI(appData.getApiURI());
+			APIrestful.setKeys(appData.getApiKeys());
 
-				APIrestful api = APIrestful.newInstance();
-				session.setAttribute(APIrestful.class, api);
+			APIrestful api = APIrestful.newInstance();
+			session.setAttribute(APIrestful.class, api);
 
-				SystemInfo systemInfo = new SystemInfo(null);
-				if (systemInfo.getCurrentID() == null) {
-					break;
-				}
-				session.setAttribute(SystemInfo.class, systemInfo);
+			SystemInfo systemInfo = new SystemInfo(SystemInfo.SYSTEM_ROOT);
+			//				if (systemInfo.getCurrentID() == null) {
+			//					break;
+			//				}
+			session.setAttribute(SystemInfo.class, systemInfo);
 
-				if (systemInfo.getCurrentSystem().getNodes().length == 0) {
-					break;
-				}
+			//				if (systemInfo.getCurrentSystem().getNodes().length == 0) {
+			//					break;
+			//				}
 
-				UserInfo userInfo = new UserInfo(null);
-				if (userInfo.getUsersList() == null || userInfo.getUsersList().isEmpty()) {
-					break;
-				}
-				session.setAttribute(UserInfo.class, userInfo);
+			UserInfo userInfo = new UserInfo(null);
+			if (userInfo.getUsersList() == null || userInfo.getUsersList().isEmpty()) {
+				break;
+			}
+			session.setAttribute(UserInfo.class, userInfo);
 
-				if (systemInfo != null && systemInfo.getCurrentSystem() != null) {
-					LinkedHashMap<String, String> properties = systemInfo.getCurrentSystem().getProperties();
+			//				if (systemInfo != null && systemInfo.getCurrentSystem() != null) {
+			//					LinkedHashMap<String, String> properties = systemInfo.getCurrentSystem().getProperties();
+			//					systemName = systemInfo.getCurrentSystem().getName();
+			//					systemVersion = properties.get(SystemInfo.PROPERTY_VERSION);
+			//				}
+			systemName = "{ API name goes here }";
+			systemVersion = "{ API version goes here }";
 
-					systemName = systemInfo.getCurrentSystem().getName();
-					systemVersion = properties.get(SystemInfo.PROPERTY_VERSION);
-				}
+		} while (false);
 
-			} while (false);
-
-			refreshContentBasedOnSessionData();
-
-		} catch (RuntimeException e) {
-			System.err.println("RuntimeException: " + e.getMessage());
-		}
+		refreshContentBasedOnSessionData();
 
 	}
 
@@ -144,15 +139,15 @@ public class ManagerUI extends UI {
 			return;
 		}
 
-		SystemInfo systemInfo = session.getAttribute(SystemInfo.class);
-		if (systemInfo == null || systemInfo.getCurrentID() == null || systemInfo.getCurrentSystem().getNodes().length == 0) {
-			setContent(new ErrorView(Notification.Type.HUMANIZED_MESSAGE, "Initial System Setup - Please provide your configuration information."));
-			new SetupDialog();
-			return;
-		}
+		//		SystemInfo systemInfo = session.getAttribute(SystemInfo.class);
+		//		if (systemInfo == null || systemInfo.getCurrentID() == null || systemInfo.getCurrentSystem().getNodes().length == 0) {
+		//			setContent(new ErrorView(Notification.Type.HUMANIZED_MESSAGE, "Initial System Setup - Please provide your configuration information."));
+		//			new SetupDialog();
+		//			return;
+		//		}
 
 		UserInfo userInfo = session.getAttribute(UserInfo.class);
-		if (userInfo.getUsersList() == null || userInfo.getUsersList().isEmpty()) {
+		if (userInfo == null || userInfo.getUsersList() == null || userInfo.getUsersList().isEmpty()) {
 			setContent(new ErrorView(Notification.Type.HUMANIZED_MESSAGE, "Initial System Setup - Please provide your configuration information."));
 			new SetupDialog();
 			return;
@@ -212,7 +207,6 @@ public class ManagerUI extends UI {
 		session.setAttribute(TabbedPanel.class, tabbedPanel);
 
 		overviewPanel.refresh();
-		overviewPanel.clickLayout(0);
 
 	}
 

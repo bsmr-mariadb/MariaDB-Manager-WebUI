@@ -20,7 +20,6 @@ package com.skysql.manager.ui.components;
 
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.SystemRecord;
-import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.NodeStates;
 import com.skysql.manager.ui.ComponentDialog;
 import com.vaadin.event.MouseEvents;
@@ -38,17 +37,19 @@ import com.vaadin.ui.Window;
 public class ComponentButton extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
+	public static final String COMPONENT_HEIGHT = "120px";
+
 	private static final String ICON_MASTER = "master";
 	private static final String ICON_SLAVE = "slave";
 
-	private boolean isSelected;
+	private boolean isSelected = false, isEditable = false;
 	private Embedded editButton, deleteButton;
 	private VerticalLayout imageLayout;
 	private Label nodeName;
 	private ClusterComponent componentInfo;
 	private ComponentButton thisButton;
 
-	public ComponentButton(ClusterComponent componentInfo, SystemRecord systemRecord) {
+	public ComponentButton(ClusterComponent componentInfo) {
 		thisButton = this;
 		this.componentInfo = componentInfo;
 
@@ -57,40 +58,27 @@ public class ComponentButton extends VerticalLayout {
 		componentInfo.setButton(this);
 		setData(componentInfo);
 
-		setHeight("120px");
-		setWidth(componentInfo.getType() == ClusterComponent.CCType.system ? "128px" : "96px");
+		setHeight(COMPONENT_HEIGHT);
+		setWidth(componentInfo.getType() == ClusterComponent.CCType.system ? "120px" : "96px");
 
 		imageLayout = new VerticalLayout();
-		imageLayout.setWidth(componentInfo.getType() == ClusterComponent.CCType.system ? "128px" : "96px");
-		imageLayout.setHeight("120px");
+		//imageLayout.setWidth(componentInfo.getType() == ClusterComponent.CCType.system ? "160px" : "96px");
+		imageLayout.setHeight(COMPONENT_HEIGHT);
 		imageLayout.setImmediate(true);
 
-		String icon = NodeStates.getNodeIcon(componentInfo.getStatus());
-		imageLayout.addStyleName(icon);
-		imageLayout.addStyleName(componentInfo.getType().toString());
+		if (componentInfo.getParentID() != null) {
+			String icon = NodeStates.getNodeIcon(componentInfo.getStatus());
+			imageLayout.addStyleName(icon);
+			imageLayout.addStyleName(componentInfo.getType().toString());
 
-		String description;
-		switch (componentInfo.getType()) {
-		case system:
-			description = ((SystemRecord) systemRecord).ToolTip();
-			break;
-		case node:
-			description = ((NodeInfo) componentInfo).ToolTip();
-			break;
-		default:
-			description = "Unknown component type";
-			System.err.println(description);
-			break;
+			nodeName = new Label(componentInfo.getName());
+			nodeName.setSizeUndefined();
+			imageLayout.addComponent(nodeName);
+			imageLayout.setComponentAlignment(nodeName, Alignment.BOTTOM_CENTER);
 		}
-		imageLayout.setDescription(description);
 		addComponent(imageLayout);
 		setComponentAlignment(imageLayout, Alignment.TOP_CENTER);
 		setExpandRatio(imageLayout, 1.0f);
-
-		nodeName = new Label(componentInfo.getName());
-		nodeName.setSizeUndefined();
-		imageLayout.addComponent(nodeName);
-		imageLayout.setComponentAlignment(nodeName, Alignment.BOTTOM_CENTER);
 
 	}
 
@@ -145,12 +133,25 @@ public class ComponentButton extends VerticalLayout {
 	}
 
 	public void setEditable(boolean editable) {
-		if (editable) {
+		if (editable && !this.isEditable) {
 			imageLayout.setEnabled(false);
+
+			String componentType;
+			switch (componentInfo.getType()) {
+			case system:
+				componentType = "System";
+				break;
+			case node:
+				componentType = "Node";
+				break;
+			default:
+				componentType = "Unknown Component";
+				break;
+			}
 
 			editButton = new Embedded(null, new ThemeResource("img/edit24.png"));
 			editButton.addStyleName("editNode");
-			editButton.setDescription("Edit Node");
+			editButton.setDescription("Edit " + componentType);
 			editButton.setData(this);
 			addComponent(editButton);
 			editButton.addClickListener(new MouseEvents.ClickListener() {
@@ -161,23 +162,27 @@ public class ComponentButton extends VerticalLayout {
 				}
 			});
 
-			if (componentInfo.getType() == ClusterComponent.CCType.node) {
-				deleteButton = new Embedded(null, new ThemeResource("img/delete24.png"));
+			deleteButton = new Embedded(null, new ThemeResource("img/delete24.png"));
+			switch (componentInfo.getType()) {
+			case system:
+				deleteButton.addStyleName("deleteSystem");
+				break;
+			case node:
 				deleteButton.addStyleName("deleteNode");
-				deleteButton.setDescription("Delete Node");
-				deleteButton.setData(this);
-				addComponent(deleteButton);
-				deleteButton.addClickListener(new MouseEvents.ClickListener() {
-					private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-					public void click(ClickEvent event) {
-						NodeInfo nodeInfo = (NodeInfo) thisButton.getData();
-						deleteNode(nodeInfo);
-					}
-				});
+				break;
 			}
+			deleteButton.setDescription("Delete " + componentType);
+			deleteButton.setData(this);
+			addComponent(deleteButton);
+			deleteButton.addClickListener(new MouseEvents.ClickListener() {
+				private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-		} else {
+				public void click(ClickEvent event) {
+					deleteComponent((ClusterComponent) thisButton.getData());
+				}
+			});
+
+		} else if (!editable && this.isEditable) {
 			imageLayout.setEnabled(true);
 
 			if (editButton != null) {
@@ -190,11 +195,13 @@ public class ComponentButton extends VerticalLayout {
 				deleteButton = null;
 			}
 		}
+
+		this.isEditable = editable;
 	}
 
-	public void deleteNode(final NodeInfo nodeInfo) {
+	public void deleteComponent(final ClusterComponent clusterComponent) {
 
-		final Window dialogWindow = new DialogWindow("Delete Node: " + nodeInfo.getName());
+		final Window dialogWindow = new DialogWindow("Delete: " + clusterComponent.getName());
 		UI.getCurrent().addWindow(dialogWindow);
 
 		HorizontalLayout wrapper = new HorizontalLayout();
@@ -209,7 +216,7 @@ public class ComponentButton extends VerticalLayout {
 		textLayout.setSizeFull();
 		wrapper.addComponent(textLayout);
 		wrapper.setExpandRatio(textLayout, 1.0f);
-		Label label = new Label("WARNING: if you delete this Node, all its related data will be deleted as well.");
+		Label label = new Label("WARNING: if you delete this component, all its related data will be deleted as well.");
 		label.addStyleName("warning");
 		textLayout.addComponent(label);
 		textLayout.setComponentAlignment(label, Alignment.MIDDLE_CENTER);
@@ -237,17 +244,39 @@ public class ComponentButton extends VerticalLayout {
 			}
 		});
 
-		Button okButton = new Button("Delete Node");
+		Button okButton = new Button("Delete");
 		okButton.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(Button.ClickEvent event) {
-				if (nodeInfo.deleteNode()) {
+				boolean success = false;
+				switch (clusterComponent.getType()) {
+				case system:
+					success = ((SystemRecord) clusterComponent).delete();
+					break;
+				case node:
+					success = ((com.skysql.manager.api.NodeInfo) clusterComponent).delete();
+					break;
+				}
+				if (success) {
 					dialogWindow.close();
 					removeComponent(deleteButton);
 					removeComponent(editButton);
-					NodesLayout parent = (NodesLayout) thisButton.getParent();
-					parent.deleteComponent(thisButton);
+					switch (clusterComponent.getType()) {
+					case system:
+						if (thisButton.getParent() instanceof NodesLayout) {
+							NodesLayout nodesLayout = (NodesLayout) thisButton.getParent();
+							nodesLayout.deleteComponent(thisButton);
+						} else {
+							SystemLayout systemLayout = (SystemLayout) thisButton.getParent().getParent();
+							systemLayout.deleteComponent(thisButton);
+						}
+						break;
+					case node:
+						NodesLayout nodesLayout = (NodesLayout) thisButton.getParent();
+						nodesLayout.deleteComponent(thisButton);
+						break;
+					}
 				}
 			}
 		});
