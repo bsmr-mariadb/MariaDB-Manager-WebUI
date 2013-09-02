@@ -71,6 +71,12 @@ public class TaskInfo {
 	}
 }
 
+/***
+{"total":"2","tasks":[
+{"taskid":"1","systemid":"42","nodeid":"4","privateip":"3.5.7.9","username":"fred","command":"restart","parameters":"","steps":"stop,start","started":"Mon, 02 Sep 2013 09:07:05 +0100","pid":"32494","completed":"Mon, 02 Sep 2013 09:07:05 +0100","stepindex":"0","state":"running"},
+{"taskid":"2","systemid":"42","nodeid":"4","privateip":"3.5.7.9","username":"fred","command":"restart","parameters":"","steps":"stop,start","started":"Mon, 02 Sep 2013 09:33:27 +0100","pid":"2136","completed":"Mon, 02 Sep 2013 09:33:27 +0100","stepindex":"0","state":"running"}]}
+***/
+
 class TaskInfoDeserializer implements JsonDeserializer<TaskInfo> {
 	public TaskInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		TaskInfo taskInfo = new TaskInfo();
@@ -94,16 +100,20 @@ class TaskInfoDeserializer implements JsonDeserializer<TaskInfo> {
 			JsonObject taskObject = (array != null) ? array.get(i).getAsJsonObject() : json.getAsJsonObject().get("task").getAsJsonObject();
 			JsonElement element;
 
-			String id = (element = taskObject.get("id")).isJsonNull() ? null : element.getAsString();
+			String id = (element = taskObject.get("taskid")).isJsonNull() ? null : element.getAsString();
+			//String systemid = (element = taskObject.get("systemid")).isJsonNull() ? null : element.getAsString();
 			String node = (element = taskObject.get("nodeid")).isJsonNull() ? null : element.getAsString();
+			String privateIP = (element = taskObject.get("privateip")).isJsonNull() ? null : element.getAsString();
+			String user = (element = taskObject.get("username")).isJsonNull() ? null : element.getAsString();
 			String command = (element = taskObject.get("command")).isJsonNull() ? null : element.getAsString();
-			String params = ((element = taskObject.get("parameters")) == null || element.isJsonNull()) ? null : element.getAsString();
+			String params = ((element = taskObject.get("parameters")).isJsonNull()) ? null : element.getAsString();
+			String steps = (element = taskObject.get("steps")).isJsonNull() ? null : element.getAsString();
+			String start = (element = taskObject.get("started")).isJsonNull() ? null : element.getAsString();
+			String pid = (element = taskObject.get("pid")).isJsonNull() ? null : element.getAsString();
+			String end = (element = taskObject.get("completed")).isJsonNull() ? null : element.getAsString();
 			String index = (element = taskObject.get("stepindex")).isJsonNull() ? null : element.getAsString();
 			String status = (element = taskObject.get("state")).isJsonNull() ? null : element.getAsString();
-			String user = (element = taskObject.get("username")).isJsonNull() ? null : element.getAsString();
-			String start = (element = taskObject.get("start")).isJsonNull() ? null : element.getAsString();
-			String end = (element = taskObject.get("completed")).isJsonNull() ? null : element.getAsString();
-			TaskRecord taskRecord = new TaskRecord(id, node, command, params, index, status, user, start, end);
+			TaskRecord taskRecord = new TaskRecord(id, node, command, params, steps, pid, privateIP, index, status, user, start, end);
 			tasksList.add(taskRecord);
 		}
 

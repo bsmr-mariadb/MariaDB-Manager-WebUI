@@ -21,13 +21,11 @@ package com.skysql.manager.ui;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.CommandStates;
-import com.skysql.manager.api.Commands;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.TaskInfo;
 import com.skysql.manager.api.UserInfo;
@@ -51,7 +49,6 @@ public class PanelControl extends VerticalLayout {
 	private Table logsTable;
 	private String lastNodeID;
 	private int oldTasksCount;
-	private final LinkedHashMap<String, String> names = Commands.getNames();
 	private UpdaterThread updaterThread;
 
 	private ValueChangeListener commandListener = new ValueChangeListener() {
@@ -61,12 +58,11 @@ public class PanelControl extends VerticalLayout {
 
 			ManagerUI.log("commandListener()");
 
-			String name = (String) event.getProperty().getValue();
-			for (final String id : names.keySet()) {
-				if (names.get(id).equalsIgnoreCase(name)) {
-					selectCommand(id);
-				}
+			String command = (String) event.getProperty().getValue();
+			if (command != null) {
+				selectCommand(command);
 			}
+
 		}
 	};
 
@@ -153,8 +149,11 @@ public class PanelControl extends VerticalLayout {
 		logsTable.addContainerProperty("Completed", String.class, null);
 		logsTable.addContainerProperty("Command", String.class, null);
 		logsTable.addContainerProperty("Parameters", String.class, null);
+		logsTable.addContainerProperty("Steps", String.class, null);
+		logsTable.addContainerProperty("PID", String.class, null);
+		logsTable.addContainerProperty("Private IP", String.class, null);
 		logsTable.addContainerProperty("User", String.class, null);
-		logsTable.addContainerProperty("Status", String.class, null);
+		logsTable.addContainerProperty("State", String.class, null);
 
 		logsLayout.addComponent(logsTable);
 		logsLayout.setComponentAlignment(logsTable, Alignment.MIDDLE_CENTER);
@@ -211,7 +210,6 @@ public class PanelControl extends VerticalLayout {
 		final String taskID = nodeInfo.getTask();
 		// String taskCommand = nodeInfo.getCommand();
 		final RunningTask runningTask = nodeInfo.getCommandTask();
-		final String commands[] = nodeInfo.getCommands();
 
 		// update command history section
 		TaskInfo taskInfo = new TaskInfo(null, nodeInfo.getID());
@@ -224,7 +222,7 @@ public class PanelControl extends VerticalLayout {
 
 				ManagerUI.log("PanelControl access run() - taskID: " + taskID);
 
-				if (!newNodeID.equalsIgnoreCase(lastNodeID) || (tasksList != null && tasksList.size() != oldTasksCount)) {
+				if (!newNodeID.equals(lastNodeID) || (tasksList != null && tasksList.size() != oldTasksCount)) {
 
 					logsTable.removeAllItems();
 
@@ -232,24 +230,23 @@ public class PanelControl extends VerticalLayout {
 						oldTasksCount = tasksList.size();
 						Collections.reverse(tasksList);
 						for (TaskRecord taskRecord : tasksList) {
-							logsTable.addItem(
-									new Object[] { taskRecord.getStart(), taskRecord.getEnd(), names.get(taskRecord.getCommand()), taskRecord.getParams(),
-											userInfo.findNameByID(taskRecord.getUserID()), CommandStates.getDescriptions().get(taskRecord.getStatus()) },
-									taskRecord.getID());
+							logsTable.addItem(new Object[] { taskRecord.getStart(), taskRecord.getEnd(), taskRecord.getCommand(), taskRecord.getParams(),
+									taskRecord.getSteps(), taskRecord.getPID(), taskRecord.getPrivateIP(), userInfo.findNameByID(taskRecord.getUserID()),
+									CommandStates.getDescriptions().get(taskRecord.getState()) }, taskRecord.getID());
 						}
 					}
 				}
 
-				if (!newNodeID.equalsIgnoreCase(lastNodeID) || !Arrays.equals(commands, oldcommands)) {
+				String commands[] = new String[nodeInfo.getCommands().getNames().keySet().size()];
+				nodeInfo.getCommands().getNames().keySet().toArray(commands);
+				if (!newNodeID.equals(lastNodeID) || !Arrays.equals(commands, oldcommands)) {
 					commandSelect.removeValueChangeListener(commandListener);
 
 					// rebuild list of commands with what node is accepting
 					commandSelect.removeAllItems();
 					if ((commands != null) && (commands.length != 0)) {
-						for (String commandID : commands) {
-							String name = names.get(commandID);
-							if (name != null)
-								commandSelect.addItem(name);
+						for (String command : commands) {
+							commandSelect.addItem(command);
 						}
 					}
 					oldcommands = commands;
@@ -259,7 +256,7 @@ public class PanelControl extends VerticalLayout {
 
 				commandSelect.removeValueChangeListener(commandListener);
 				String selected = (runningTask != null) ? runningTask.getCommand() : null;
-				commandSelect.select(selected != null ? names.get(selected) : null);
+				commandSelect.select(selected);
 				commandSelect.addValueChangeListener(commandListener);
 
 				commandSelect.setEnabled(taskID != null ? false : true);
@@ -284,7 +281,7 @@ public class PanelControl extends VerticalLayout {
 		RunningTask runningTask = nodeInfo.getCommandTask();
 
 		ManagerUI.log("selectCommand() - runningTask: " + runningTask);
-		
+
 		runningTask = new RunningTask(command, nodeInfo, commandSelect);
 		runningTask.addRefreshListener(refreshListener);
 

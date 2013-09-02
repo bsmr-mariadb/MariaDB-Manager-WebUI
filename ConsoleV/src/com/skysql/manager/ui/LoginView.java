@@ -22,7 +22,6 @@ import com.skysql.manager.AppData.Debug;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.api.BackupStates;
 import com.skysql.manager.api.CommandStates;
-import com.skysql.manager.api.Commands;
 import com.skysql.manager.api.NodeStates;
 import com.skysql.manager.api.Steps;
 import com.skysql.manager.api.SystemTypes;
@@ -190,7 +189,6 @@ public class LoginView extends VerticalLayout {
 
 			// pre-load all global values
 			BackupStates.load();
-			Commands.load();
 			CommandStates.load();
 			Steps.load();
 			NodeStates.load();

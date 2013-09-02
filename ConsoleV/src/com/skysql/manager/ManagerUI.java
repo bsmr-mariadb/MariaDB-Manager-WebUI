@@ -81,29 +81,11 @@ public class ManagerUI extends UI {
 			APIrestful api = APIrestful.newInstance();
 			session.setAttribute(APIrestful.class, api);
 
-			SystemInfo systemInfo = new SystemInfo(SystemInfo.SYSTEM_ROOT);
-			//				if (systemInfo.getCurrentID() == null) {
-			//					break;
-			//				}
-			session.setAttribute(SystemInfo.class, systemInfo);
-
-			//				if (systemInfo.getCurrentSystem().getNodes().length == 0) {
-			//					break;
-			//				}
-
 			UserInfo userInfo = new UserInfo(null);
 			if (userInfo.getUsersList() == null || userInfo.getUsersList().isEmpty()) {
 				break;
 			}
 			session.setAttribute(UserInfo.class, userInfo);
-
-			//				if (systemInfo != null && systemInfo.getCurrentSystem() != null) {
-			//					LinkedHashMap<String, String> properties = systemInfo.getCurrentSystem().getProperties();
-			//					systemName = systemInfo.getCurrentSystem().getName();
-			//					systemVersion = properties.get(SystemInfo.PROPERTY_VERSION);
-			//				}
-			systemName = "{ API name goes here }";
-			systemVersion = "{ API version goes here }";
 
 		} while (false);
 
@@ -139,12 +121,11 @@ public class ManagerUI extends UI {
 			return;
 		}
 
-		//		SystemInfo systemInfo = session.getAttribute(SystemInfo.class);
-		//		if (systemInfo == null || systemInfo.getCurrentID() == null || systemInfo.getCurrentSystem().getNodes().length == 0) {
-		//			setContent(new ErrorView(Notification.Type.HUMANIZED_MESSAGE, "Initial System Setup - Please provide your configuration information."));
-		//			new SetupDialog();
-		//			return;
-		//		}
+		systemName = "{ Install/API name goes here }";
+		systemVersion = "{ API version goes here }";
+
+		SystemInfo systemInfo = new SystemInfo(SystemInfo.SYSTEM_ROOT);
+		session.setAttribute(SystemInfo.class, systemInfo);
 
 		UserInfo userInfo = session.getAttribute(UserInfo.class);
 		if (userInfo == null || userInfo.getUsersList() == null || userInfo.getUsersList().isEmpty()) {

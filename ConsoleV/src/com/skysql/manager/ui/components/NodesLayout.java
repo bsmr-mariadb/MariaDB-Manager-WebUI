@@ -46,6 +46,7 @@ public class NodesLayout extends HorizontalLayout {
 	private String[] components;
 	private String systemID;
 	private VerticalLayout placeholderLayout;
+	private String message;
 
 	public NodesLayout(SystemRecord systemRecord) {
 
@@ -137,36 +138,42 @@ public class NodesLayout extends HorizontalLayout {
 		}
 	}
 
-	public void placeholderLayout() {
+	public void placeholderLayout(String message) {
 
 		if (placeholderLayout == null) {
-
 			removeAllComponents();
 			components = null;
-
-			placeholderLayout = new VerticalLayout();
-			placeholderLayout.addStyleName("placeholderLayout");
-			placeholderLayout.setHeight(ComponentButton.COMPONENT_HEIGHT);
-
-			Label placeholderLabel = new Label("No components available");
-			placeholderLabel.addStyleName("instructions");
-			placeholderLabel.setSizeUndefined();
-			placeholderLayout.addComponent(placeholderLabel);
-			placeholderLayout.setComponentAlignment(placeholderLabel, Alignment.MIDDLE_CENTER);
-
-			/***
-			Label placeholderLabel2 = new Label(isEditable ? "Press \"Add...\" to add a new component" : "Press \"Edit\" to begin adding");
-			placeholderLabel2.addStyleName("instructions");
-			placeholderLabel2.setSizeUndefined();
-			placeholderLayout.addComponent(placeholderLabel2);
-			placeholderLayout.setComponentAlignment(placeholderLabel2, Alignment.MIDDLE_CENTER);
-			***/
-
-			addComponent(placeholderLayout);
-			setComponentAlignment(placeholderLayout, Alignment.MIDDLE_CENTER);
-
-			setStyleName(getStyleName().replace("network", ""));
+		} else {
+			removeComponent(placeholderLayout);
 		}
+
+		if (message != null) {
+			this.message = message;
+		} else {
+			message = this.message;
+		}
+
+		placeholderLayout = new VerticalLayout();
+		placeholderLayout.addStyleName("placeholderLayout");
+		placeholderLayout.setHeight(ComponentButton.COMPONENT_HEIGHT);
+
+		Label placeholderLabel = new Label("No " + message + " available");
+		placeholderLabel.addStyleName("instructions");
+		placeholderLabel.setSizeUndefined();
+		placeholderLayout.addComponent(placeholderLabel);
+		placeholderLayout.setComponentAlignment(placeholderLabel, Alignment.MIDDLE_CENTER);
+
+		Label placeholderLabel2 = new Label(isEditable ? "Press \"Add...\" to add new " + message + ", then \"Done\" when finished"
+				: "Press \"Edit\" to begin adding " + message);
+		placeholderLabel2.addStyleName("instructions");
+		placeholderLabel2.setSizeUndefined();
+		placeholderLayout.addComponent(placeholderLabel2);
+		placeholderLayout.setComponentAlignment(placeholderLabel2, Alignment.MIDDLE_CENTER);
+
+		addComponent(placeholderLayout);
+		setComponentAlignment(placeholderLayout, Alignment.MIDDLE_CENTER);
+
+		setStyleName(getStyleName().replace("network", ""));
 
 	}
 
@@ -179,10 +186,10 @@ public class NodesLayout extends HorizontalLayout {
 
 		if (parentSystemRecord == null) {
 			systemID = null;
-			placeholderLayout();
+			placeholderLayout("Systems");
 			return;
 		} else if (parentSystemRecord.getNodes().length == 0) {
-			placeholderLayout();
+			placeholderLayout("Components");
 			return;
 		} else {
 			if (placeholderLayout != null) {
@@ -310,13 +317,13 @@ public class NodesLayout extends HorizontalLayout {
 						button.setName(newName);
 					}
 
-					String newStatus = newComponent.getStatus();
+					String newState = newComponent.getState();
 
 					String newCapacity = newComponent.getCapacity();
-					if ((newStatus != null && (!newStatus.equals(currentComponent.getStatus())) || (newCapacity != null && !newCapacity.equals(currentComponent
+					if ((newState != null && (!newState.equals(currentComponent.getState())) || (newCapacity != null && !newCapacity.equals(currentComponent
 							.getCapacity())))) {
 
-						button.setIcon(currentComponent.getType().toString(), newStatus, newCapacity);
+						button.setIcon(currentComponent.getType().toString(), newState, newCapacity);
 					}
 
 					String toolTip = null;

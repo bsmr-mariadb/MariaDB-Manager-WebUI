@@ -24,8 +24,11 @@ public class TaskRecord {
 	private String node;
 	private String command;
 	private String params;
+	private String steps;
+	private String pid;
+	private String privateIP;
 	private String index;
-	private String status;
+	private String state;
 	private String userID;
 	private String start;
 	private String end;
@@ -46,12 +49,24 @@ public class TaskRecord {
 		return params;
 	}
 
+	public String getSteps() {
+		return steps;
+	}
+
+	public String getPID() {
+		return pid;
+	}
+
+	public String getPrivateIP() {
+		return privateIP;
+	}
+
 	public String getIndex() {
 		return index;
 	}
 
-	public String getStatus() {
-		return status;
+	public String getState() {
+		return state;
 	}
 
 	public String getUserID() {
@@ -66,13 +81,17 @@ public class TaskRecord {
 		return end;
 	}
 
-	public TaskRecord(String id, String node, String command, String params, String index, String status, String userID, String start, String end) {
+	public TaskRecord(String id, String node, String command, String params, String steps, String pid, String privateIP, String index, String state,
+			String userID, String start, String end) {
 		this.id = id;
 		this.node = node;
 		this.command = command;
 		this.params = params;
+		this.steps = steps;
+		this.pid = pid;
+		this.privateIP = privateIP;
 		this.index = index;
-		this.status = status;
+		this.state = state;
 		this.userID = userID;
 		this.start = start;
 		this.end = end;

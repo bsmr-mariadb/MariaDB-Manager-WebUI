@@ -36,6 +36,10 @@ import com.skysql.manager.ui.ErrorDialog;
 
 public class CommandStates {
 
+	public enum CommandState {
+		scheduled, running, paused, stopped, done, error;
+	}
+
 	private static CommandStates commandStates;
 	private static LinkedHashMap<String, String> icons;
 	private static LinkedHashMap<String, String> descriptions;
@@ -61,6 +65,8 @@ public class CommandStates {
 			if (api.get("command/state")) {
 				try {
 					commandStates = APIrestful.getGson().fromJson(api.getResult(), CommandStates.class);
+					// TODO: verify states against enum and throw error or log warning depending on discrepancy (missing state: error, new unknown state: warning)
+
 				} catch (NullPointerException e) {
 					new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
 					throw new RuntimeException("API response");

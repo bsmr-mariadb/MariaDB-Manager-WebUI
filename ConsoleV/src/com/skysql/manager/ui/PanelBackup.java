@@ -97,7 +97,7 @@ public class PanelBackup extends VerticalLayout {
 		backupsTable.addContainerProperty("Node", String.class, null);
 		backupsTable.addContainerProperty("Size", String.class, null);
 		backupsTable.addContainerProperty("Storage", String.class, null);
-		backupsTable.addContainerProperty("Status", String.class, null);
+		backupsTable.addContainerProperty("State", String.class, null);
 		backupsTable.addContainerProperty("Log", Link.class, null);
 
 		backupsLayout.addComponent(backupsTable);
@@ -194,7 +194,7 @@ public class PanelBackup extends VerticalLayout {
 							backupsTable.addItem(
 									new Object[] { backupRecord.getStarted(), backupRecord.getUpdated(), backupRecord.getRestored(), backupRecord.getLevel(),
 											backupRecord.getNode(), backupRecord.getSize(), backupRecord.getStorage(),
-											BackupStates.getDescriptions().get(backupRecord.getStatus()), backupLogLink }, backupRecord.getID());
+											BackupStates.getDescriptions().get(backupRecord.getState()), backupLogLink }, backupRecord.getID());
 						}
 					}
 				} else {
@@ -213,7 +213,7 @@ public class PanelBackup extends VerticalLayout {
 	final public void displayBackupInfo(VerticalLayout layout, BackupRecord record) {
 		String value;
 		String values[] = { (value = record.getID()) != null ? value : NOT_AVAILABLE, (value = record.getLevel()) != null ? value : NOT_AVAILABLE,
-				((value = record.getStatus()) != null) && (value = BackupStates.getDescriptions().get(value)) != null ? value : "Invalid",
+				((value = record.getState()) != null) && (value = BackupStates.getDescriptions().get(value)) != null ? value : "Invalid",
 				(value = record.getSize()) != null ? value : NOT_AVAILABLE, (value = record.getRestored()) != null ? value : "" };
 
 		GridLayout newBackupInfoGrid = new GridLayout(2, backupLabels.length);

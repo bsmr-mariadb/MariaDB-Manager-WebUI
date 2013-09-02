@@ -21,7 +21,7 @@ package com.skysql.manager;
 public class BackupRecord {
 
 	private String ID;
-	private String status;
+	private String state;
 	private String started;
 	private String updated;
 	private String level;
@@ -36,8 +36,8 @@ public class BackupRecord {
 		return ID;
 	}
 
-	public String getStatus() {
-		return status;
+	public String getState() {
+		return state;
 	}
 
 	public String getStarted() {
@@ -76,10 +76,10 @@ public class BackupRecord {
 		return parent;
 	}
 
-	public BackupRecord(String ID, String status, String started, String updated, String level, String node, String size, String storage, String restored,
+	public BackupRecord(String ID, String state, String started, String updated, String level, String node, String size, String storage, String restored,
 			String log, String parent) {
 		this.ID = ID;
-		this.status = status;
+		this.state = state;
 		this.started = started;
 		this.updated = updated;
 		this.level = level;

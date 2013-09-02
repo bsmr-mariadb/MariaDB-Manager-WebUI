@@ -26,7 +26,6 @@ import org.vaadin.jouni.animator.shared.AnimType;
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.ChartProperties;
-import com.skysql.manager.api.Commands;
 import com.skysql.manager.api.Monitors;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.NodeStates;
@@ -45,7 +44,6 @@ import com.vaadin.ui.HorizontalSplitPanel;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.Panel;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.Runo;
 
@@ -63,15 +61,14 @@ public class PanelInfo extends HorizontalSplitPanel {
 	private VerticalLayout infoLayout, chartsLayout;
 	private DDCssLayout chartsArray;
 	private String chartTime, chartInterval = "1800";
-	private String systemLabelsStrings[] = { "Status", "Availability", "Connections", "Data Transfer", "Last Backup", "Start Date", "Last Access" };
-	private String nodeLabelsStrings[] = { "Status", "Availability", "Connections", "Data Transfer", "Commands Running", "Public IP", "Private IP",
+	private String systemLabelsStrings[] = { "State", "Availability", "Connections", "Data Transfer", "Last Backup", "Start Date", "Last Access" };
+	private String nodeLabelsStrings[] = { "State", "Availability", "Connections", "Data Transfer", "Commands Running", "Public IP", "Private IP",
 			"Instance ID", };
 	private Label systemLabels[], nodeLabels[];
 	private ChartControls chartControls;
 	private ChartsLayout chartsArrayLayout;
 	private Panel chartsPanel;
 	private Label nameLabel;
-	private TextField nameField;
 	private ChartProperties chartProperties;
 	private boolean isExpanded = false;
 
@@ -128,14 +125,13 @@ public class PanelInfo extends HorizontalSplitPanel {
 		headerLayout.setComponentAlignment(nameLabel, Alignment.MIDDLE_LEFT);
 
 		final Button editButton = new Button("Edit");
-		// TODO: this will become the editing function of what properties are displayed in the info layout
 		editButton.setEnabled(false);
-		final Button saveButton = new Button("Done");
-
 		headerLayout.addComponent(editButton);
 		headerLayout.setComponentAlignment(editButton, Alignment.MIDDLE_RIGHT);
 
+		// this will become the editing function of what properties are displayed in the info layout
 		/***
+		final Button saveButton = new Button("Done");
 		editButton.addClickListener(new Button.ClickListener() {
 
 			public void buttonClick(ClickEvent event) {
@@ -397,7 +393,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 		case system:
 			SystemRecord systemRecord = (SystemRecord) componentInfo;
 			currentLabels = systemLabels;
-			String systemValues[] = { (value = systemRecord.getStatus()) != null ? NodeStates.getDescription(value) : NOT_AVAILABLE,
+			String systemValues[] = { (value = systemRecord.getState()) != null ? NodeStates.getDescription(value) : NOT_AVAILABLE,
 					(value = systemRecord.getHealth()) != null ? value + "%" : NOT_AVAILABLE,
 					(value = systemRecord.getConnections()) != null ? value : NOT_AVAILABLE,
 					(value = systemRecord.getPackets()) != null ? value + " KB" : NOT_AVAILABLE,
@@ -410,10 +406,9 @@ public class PanelInfo extends HorizontalSplitPanel {
 		case node:
 			NodeInfo nodeInfo = (NodeInfo) componentInfo;
 			currentLabels = nodeLabels;
-			String nodeValues[] = { (value = nodeInfo.getStatus()) != null ? NodeStates.getDescription(value) : NOT_AVAILABLE,
+			String nodeValues[] = { (value = nodeInfo.getState()) != null ? NodeStates.getDescription(value) : NOT_AVAILABLE,
 					(value = nodeInfo.getHealth()) != null ? value + "%" : NOT_AVAILABLE, (value = nodeInfo.getConnections()) != null ? value : NOT_AVAILABLE,
-					(value = nodeInfo.getPackets()) != null ? value + " KB" : NOT_AVAILABLE,
-					(value = nodeInfo.getCommand()) != null ? Commands.getNames().get(value) : NOT_AVAILABLE,
+					(value = nodeInfo.getPackets()) != null ? value + " KB" : NOT_AVAILABLE, (value = nodeInfo.getCommand()) != null ? value : NOT_AVAILABLE,
 					(value = nodeInfo.getPublicIP()) != null ? value : NOT_AVAILABLE, (value = nodeInfo.getPrivateIP()) != null ? value : NOT_AVAILABLE,
 					(value = nodeInfo.getInstanceID()) != null ? value : NOT_AVAILABLE };
 			values = nodeValues;

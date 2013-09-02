@@ -67,7 +67,7 @@ public class ComponentButton extends VerticalLayout {
 		imageLayout.setImmediate(true);
 
 		if (componentInfo.getParentID() != null) {
-			String icon = NodeStates.getNodeIcon(componentInfo.getStatus());
+			String icon = NodeStates.getNodeIcon(componentInfo.getState());
 			imageLayout.addStyleName(icon);
 			imageLayout.addStyleName(componentInfo.getType().toString());
 

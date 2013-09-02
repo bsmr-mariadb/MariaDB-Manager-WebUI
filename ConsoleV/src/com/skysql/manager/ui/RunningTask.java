@@ -36,7 +36,7 @@ import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.BackupStates;
 import com.skysql.manager.api.Backups;
 import com.skysql.manager.api.CommandStates;
-import com.skysql.manager.api.Commands;
+import com.skysql.manager.api.CommandStates.CommandState;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.Steps;
 import com.skysql.manager.api.SystemInfo;
@@ -49,6 +49,7 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.server.VaadinSession;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -65,14 +66,12 @@ import com.vaadin.ui.VerticalLayout;
 public final class RunningTask {
 
 	private static final String NOT_AVAILABLE = "n/a";
-	private static final String CMD_BACKUP = "7";
-	private static final String CMD_RESTORE = "8";
-	private static final String CMD_BACKUP2 = "9";
-	private static final String CMD_RESTORE2 = "10";
+	private static final String CMD_BACKUP = "backup";
+	private static final String CMD_RESTORE = "restore";
 	private VerticalLayout containerLayout, scriptingProgressLayout, scriptingControlsLayout, scriptingResultLayout;
 	private HorizontalLayout scriptingLayout, progressIconsLayout;
 	private Label scriptLabel, progressLabel, resultLabel;
-	private ScheduledFuture<?> runTimerFuture, cancelTimerFuture;
+	private ScheduledFuture<?> runTimerFuture;
 	private long startTime, runningTime;
 	private Embedded[] taskImages;
 	private LinkedHashMap<String, NativeButton> ctrlButtons = new LinkedHashMap<String, NativeButton>();
@@ -92,9 +91,11 @@ public final class RunningTask {
 	private ListSelect selectPrevBackup;
 	private String firstItem;
 	private ValueChangeListener listener;
+	private String state;
 
 	RunningTask(String command, NodeInfo nodeInfo, ListSelect commandSelect) {
 		this.command = command;
+		this.state = nodeInfo.getState();
 		this.nodeInfo = nodeInfo;
 		this.commandSelect = commandSelect;
 
@@ -118,8 +119,7 @@ public final class RunningTask {
 		scriptingLayout.setSizeFull();
 		containerLayout.addComponent(scriptingLayout);
 
-		if (command.equalsIgnoreCase(CMD_BACKUP) || command.equalsIgnoreCase(CMD_RESTORE) || command.equalsIgnoreCase(CMD_BACKUP2)
-				|| command.equalsIgnoreCase(CMD_RESTORE2)) {
+		if (command.equalsIgnoreCase(CMD_BACKUP) || command.equalsIgnoreCase(CMD_RESTORE)) {
 
 			// add PARAMETER layout
 			parameterLayout.setSizeFull();
@@ -129,7 +129,7 @@ public final class RunningTask {
 			scriptingLayout.setComponentAlignment(parameterLayout, Alignment.MIDDLE_LEFT);
 
 			// COLUMN 1. PARAMETERS
-			if (command.equalsIgnoreCase(CMD_BACKUP) || command.equalsIgnoreCase(CMD_BACKUP2)) {
+			if (command.equalsIgnoreCase(CMD_BACKUP)) {
 				backupLevel = new OptionGroup("Backup Level");
 				backupLevel.setImmediate(true);
 				backupLevel.addItem("Full");
@@ -210,19 +210,19 @@ public final class RunningTask {
 				// final DisplayBackupRecord displayRecord = new
 				// DisplayBackupRecord(parameterLayout);
 
-				if (command.equalsIgnoreCase(CMD_BACKUP) || command.equalsIgnoreCase(CMD_BACKUP2)) {
+				if (command.equalsIgnoreCase(CMD_BACKUP)) {
 
-				} else if (command.equalsIgnoreCase(CMD_RESTORE) || command.equalsIgnoreCase(CMD_RESTORE2)) {
+				} else if (command.equalsIgnoreCase(CMD_RESTORE)) {
 					parameterLayout.addComponent(prevBackupsLayout);
 					selectPrevBackup.select(firstItem);
 
 				}
 
 			} else { // no previous backups
-				if (command.equalsIgnoreCase(CMD_BACKUP) || command.equalsIgnoreCase(CMD_BACKUP2)) {
+				if (command.equalsIgnoreCase(CMD_BACKUP)) {
 					backupLevel.setEnabled(false);
 
-				} else if (command.equalsIgnoreCase(CMD_RESTORE) || command.equalsIgnoreCase(CMD_RESTORE2)) {
+				} else if (command.equalsIgnoreCase(CMD_RESTORE)) {
 
 					Label placeholderLabel = new Label("No Backups are available for Restore");
 					placeholderLabel.addStyleName("instructions");
@@ -276,14 +276,13 @@ public final class RunningTask {
 		scriptingLayout.addComponent(scriptingResultLayout);
 		scriptingLayout.setComponentAlignment(scriptingResultLayout, Alignment.MIDDLE_LEFT);
 
-		resultLabel = new Label("Has not run yet", Label.CONTENT_RAW);
+		resultLabel = new Label("Has not run yet", ContentMode.HTML);
 		resultLabel.addStyleName("instructions");
 		resultLabel.setImmediate(true);
 		scriptingResultLayout.addComponent(resultLabel);
 		scriptingResultLayout.setComponentAlignment(resultLabel, Alignment.MIDDLE_CENTER);
 
 		// ******* BUILD COLUMN 2 - CONTROL
-		String commandName = Commands.getNames().get(command);
 
 		// observer mode
 		if (observerMode) {
@@ -293,7 +292,7 @@ public final class RunningTask {
 			String userName = userInfo.findNameByID(userID);
 			String started = taskRecord.getStart();
 
-			final Label label = new Label("The " + commandName + " command<br>was started at " + started + "<br>by " + userName, Label.CONTENT_RAW);
+			final Label label = new Label("The " + command + " command<br>was started at " + started + "<br>by " + userName);
 			label.addStyleName("instructions");
 			label.setImmediate(true);
 			scriptingControlsLayout.addComponent(label);
@@ -328,7 +327,7 @@ public final class RunningTask {
 
 		// ********* BUILD COLUMN 3 - PROGRESS
 
-		scriptLabel.setValue(commandName);
+		scriptLabel.setValue(command);
 		/***
 		 * { Embedded image = new Embedded(commandName, new
 		 * ThemeResource("img/scripting/script_small.png"));
@@ -342,7 +341,7 @@ public final class RunningTask {
 
 		LinkedHashMap<String, StepRecord> stepRecords = Steps.getStepsList();
 
-		String[] stepsIDs = Commands.getSteps(command);
+		String[] stepsIDs = nodeInfo.getCommands().getSteps(command);
 
 		primitives = new String[stepsIDs.length];
 		taskImages = new Embedded[stepsIDs.length + 1]; // allow for one more
@@ -387,7 +386,7 @@ public final class RunningTask {
 	final public void displayBackupInfo(VerticalLayout layout, BackupRecord record) {
 		String value;
 		String values[] = { (value = record.getID()) != null ? value : NOT_AVAILABLE, (value = record.getLevel()) != null ? value : NOT_AVAILABLE,
-				((value = record.getStatus()) != null) && (value = BackupStates.getDescriptions().get(value)) != null ? value : "Invalid",
+				((value = record.getState()) != null) && (value = BackupStates.getDescriptions().get(value)) != null ? value : "Invalid",
 				(value = record.getSize()) != null ? value : NOT_AVAILABLE, (value = record.getUpdated()) != null ? value : NOT_AVAILABLE,
 				(value = record.getRestored()) != null ? value : NOT_AVAILABLE };
 
@@ -454,7 +453,8 @@ public final class RunningTask {
 	}
 
 	void start() {
-		commandSelect.setEnabled(false); // disable command selection immediately
+		// disable further command selection immediately
+		commandSelect.setEnabled(false);
 		parameterLayout.setEnabled(false);
 
 		startTime = System.currentTimeMillis();
@@ -463,7 +463,15 @@ public final class RunningTask {
 		UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
 		String userID = userObject.getUserID();
 
-		TaskRun taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, command, params);
+		TaskRun taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, command, params, state);
+		if (taskRun.getTask() == null) {
+			commandSelect.select(null);
+			commandSelect.setEnabled(true);
+			parameterLayout.setEnabled(true);
+			resultLabel.setValue("Failed to launch: " + taskRun.getError());
+			return;
+		}
+
 		nodeInfo.setTask(taskRun.getTask());
 
 		activateTimer();
@@ -493,6 +501,8 @@ public final class RunningTask {
 		//		if (cancelTimerFuture != null)
 		//			cancelTimerFuture.cancel(DONT_INTERRUPT_IF_RUNNING);
 
+		command = null;
+		commandSelect.select(null);
 		commandSelect.setEnabled(true);
 
 		if (listener != null) {
@@ -538,12 +548,12 @@ public final class RunningTask {
 			vaadinSession.lock();
 
 			try {
-				String statusString;
-				if ((statusString = taskRecord.getStatus()) == null) {
+				String stateString;
+				if ((stateString = taskRecord.getState()) == null) {
 					return; // we're waiting for something to happen
 				}
-				resultLabel.setValue(CommandStates.getDescriptions().get(statusString));
-				int status = Integer.parseInt(statusString);
+				CommandState state = CommandState.valueOf(stateString);
+				resultLabel.setValue(CommandStates.getDescriptions().get(state));
 
 				String indexString;
 				if ((indexString = taskRecord.getIndex()) == null) {
@@ -562,7 +572,7 @@ public final class RunningTask {
 					ManagerUI.log(nodeInfo.getTask() + " - cannot update display");
 				}
 
-				if ((status == 2) && (index != lastIndex)) {
+				if ((state.equals(CommandState.running)) && (index != lastIndex)) {
 					if (scriptingProgressLayout.isVisible()) {
 						ManagerUI.log(nodeInfo.getTask() + " - updating running position");
 
@@ -574,7 +584,7 @@ public final class RunningTask {
 					}
 					lastIndex = index;
 
-				} else if (status == 5) {
+				} else if (state.equals(CommandState.done)) {
 					runningTime = System.currentTimeMillis() - startTime;
 					if (scriptingProgressLayout.isVisible()) {
 						ManagerUI.log(nodeInfo.getTask() + " - updating done position");
@@ -586,7 +596,7 @@ public final class RunningTask {
 						DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 						Date date = new Date();
 						progressLabel.setValue("Done");
-						resultLabel.setValue("Completed successfully<br><br>on " + dateFormat.format(date) + "<br><br>in " + time);
+						resultLabel.setValue("Completed successfully<br/><br/>on " + dateFormat.format(date) + "<br/><br/>in " + time);
 
 					} else {
 						ManagerUI.log(nodeInfo.getTask() + " - cannot update display");
@@ -598,7 +608,7 @@ public final class RunningTask {
 					lastIndex = -1;
 					lastProgressIndex = 0;
 
-				} else if (status == 6) {
+				} else if (state.equals(CommandState.error)) {
 					if (scriptingProgressLayout.isVisible()) {
 						ManagerUI.log(nodeInfo.getTask() + " - updating error position");
 

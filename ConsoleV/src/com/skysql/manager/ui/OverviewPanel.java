@@ -127,8 +127,8 @@ public class OverviewPanel extends Panel {
 				} else {
 					addSystemButton.setVisible(true);
 				}
-				if (systemRecord != null && systemRecord.getNodes().length == 0) {
-					nodesLayout.placeholderLayout();
+				if (systemRecord == null || (systemRecord != null && systemRecord.getNodes().length == 0)) {
+					nodesLayout.placeholderLayout(null);
 				}
 			}
 		});
@@ -142,7 +142,7 @@ public class OverviewPanel extends Panel {
 				nodesLayout.setEditable(false);
 				nodesHeader.setStyleName("panelHeaderLayout");
 				if (systemRecord != null && systemRecord.getNodes().length == 0) {
-					nodesLayout.placeholderLayout();
+					nodesLayout.placeholderLayout(null);
 				}
 				addNodeButton.setVisible(false);
 				addSystemButton.setVisible(false);
@@ -279,7 +279,7 @@ public class OverviewPanel extends Panel {
 		}
 
 		nodesLayout.refresh(updaterThread, newSystemRecord);
-		nodesLabel.setValue(SystemInfo.SYSTEM_ROOT.equals(newSystemRecord.getID()) ? "Systems" : "Components");
+		nodesLabel.setValue(newSystemRecord == null || SystemInfo.SYSTEM_ROOT.equals(newSystemRecord.getID()) ? "Systems" : "Components");
 
 		if (updaterThread.flagged) {
 			return;

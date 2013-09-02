@@ -27,19 +27,24 @@ import com.skysql.manager.ui.ErrorDialog;
 
 public class TaskRun {
 	private String task;
+	private String error;
 
 	public String getTask() {
 		return task;
 	}
 
-	public void setTask(String task) {
+	public String getError() {
+		return error;
+	}
+
+	protected void setTask(String task) {
 		this.task = task;
 	}
 
 	public TaskRun() {
 	}
 
-	public TaskRun(String systemID, String nodeID, String userID, String commandID, String params) {
+	public TaskRun(String systemID, String nodeID, String userID, String command, String params, String state) {
 
 		APIrestful api = new APIrestful();
 
@@ -48,11 +53,12 @@ public class TaskRun {
 			StringBuffer regParam = new StringBuffer();
 			regParam.append("systemid=" + URLEncoder.encode(systemID, "UTF-8"));
 			regParam.append("&nodeid=" + URLEncoder.encode(nodeID, "UTF-8"));
+			regParam.append("&state=" + URLEncoder.encode(state, "UTF-8"));
 			regParam.append("&username=" + URLEncoder.encode(userID, "UTF-8"));
 			if (params != null) {
 				regParam.append("&parameters=" + URLEncoder.encode(params, "UTF-8"));
 			}
-			success = api.post("command/" + Commands.getNames().get(commandID).toLowerCase(), regParam.toString());
+			success = api.post("command/" + command, regParam.toString());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -73,6 +79,8 @@ public class TaskRun {
 				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
 				throw new RuntimeException("API response");
 			}
+		} else {
+			error = api.getErrors();
 		}
 	}
 }

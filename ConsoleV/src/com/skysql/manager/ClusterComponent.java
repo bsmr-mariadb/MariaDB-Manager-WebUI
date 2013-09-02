@@ -31,7 +31,7 @@ public class ClusterComponent {
 	protected CCType type;
 	protected String parentID;
 	protected String systemType;
-	protected String status;
+	protected String state;
 	protected String capacity;
 	protected String health;
 	protected String connections;
@@ -78,12 +78,12 @@ public class ClusterComponent {
 		this.systemType = systemType;
 	}
 
-	public String getStatus() {
-		return status;
+	public String getState() {
+		return state;
 	}
 
-	public void setStatus(String status) {
-		this.status = status;
+	public void setState(String state) {
+		this.state = state;
 	}
 
 	public String getCapacity() {
