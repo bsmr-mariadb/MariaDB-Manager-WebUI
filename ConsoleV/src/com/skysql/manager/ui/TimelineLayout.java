@@ -19,7 +19,6 @@
 package com.skysql.manager.ui;
 
 import java.awt.Color;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -44,8 +43,6 @@ public class TimelineLayout extends VerticalLayout {
 	public static final Color[] colorArray = { new Color(0x00, 0xb4, 0xf0), new Color(0xee, 0x7c, 0x08), new Color(0x40, 0xb5, 0x27),
 			new Color(0x00, 0x7E, 0xA8), new Color(0xA7, 0x57, 0x06), new Color(0x2D, 0x7F, 0x1B), new Color(0x66, 0x33, 0x00), new Color(0xCC, 0x00, 0x66),
 			new Color(0x99, 0x66, 0xFF), new Color(0x99, 0x66, 0x00) };
-
-	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	private Timeline timeline;
 	private LinkedHashMap<MonitorRecord, IndexedContainer> containers;

@@ -50,7 +50,7 @@ public class ChartsDialog {
 		this.chartButton = chartButton;
 		this.chartsLayout = chartsLayout;
 
-		dialogWindow = new ChartWindow("Monitors to Chart mapping");
+		dialogWindow = new ModalWindow("Monitors to Chart mapping", "775px");
 
 		HorizontalLayout wrapper = new HorizontalLayout();
 		//wrapper.setWidth("100%");
@@ -144,19 +144,4 @@ public class ChartsDialog {
 
 	}
 
-}
-
-class ChartWindow extends Window {
-	private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-	public ChartWindow(String caption) {
-		setModal(true);
-		setWidth("775px");
-		center();
-		setCaption(caption);
-		VerticalLayout layout = new VerticalLayout();
-		setContent(layout);
-		layout.setSpacing(true);
-		layout.setMargin(true);
-	}
 }

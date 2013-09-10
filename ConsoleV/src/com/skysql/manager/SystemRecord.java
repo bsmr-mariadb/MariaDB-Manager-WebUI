@@ -83,28 +83,28 @@ public class SystemRecord extends ClusterComponent {
 		this.parentID = parentID;
 	}
 
-	public SystemRecord(String parentID, String ID, String systemType, String name, String health, String connections, String packets, String startDate,
-			String lastAccess, String[] nodes, String lastBackup, LinkedHashMap<String, String> properties) {
+	public SystemRecord(String parentID, String ID, String systemType, String name, String state, String startDate, String lastAccess, String[] nodes,
+			String lastBackup, LinkedHashMap<String, String> properties, MonitorLatest monitorLatest) {
 		this.type = ClusterComponent.CCType.system;
 		this.parentID = parentID;
 		this.ID = ID;
 		this.systemType = systemType;
 		this.name = name;
+		this.state = state;
 		this.startDate = startDate;
 		this.lastAccess = lastAccess;
 		this.nodes = nodes;
 		this.lastBackup = lastBackup;
 		this.properties = properties;
-		this.health = health;
-		this.connections = connections;
-		this.packets = packets;
+		this.monitorLatest = monitorLatest;
 	}
 
 	public String ToolTip() {
 
 		return "<h2>System - (Double-click to open)</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Type:</b> " + this.systemType + "</li>"
-				+ "<li><b>Name:</b> " + this.name + "</li>" + "<li><b>Nodes:</b> " + ((this.nodes == null) ? NOT_AVAILABLE : Arrays.toString(this.nodes))
-				+ "</li>" + "<li><b>Start Date:</b> " + ((this.startDate == null) ? NOT_AVAILABLE : this.startDate) + "</li>" + "<li><b>Last Access:</b> "
+				+ "<li><b>Name:</b> " + this.name + "</li>" + "</li>" + "<li><b>State:</b> " + ((this.state == null) ? NOT_AVAILABLE : this.state) + "</li>"
+				+ "<li><b>Nodes:</b> " + ((this.nodes == null) ? NOT_AVAILABLE : Arrays.toString(this.nodes)) + "</li>" + "<li><b>Start Date:</b> "
+				+ ((this.startDate == null) ? NOT_AVAILABLE : this.startDate) + "</li>" + "<li><b>Last Access:</b> "
 				+ ((this.lastAccess == null) ? NOT_AVAILABLE : this.lastAccess) + "</li>" + "<li><b>Last Backup:</b> "
 				+ ((this.lastBackup == null) ? NOT_AVAILABLE : this.lastBackup) + "</li>" + "</ul>";
 	}

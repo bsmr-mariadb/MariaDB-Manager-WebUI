@@ -33,7 +33,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
@@ -52,8 +51,7 @@ public class SettingsDialog implements Window.CloseListener {
 
 		public void buttonClick(Button.ClickEvent event) {
 
-			dialogWindow = new DialogWindow("Settings");
-			dialogWindow.setWidth("500px");
+			dialogWindow = new ModalWindow("Settings", "500px");
 			UI.getCurrent().addWindow(dialogWindow);
 
 			tabsheet = new TabSheet();
@@ -121,19 +119,5 @@ public class SettingsDialog implements Window.CloseListener {
 	/** In case the window is closed otherwise. */
 	public void windowClose(CloseEvent e) {
 		// anything special goes here
-	}
-}
-
-class DialogWindow extends Window {
-	private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-	public DialogWindow(String caption) {
-		setModal(true);
-		center();
-		setCaption(caption);
-		VerticalLayout layout = new VerticalLayout();
-		setContent(layout);
-		layout.setSpacing(true);
-		layout.setMargin(true);
 	}
 }

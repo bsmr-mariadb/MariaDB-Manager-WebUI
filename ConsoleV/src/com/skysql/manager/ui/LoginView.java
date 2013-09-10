@@ -85,12 +85,12 @@ public class LoginView extends VerticalLayout {
 		addStyleName("loginView");
 		setMargin(true);
 
-		Embedded logo = new Embedded(null, new ThemeResource("img/combovertical.png"));
+		Embedded logo = new Embedded(null, new ThemeResource("img/companylogo.png"));
 		addComponent(logo);
 		setComponentAlignment(logo, Alignment.MIDDLE_CENTER);
 
 		HorizontalLayout featuresLayout = new HorizontalLayout();
-		Embedded cloud = new Embedded(null, new ThemeResource("img/cloud_data_suite.png"));
+		Embedded cloud = new Embedded(null, new ThemeResource("img/productlogo.png"));
 		featuresLayout.addComponent(cloud);
 		featuresLayout.setComponentAlignment(cloud, Alignment.MIDDLE_CENTER);
 		addComponent(featuresLayout);

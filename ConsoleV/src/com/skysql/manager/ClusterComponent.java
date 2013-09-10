@@ -33,10 +33,8 @@ public class ClusterComponent {
 	protected String systemType;
 	protected String state;
 	protected String capacity;
-	protected String health;
-	protected String connections;
-	protected String packets;
 	protected ComponentButton button;
+	protected MonitorLatest monitorLatest;
 
 	public String getID() {
 		return ID;
@@ -94,36 +92,20 @@ public class ClusterComponent {
 		this.capacity = capacity;
 	}
 
-	public String getHealth() {
-		return health;
-	}
-
-	public void setHealth(String health) {
-		this.health = health;
-	}
-
-	public String getConnections() {
-		return connections;
-	}
-
-	public void setConnections(String connections) {
-		this.connections = connections;
-	}
-
-	public String getPackets() {
-		return packets;
-	}
-
-	public void setPackets(String packets) {
-		this.packets = packets;
-	}
-
 	public ComponentButton getButton() {
 		return button;
 	}
 
 	public void setButton(ComponentButton button) {
 		this.button = button;
+	}
+
+	public MonitorLatest getMonitorLatest() {
+		return monitorLatest;
+	}
+
+	public void setMonitorLatest(MonitorLatest monitorLatest) {
+		this.monitorLatest = monitorLatest;
 	}
 
 }

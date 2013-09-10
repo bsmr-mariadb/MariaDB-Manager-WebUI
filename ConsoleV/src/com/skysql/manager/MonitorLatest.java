@@ -16,24 +16,20 @@
  * Copyright 2012-2013 SkySQL Ab
  */
 
-package com.skysql.manager.ui;
+package com.skysql.manager;
 
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
+import java.util.LinkedHashMap;
 
-public class ModalWindow extends Window {
-	private static final long serialVersionUID = 0x4C656F6E6172646FL;
+public class MonitorLatest {
 
-	public ModalWindow(String caption, String width) {
-		setModal(true);
-		if (width != null) {
-			setWidth(width);
-		}
-		center();
-		setCaption(caption);
-		VerticalLayout layout = new VerticalLayout();
-		setContent(layout);
-		layout.setSpacing(true);
-		layout.setMargin(true);
+	private LinkedHashMap<String, String> data;
+
+	public LinkedHashMap<String, String> getData() {
+		return data;
 	}
+
+	public void setData(LinkedHashMap<String, String> data) {
+		this.data = data;
+	}
+
 }

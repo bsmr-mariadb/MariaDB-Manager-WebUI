@@ -26,19 +26,19 @@ import com.skysql.manager.TaskRecord;
 import com.skysql.manager.ui.ErrorDialog;
 
 public class TaskRun {
-	private String task;
+	private TaskRecord taskRecord;
 	private String error;
 
-	public String getTask() {
-		return task;
+	public TaskRecord getTaskRecord() {
+		return taskRecord;
 	}
 
 	public String getError() {
 		return error;
 	}
 
-	protected void setTask(String task) {
-		this.task = task;
+	protected void setTaskRecord(TaskRecord taskRecord) {
+		this.taskRecord = taskRecord;
 	}
 
 	public TaskRun() {
@@ -53,8 +53,10 @@ public class TaskRun {
 			StringBuffer regParam = new StringBuffer();
 			regParam.append("systemid=" + URLEncoder.encode(systemID, "UTF-8"));
 			regParam.append("&nodeid=" + URLEncoder.encode(nodeID, "UTF-8"));
-			regParam.append("&state=" + URLEncoder.encode(state, "UTF-8"));
 			regParam.append("&username=" + URLEncoder.encode(userID, "UTF-8"));
+			if (state != null) {
+				regParam.append("&state=" + URLEncoder.encode(state, "UTF-8"));
+			}
 			if (params != null) {
 				regParam.append("&parameters=" + URLEncoder.encode(params, "UTF-8"));
 			}
@@ -70,7 +72,7 @@ public class TaskRun {
 				TaskInfo taskInfo = APIrestful.getGson().fromJson(api.getResult(), TaskInfo.class);
 				ArrayList<TaskRecord> tasksList = taskInfo.getTasksList();
 				if (tasksList != null && !tasksList.isEmpty()) {
-					this.task = tasksList.get(0).getID();
+					this.taskRecord = tasksList.get(0);
 				}
 			} catch (NullPointerException e) {
 				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());

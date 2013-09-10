@@ -30,6 +30,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.manager.MonitorLatest;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.ui.ErrorDialog;
 
@@ -37,6 +38,7 @@ public class SystemInfo {
 
 	public static final String SYSTEM_NODEID = "0";
 	public static final String SYSTEM_ROOT = "0";
+
 	public static final String PROPERTY_EIP = "EIP";
 	public static final String PROPERTY_MONYOG = "MONyog";
 	public static final String PROPERTY_PHPMYADMIN = "phpMyAdmin";
@@ -172,6 +174,8 @@ public class SystemInfo {
 	}
 }
 
+// {"system":{"systemid":"1","systemtype":"aws","name":"sistema1","started":"Wed, 31 Jul 2013 18:48:41 +0000","lastaccess":"Wed, 31 Jul 2013 18:48:41 +0000","state":"running","nodes":["1"],"lastbackup":null,"properties":{},"monitorlatest":{"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null}},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
+
 class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 	public SystemInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		SystemInfo systemInfo = new SystemInfo();
@@ -192,47 +196,20 @@ class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 			return systemInfo;
 		}
 
-		// {"system":{"systemid":"1","systemtype":"aws","name":"sistema1","started":"Wed, 31 Jul 2013 18:48:41 +0000","lastaccess":"Wed, 31 Jul 2013 18:48:41 +0000","state":"running","nodes":["1"],"lastbackup":null,"properties":{},"monitorlatest":{"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null}},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
-
 		for (int i = 0; i < length; i++) {
 			JsonObject systemObject = (array != null) ? array.get(i).getAsJsonObject() : json.getAsJsonObject().get("system").getAsJsonObject();
 			JsonElement element;
 			String ID = (element = systemObject.get("systemid")).isJsonNull() ? null : element.getAsString();
 			String type = (element = systemObject.get("systemtype")).isJsonNull() ? null : element.getAsString();
 			String name = (element = systemObject.get("name")).isJsonNull() ? null : element.getAsString();
+			String state = (element = systemObject.get("state")).isJsonNull() ? null : element.getAsString();
 			String startDate = (element = systemObject.get("started")).isJsonNull() ? null : element.getAsString();
 			String lastAccess = (element = systemObject.get("lastaccess")).isJsonNull() ? null : element.getAsString();
 			String lastBackup = (element = systemObject.get("lastbackup")).isJsonNull() ? null : element.getAsString();
 
-			String connections, traffic, availability, nodestate, capacity, hoststate, clustersize, reppaused, parallelism, recvqueue, flowcontrol, sendqueue;
-			if (!(element = systemObject.get("monitorlatest")).isJsonNull()) {
-				JsonObject monitorObject = element.getAsJsonObject();
-
-				connections = (element = monitorObject.get("connections")).isJsonNull() ? null : element.getAsString();
-				traffic = (element = monitorObject.get("traffic")).isJsonNull() ? null : element.getAsString();
-				availability = (element = monitorObject.get("availability")).isJsonNull() ? null : element.getAsString();
-				nodestate = (element = monitorObject.get("nodestate")).isJsonNull() ? null : element.getAsString();
-				capacity = (element = monitorObject.get("capacity")).isJsonNull() ? null : element.getAsString();
-				hoststate = (element = monitorObject.get("hoststate")).isJsonNull() ? null : element.getAsString();
-				clustersize = (element = monitorObject.get("clustersize")).isJsonNull() ? null : element.getAsString();
-				reppaused = (element = monitorObject.get("reppaused")).isJsonNull() ? null : element.getAsString();
-				parallelism = (element = monitorObject.get("parallelism")).isJsonNull() ? null : element.getAsString();
-				recvqueue = (element = monitorObject.get("recvqueue")).isJsonNull() ? null : element.getAsString();
-				flowcontrol = (element = monitorObject.get("flowcontrol")).isJsonNull() ? null : element.getAsString();
-				sendqueue = (element = monitorObject.get("sendqueue")).isJsonNull() ? null : element.getAsString();
-			} else {
-				connections = null;
-				traffic = null;
-				availability = null;
-				nodestate = null;
-				capacity = null;
-				hoststate = null;
-				clustersize = null;
-				reppaused = null;
-				parallelism = null;
-				recvqueue = null;
-				flowcontrol = null;
-				sendqueue = null;
+			MonitorLatest monitorLatest = null;
+			if ((element = systemObject.get("monitorlatest")) != null && !element.isJsonNull()) {
+				monitorLatest = APIrestful.getGson().fromJson(element.toString(), MonitorLatest.class);
 			}
 
 			String[] nodes = null;
@@ -285,8 +262,8 @@ class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 
 			}
 
-			SystemRecord systemRecord = new SystemRecord(SystemInfo.SYSTEM_ROOT, ID, type, name, availability, connections, traffic, startDate, lastAccess,
-					nodes, lastBackup, properties);
+			SystemRecord systemRecord = new SystemRecord(SystemInfo.SYSTEM_ROOT, ID, type, name, state, startDate, lastAccess, nodes, lastBackup, properties,
+					monitorLatest);
 			systemsMap.put(ID, systemRecord);
 		}
 

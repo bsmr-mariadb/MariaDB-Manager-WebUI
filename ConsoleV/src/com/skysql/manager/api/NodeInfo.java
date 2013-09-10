@@ -28,6 +28,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.ClusterComponent;
+import com.skysql.manager.Commands;
+import com.skysql.manager.MonitorLatest;
 import com.skysql.manager.ui.ErrorDialog;
 import com.skysql.manager.ui.RunningTask;
 
@@ -196,10 +198,8 @@ public class NodeInfo extends ClusterComponent {
 				this.name = nodeInfo.name;
 				this.state = nodeInfo.state;
 				this.capacity = nodeInfo.capacity;
-				this.health = nodeInfo.health;
-				this.connections = nodeInfo.connections;
-				this.packets = nodeInfo.packets;
 				this.commands = nodeInfo.commands;
+				this.monitorLatest = nodeInfo.monitorLatest;
 				this.task = nodeInfo.task;
 				this.command = nodeInfo.command;
 				this.hostname = nodeInfo.hostname;
@@ -220,29 +220,20 @@ public class NodeInfo extends ClusterComponent {
 	}
 
 	public String ToolTip() {
-		StringBuffer commands = new StringBuffer("[");
-		if (this.commands != null && !this.commands.getNames().isEmpty()) {
-			commands.append(getCommands().getNames().keySet());
-			//commands.deleteCharAt(commands.length() - 1);
-		}
-		commands.append("]");
 
 		return "<h2>Node</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Name:</b> " + this.name + "</li>" + "<li><b>Hostname:</b> "
 				+ this.hostname + "</li>" + "<li><b>Public IP:</b> " + this.publicIP + "</li>" + "<li><b>Private IP:</b> " + this.privateIP + "</li>"
 				+ "<li><b>Instance ID:</b> " + this.instanceID + "<li><b>Username:</b> " + this.username + "<li><b>Password:</b> " + this.password + "</li>"
-				+ "<li><b>State:</b> " + ((this.state == null) ? NOT_AVAILABLE : NodeStates.getDescription(this.state)) + "</li>" + "<li><b>Availabilty:</b> "
-				+ ((this.health == null) ? NOT_AVAILABLE : this.health + "%") + "</li>" + "<li><b>Connections:</b> "
-				+ ((this.connections == null) ? NOT_AVAILABLE : this.connections) + "</li>" + "<li><b>Data Transfer:</b> "
-				+ ((this.packets == null) ? NOT_AVAILABLE : this.packets + "KB") + "</li>" + "<li><b>Available Commands:</b> "
-				+ ((this.commands == null) ? NOT_AVAILABLE : commands) + "</li>" + "<li><b>Task ID:</b> " + ((this.task == null) ? NOT_AVAILABLE : this.task)
-				+ "</li>" + "<li><b>Running Command:</b> " + ((this.command == null) ? NOT_AVAILABLE : this.command) + "</li>" + "</ul>";
+				+ "<li><b>State:</b> " + ((this.state == null) ? NOT_AVAILABLE : NodeStates.getDescription(this.state)) + "</li>" + "<li><b>Monitors:</b> "
+				+ ((this.monitorLatest == null) ? NOT_AVAILABLE : monitorLatest.getData().toString()) + "</li>" + "<li><b>Available Commands:</b> "
+				+ ((this.commands == null) ? NOT_AVAILABLE : getCommands().getNames().keySet()) + "</li>" + "<li><b>Task ID:</b> "
+				+ ((this.task == null) ? NOT_AVAILABLE : this.task) + "</li>" + "<li><b>Running Command:</b> "
+				+ ((this.command == null) ? NOT_AVAILABLE : this.command) + "</li>" + "</ul>";
 
 	}
 
 }
 
-// {"node":{"systemid":"1","nodeid":"1","name":"node1","state":"offline","hostname":"host1","publicip":"10.0.0.1","privateip":"10.0.0.1","port":"0","instanceid":"","dbusername":"","dbpassword":"","commands":["backup","restart"],"monitorlatest":{"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null},"command":null,"taskid":null},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
-// {"node":{"systemid":"1","nodeid":"1","name":"node1","state":"offline","hostname":"host1","publicip":"10.0.0.1","privateip":"10.0.0.2","port":"0","instanceid":"","dbusername":"","dbpassword":"","commands":["backup","restart"],"monitorlatest":{"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null},"command":null,"taskid":null},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
 // {"node":{"systemid":"1","nodeid":"1","name":"Node1","state":"offline","hostname":"","publicip":"10.0.0.1","privateip":"10.0.0.1","port":"0","instanceid":"","dbusername":"","dbpassword":"","commands":[{"command":"backup","description":"Backup Offline Slave Node","icon":"backup","steps":"backup"},{"command":"restart","description":"Restore Offline Slave Node","icon":"stop","steps":"restore"}],"monitorlatest":{"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null},"command":null,"taskid":null},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
 
 class NodeInfoDeserializer implements JsonDeserializer<NodeInfo> {
@@ -266,59 +257,16 @@ class NodeInfoDeserializer implements JsonDeserializer<NodeInfo> {
 			nodeInfo.setUsername(((element = jsonObject.get("dbusername")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setPassword(((element = jsonObject.get("dbpassword")) == null || element.isJsonNull()) ? null : element.getAsString());
 
-			String connections, traffic, availability, nodestate, capacity, hoststate, clustersize, reppaused, parallelism, recvqueue, flowcontrol, sendqueue;
-			if (!(element = jsonObject.get("monitorlatest")).isJsonNull()) {
-				JsonObject monitorObject = element.getAsJsonObject();
-
-				connections = (element = monitorObject.get("connections")).isJsonNull() ? null : element.getAsString();
-				traffic = (element = monitorObject.get("traffic")).isJsonNull() ? null : element.getAsString();
-				availability = (element = monitorObject.get("availability")).isJsonNull() ? null : element.getAsString();
-				nodestate = (element = monitorObject.get("nodestate")).isJsonNull() ? null : element.getAsString();
-				capacity = (element = monitorObject.get("capacity")).isJsonNull() ? null : element.getAsString();
-				hoststate = (element = monitorObject.get("hoststate")).isJsonNull() ? null : element.getAsString();
-				clustersize = (element = monitorObject.get("clustersize")).isJsonNull() ? null : element.getAsString();
-				reppaused = (element = monitorObject.get("reppaused")).isJsonNull() ? null : element.getAsString();
-				parallelism = (element = monitorObject.get("parallelism")).isJsonNull() ? null : element.getAsString();
-				recvqueue = (element = monitorObject.get("recvqueue")).isJsonNull() ? null : element.getAsString();
-				flowcontrol = (element = monitorObject.get("flowcontrol")).isJsonNull() ? null : element.getAsString();
-				sendqueue = (element = monitorObject.get("sendqueue")).isJsonNull() ? null : element.getAsString();
-			} else {
-				connections = null;
-				traffic = null;
-				availability = null;
-				nodestate = null;
-				capacity = null;
-				hoststate = null;
-				clustersize = null;
-				reppaused = null;
-				parallelism = null;
-				recvqueue = null;
-				flowcontrol = null;
-				sendqueue = null;
+			if ((element = jsonObject.get("monitorlatest")) != null && !element.isJsonNull()) {
+				MonitorLatest monitorLatest = APIrestful.getGson().fromJson(element.toString(), MonitorLatest.class);
+				nodeInfo.setMonitorLatest(monitorLatest);
 			}
 
-			JsonElement commandsObject = jsonObject.get("commands");
-			StringBuffer sb = new StringBuffer();
-			sb.append("{\"commands\":");
-			sb.append(commandsObject.toString());
-			sb.append("}");
-			String commandsJson = sb.toString();
-			Commands commands = APIrestful.getGson().fromJson(commandsJson, Commands.class);
-			nodeInfo.setCommands(commands);
-
-			/***
-			if (element == null || element.isJsonNull()) {
-				nodeInfo.setCommands(new String[0]);
-			} else {
-				JsonArray commandsJson = element.getAsJsonArray();
-				int length = commandsJson.size();
-				String[] commands = new String[length];
+			if ((element = jsonObject.get("commands")) != null && !element.isJsonNull()) {
+				Commands commands = APIrestful.getGson().fromJson("{\"commands\":" + element.toString() + "}", Commands.class);
 				nodeInfo.setCommands(commands);
-				for (int i = 0; i < length; i++) {
-					commands[i] = commandsJson.get(i).getAsString();
-				}
 			}
-			***/
+
 		}
 		return nodeInfo;
 	}

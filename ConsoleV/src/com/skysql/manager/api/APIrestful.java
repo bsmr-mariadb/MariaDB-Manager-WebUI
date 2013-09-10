@@ -46,7 +46,9 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.MalformedJsonException;
 import com.skysql.manager.AppData.Debug;
+import com.skysql.manager.Commands;
 import com.skysql.manager.ManagerUI;
+import com.skysql.manager.MonitorLatest;
 import com.skysql.manager.ui.DebugPanel;
 import com.skysql.manager.ui.ErrorDialog;
 import com.vaadin.server.VaadinSession;
@@ -102,6 +104,7 @@ public class APIrestful {
 			gsonBuilder.registerTypeAdapter(MonitorData.class, new MonitorDataDeserializer());
 			gsonBuilder.registerTypeAdapter(MonitorDataLatest.class, new MonitorDataLatestDeserializer());
 			gsonBuilder.registerTypeAdapter(MonitorDataRaw.class, new MonitorDataRawDeserializer());
+			gsonBuilder.registerTypeAdapter(MonitorLatest.class, new ObjectDeserializer());
 			gsonBuilder.registerTypeAdapter(NodeInfo.class, new NodeInfoDeserializer());
 			gsonBuilder.registerTypeAdapter(NodeStates.class, new NodeStatesDeserializer());
 			gsonBuilder.registerTypeAdapter(SettingsValues.class, new SettingsValuesDeserializer());

@@ -18,6 +18,8 @@
 
 package com.skysql.manager.ui;
 
+import java.util.LinkedHashMap;
+
 import org.vaadin.jouni.animator.AnimatorProxy;
 import org.vaadin.jouni.animator.AnimatorProxy.AnimationEvent;
 import org.vaadin.jouni.animator.AnimatorProxy.AnimationListener;
@@ -27,8 +29,8 @@ import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.ChartProperties;
 import com.skysql.manager.api.Monitors;
+import com.skysql.manager.api.Monitors.MonitorNames;
 import com.skysql.manager.api.NodeInfo;
-import com.skysql.manager.api.NodeStates;
 import com.skysql.manager.ui.components.ChartControls;
 import com.skysql.manager.ui.components.ChartsLayout;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -61,9 +63,8 @@ public class PanelInfo extends HorizontalSplitPanel {
 	private VerticalLayout infoLayout, chartsLayout;
 	private DDCssLayout chartsArray;
 	private String chartTime, chartInterval = "1800";
-	private String systemLabelsStrings[] = { "State", "Availability", "Connections", "Data Transfer", "Last Backup", "Start Date", "Last Access" };
-	private String nodeLabelsStrings[] = { "State", "Availability", "Connections", "Data Transfer", "Commands Running", "Public IP", "Private IP",
-			"Instance ID", };
+	private String systemLabelsStrings[] = { "State", "Availability", "Connections", "Traffic", "Last Backup", "Start Date", "Last Access" };
+	private String nodeLabelsStrings[] = { "State", "Availability", "Connections", "Traffic", "Commands Running", "Public IP", "Private IP", "Instance ID", };
 	private Label systemLabels[], nodeLabels[];
 	private ChartControls chartControls;
 	private ChartsLayout chartsArrayLayout;
@@ -388,15 +389,16 @@ public class PanelInfo extends HorizontalSplitPanel {
 
 		String value, values[];
 		Label[] currentLabels;
-
+		LinkedHashMap<String, String> monitorLatest;
 		switch (componentInfo.getType()) {
 		case system:
 			SystemRecord systemRecord = (SystemRecord) componentInfo;
 			currentLabels = systemLabels;
-			String systemValues[] = { (value = systemRecord.getState()) != null ? NodeStates.getDescription(value) : NOT_AVAILABLE,
-					(value = systemRecord.getHealth()) != null ? value + "%" : NOT_AVAILABLE,
-					(value = systemRecord.getConnections()) != null ? value : NOT_AVAILABLE,
-					(value = systemRecord.getPackets()) != null ? value + " KB" : NOT_AVAILABLE,
+			monitorLatest = systemRecord.getMonitorLatest().getData();
+			String systemValues[] = { (value = systemRecord.getState()) != null ? value : NOT_AVAILABLE,
+					(value = monitorLatest.get(MonitorNames.availability.toString())) != null ? value + "%" : NOT_AVAILABLE,
+					(value = monitorLatest.get(MonitorNames.connections.toString())) != null ? value : NOT_AVAILABLE,
+					(value = monitorLatest.get(MonitorNames.traffic.toString())) != null ? value + " KB" : NOT_AVAILABLE,
 					(value = systemRecord.getLastBackup()) != null ? value : NOT_AVAILABLE,
 					(value = systemRecord.getStartDate()) != null ? value : NOT_AVAILABLE,
 					(value = systemRecord.getLastAccess()) != null ? value : NOT_AVAILABLE };
@@ -406,11 +408,13 @@ public class PanelInfo extends HorizontalSplitPanel {
 		case node:
 			NodeInfo nodeInfo = (NodeInfo) componentInfo;
 			currentLabels = nodeLabels;
-			String nodeValues[] = { (value = nodeInfo.getState()) != null ? NodeStates.getDescription(value) : NOT_AVAILABLE,
-					(value = nodeInfo.getHealth()) != null ? value + "%" : NOT_AVAILABLE, (value = nodeInfo.getConnections()) != null ? value : NOT_AVAILABLE,
-					(value = nodeInfo.getPackets()) != null ? value + " KB" : NOT_AVAILABLE, (value = nodeInfo.getCommand()) != null ? value : NOT_AVAILABLE,
-					(value = nodeInfo.getPublicIP()) != null ? value : NOT_AVAILABLE, (value = nodeInfo.getPrivateIP()) != null ? value : NOT_AVAILABLE,
-					(value = nodeInfo.getInstanceID()) != null ? value : NOT_AVAILABLE };
+			monitorLatest = nodeInfo.getMonitorLatest().getData();
+			String nodeValues[] = { (value = nodeInfo.getState()) != null ? value : NOT_AVAILABLE,
+					(value = monitorLatest.get(MonitorNames.availability.toString())) != null ? value + "%" : NOT_AVAILABLE,
+					(value = monitorLatest.get(MonitorNames.connections.toString())) != null ? value : NOT_AVAILABLE,
+					(value = monitorLatest.get(MonitorNames.traffic.toString())) != null ? value + " KB" : NOT_AVAILABLE,
+					(value = nodeInfo.getCommand()) != null ? value : NOT_AVAILABLE, (value = nodeInfo.getPublicIP()) != null ? value : NOT_AVAILABLE,
+					(value = nodeInfo.getPrivateIP()) != null ? value : NOT_AVAILABLE, (value = nodeInfo.getInstanceID()) != null ? value : NOT_AVAILABLE };
 			values = nodeValues;
 			break;
 

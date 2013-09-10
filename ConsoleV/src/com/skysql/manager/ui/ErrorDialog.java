@@ -40,7 +40,7 @@ public class ErrorDialog {
 
 	public ErrorDialog(Exception e, String humanizedError) {
 
-		dialogWindow = new ChartWindow("An Error has occurred");
+		dialogWindow = new ModalWindow("An Error has occurred", "775px");
 		UI.getCurrent().addWindow(dialogWindow);
 
 		HorizontalLayout wrapper = new HorizontalLayout();
@@ -119,20 +119,5 @@ public class ErrorDialog {
 		windowLayout.addComponent(wrapper);
 		windowLayout.addComponent(buttonsBar);
 
-	}
-}
-
-class ErrorWindow extends Window {
-	private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-	public ErrorWindow(String caption) {
-		setModal(true);
-		setWidth("900px");
-		center();
-		setCaption(caption);
-		VerticalLayout layout = new VerticalLayout();
-		setContent(layout);
-		layout.setSpacing(true);
-		layout.setMargin(true);
 	}
 }

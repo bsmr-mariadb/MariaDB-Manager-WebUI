@@ -18,35 +18,16 @@
 
 package com.skysql.manager.ui;
 
-import com.skysql.manager.ManagerUI;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
 public class ErrorView extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-	private Button retryButton = new Button("Retry");
-
-	private Button.ClickListener listener = new Button.ClickListener() {
-		private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-		@Override
-		public void buttonClick(ClickEvent event) {
-
-			//Tell the UI to refresh itself
-			ManagerUI current = (ManagerUI) UI.getCurrent();
-			current.close();
-		}
-
-	};
 
 	public ErrorView(Type type, String errorMsg) {
 
@@ -59,7 +40,7 @@ public class ErrorView extends VerticalLayout {
 			Notification.show(errorMsg, type);
 		}
 
-		Embedded logo = new Embedded(null, new ThemeResource("img/combovertical.png"));
+		Embedded logo = new Embedded(null, new ThemeResource("img/productlogo.png"));
 		addComponent(logo);
 		setComponentAlignment(logo, Alignment.TOP_CENTER);
 
@@ -69,11 +50,6 @@ public class ErrorView extends VerticalLayout {
 			refreshLabel.addStyleName("instructions");
 			addComponent(refreshLabel);
 			setComponentAlignment(refreshLabel, Alignment.TOP_CENTER);
-
-			//		retryButton.setClickShortcut(KeyCode.ENTER);
-			//		retryButton.addClickListener(listener);
-			//		addComponent(retryButton);
-			//		setComponentAlignment(retryButton, Alignment.TOP_CENTER);
 		}
 	}
 }

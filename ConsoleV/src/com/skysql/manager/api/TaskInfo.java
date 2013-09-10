@@ -33,9 +33,14 @@ import com.skysql.manager.ui.ErrorDialog;
 public class TaskInfo {
 
 	ArrayList<TaskRecord> tasksList;
+	private String error;
 
 	public ArrayList<TaskRecord> getTasksList() {
 		return tasksList;
+	}
+
+	public String getError() {
+		return error;
 	}
 
 	public void setTasksList(ArrayList<TaskRecord> tasksList) {
@@ -66,6 +71,8 @@ public class TaskInfo {
 				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
 				throw new RuntimeException("API response");
 			}
+		} else {
+			error = api.getErrors();
 		}
 
 	}

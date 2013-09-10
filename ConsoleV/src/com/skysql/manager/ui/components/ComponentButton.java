@@ -67,7 +67,7 @@ public class ComponentButton extends VerticalLayout {
 		imageLayout.setImmediate(true);
 
 		if (componentInfo.getParentID() != null) {
-			String icon = NodeStates.getNodeIcon(componentInfo.getState());
+			String icon = NodeStates.getNodeIcon(componentInfo.getSystemType(), componentInfo.getState());
 			imageLayout.addStyleName(icon);
 			imageLayout.addStyleName(componentInfo.getType().toString());
 
@@ -110,7 +110,7 @@ public class ComponentButton extends VerticalLayout {
 	}
 
 	public void setIcon(String type, String status, String capacity) {
-		String icon = NodeStates.getNodeIcon(status);
+		String icon = NodeStates.getNodeIcon(componentInfo.getSystemType(), status);
 		if (capacity != null && (icon.equals(ICON_MASTER) || icon.equals(ICON_SLAVE))) {
 
 			double capacity_num = Double.parseDouble(capacity);

@@ -40,7 +40,7 @@ public class TopPanel extends HorizontalLayout {
 		addStyleName("titleLayout");
 		setWidth("100%");
 
-		Embedded logo = new Embedded(null, new ThemeResource("img/combologo.png"));
+		Embedded logo = new Embedded(null, new ThemeResource("img/productlogo.png"));
 		addComponent(logo);
 		setComponentAlignment(logo, Alignment.BOTTOM_LEFT);
 

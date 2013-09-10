@@ -40,14 +40,13 @@ public class SetupDialog implements Window.CloseListener {
 	Button openButton;
 	Button closebutton;
 
-	private int nodeCount = 1;
 	private Component currentForm = new VerticalLayout();
 	private HorizontalLayout wrapper;
 	private HorizontalLayout buttonsBar;
 
 	public SetupDialog() {
 
-		dialogWindow = new SetupWindow("Initial System Setup");
+		dialogWindow = new ModalWindow("Initial System Setup", "350px");
 		dialogWindow.addCloseListener(this);
 		UI.getCurrent().addWindow(dialogWindow);
 
@@ -123,20 +122,5 @@ public class SetupDialog implements Window.CloseListener {
 
 	public void windowClose(CloseEvent e) {
 		dialogWindow.close();
-	}
-}
-
-class SetupWindow extends Window {
-	private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-	public SetupWindow(String caption) {
-		setModal(true);
-		setWidth("350px");
-		center();
-		setCaption(caption);
-		VerticalLayout layout = new VerticalLayout();
-		setContent(layout);
-		layout.setSpacing(true);
-		layout.setMargin(true);
 	}
 }

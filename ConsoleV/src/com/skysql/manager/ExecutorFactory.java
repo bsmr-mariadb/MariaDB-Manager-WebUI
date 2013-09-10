@@ -18,7 +18,6 @@
 
 package com.skysql.manager;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -31,7 +30,6 @@ public class ExecutorFactory {
 	private static ScheduledExecutorService fScheduler;
 	private static final boolean MAY_INTERRUPT_IF_RUNNING = true;
 	private static int runningTimers = 0;
-	private LinkedHashMap<Runnable, Object> myTimers = new LinkedHashMap<Runnable, Object>();
 
 	public static ScheduledFuture<?> addTimer(Runnable timerTask, long fDelayBetweenRuns) {
 

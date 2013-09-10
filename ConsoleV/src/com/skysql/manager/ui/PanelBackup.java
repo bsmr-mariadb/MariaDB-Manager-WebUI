@@ -22,17 +22,15 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.skysql.manager.BackupRecord;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.api.BackupStates;
 import com.skysql.manager.api.Backups;
 import com.skysql.manager.api.SystemInfo;
-import com.vaadin.server.ExternalResource;
-import com.vaadin.server.ThemeResource;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Alignment;
-import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
@@ -41,8 +39,6 @@ import com.vaadin.ui.VerticalLayout;
 
 public class PanelBackup extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-	private static final String NOT_AVAILABLE = "n/a";
 
 	private HorizontalLayout newLayout, backupsLayout;
 	private Table backupsTable;
@@ -69,12 +65,17 @@ public class PanelBackup extends VerticalLayout {
 		newLayout.setSpacing(true);
 		addComponent(newLayout);
 
-		Label placeholderLabel = new Label(
-				"Scheduled backups are currently not available. To run an immediate backup, select a node and use the Control panel.");
+		final Label placeholderLabel = new Label("To run an immediate backup, select a node first then switch to the Control panel.");
 		placeholderLabel.addStyleName("instructions");
 		placeholderLabel.setSizeUndefined();
 		newLayout.addComponent(placeholderLabel);
 		newLayout.setComponentAlignment(placeholderLabel, Alignment.MIDDLE_CENTER);
+
+		// Calendar button
+		//		CalendarDialog calendarDialog = new CalendarDialog("Calendar");
+		//		Button calendarButton = calendarDialog.getButton();
+		//		newLayout.addComponent(calendarButton);
+		//		newLayout.setComponentAlignment(calendarButton, Alignment.MIDDLE_CENTER);
 
 	}
 
@@ -149,8 +150,11 @@ public class PanelBackup extends VerticalLayout {
 		ManagerUI managerUI = getSession().getAttribute(ManagerUI.class);
 
 		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+
+		/***
 		LinkedHashMap<String, String> sysProperties = systemInfo.getCurrentSystem().getProperties();
-		final String EIP = null; // sysProperties.get(SystemInfo.PROPERTY_EIP);
+		final String EIP = sysProperties.get(SystemInfo.PROPERTY_EIP);
+		***/
 
 		Backups backups = new Backups(systemInfo.getCurrentID(), null);
 		backupsList = backups.getBackupsList();
@@ -168,7 +172,8 @@ public class PanelBackup extends VerticalLayout {
 						oldBackupsCount = size;
 
 						backupsTable.removeAllItems();
-						ListIterator<Map.Entry<String, BackupRecord>> iter = new ArrayList(backupsList.entrySet()).listIterator(backupsList.size());
+						ListIterator<Map.Entry<String, BackupRecord>> iter = new ArrayList<Entry<String, BackupRecord>>(backupsList.entrySet())
+								.listIterator(backupsList.size());
 
 						while (iter.hasPrevious()) {
 							if (updaterThread.flagged) {
@@ -178,8 +183,9 @@ public class PanelBackup extends VerticalLayout {
 
 							Map.Entry<String, BackupRecord> entry = iter.previous();
 							BackupRecord backupRecord = entry.getValue();
-							Link backupLogLink;
+							Link backupLogLink = null;
 
+							/**
 							if (EIP != null) {
 								String url = "http://" + EIP + "/consoleAPI/" + backupRecord.getLog();
 								backupLogLink = new Link("Backup Log", new ExternalResource(url));
@@ -187,9 +193,8 @@ public class PanelBackup extends VerticalLayout {
 								backupLogLink.setDescription("Open backup log in a new window");
 								backupLogLink.setIcon(new ThemeResource("img/externalLink.png"));
 								backupLogLink.addStyleName("icon-after-caption");
-							} else {
-								backupLogLink = null;
 							}
+							***/
 
 							backupsTable.addItem(
 									new Object[] { backupRecord.getStarted(), backupRecord.getUpdated(), backupRecord.getRestored(), backupRecord.getLevel(),
@@ -204,51 +209,6 @@ public class PanelBackup extends VerticalLayout {
 			}
 		});
 
-	}
-
-	private String backupLabels[] = { "Node", "Level", "State", "Size", "Restored" };
-	private GridLayout backupInfoGrid;
-	private Link backupLogLink;
-
-	final public void displayBackupInfo(VerticalLayout layout, BackupRecord record) {
-		String value;
-		String values[] = { (value = record.getID()) != null ? value : NOT_AVAILABLE, (value = record.getLevel()) != null ? value : NOT_AVAILABLE,
-				((value = record.getState()) != null) && (value = BackupStates.getDescriptions().get(value)) != null ? value : "Invalid",
-				(value = record.getSize()) != null ? value : NOT_AVAILABLE, (value = record.getRestored()) != null ? value : "" };
-
-		GridLayout newBackupInfoGrid = new GridLayout(2, backupLabels.length);
-		for (int i = 0; i < backupLabels.length; i++) {
-			newBackupInfoGrid.addComponent(new Label(backupLabels[i]), 0, i);
-			newBackupInfoGrid.addComponent(new Label(values[i]), 1, i);
-		}
-
-		if (backupInfoGrid == null) {
-			layout.addComponent(newBackupInfoGrid);
-			backupInfoGrid = newBackupInfoGrid;
-		} else {
-			layout.replaceComponent(backupInfoGrid, newBackupInfoGrid);
-			backupInfoGrid = newBackupInfoGrid;
-		}
-
-		SystemInfo systemInfo = getSession().getAttribute(SystemInfo.class);
-		LinkedHashMap<String, String> sysProperties = systemInfo.getCurrentSystem().getProperties();
-		String EIP = sysProperties.get(SystemInfo.PROPERTY_EIP);
-		if (EIP != null) {
-			String url = "http://" + EIP + "/consoleAPI/" + record.getLog();
-			Link newBackupLogLink = new Link("Backup Log", new ExternalResource(url));
-			newBackupLogLink.setTargetName("_blank");
-			newBackupLogLink.setDescription("Open backup log in a new window");
-			newBackupLogLink.setIcon(new ThemeResource("img/externalLink.png"));
-			newBackupLogLink.addStyleName("icon-after-caption");
-
-			if (backupLogLink == null) {
-				layout.addComponent(newBackupLogLink);
-				backupLogLink = newBackupLogLink;
-			} else {
-				layout.replaceComponent(backupLogLink, newBackupLogLink);
-				backupLogLink = newBackupLogLink;
-			}
-		}
 	}
 
 }

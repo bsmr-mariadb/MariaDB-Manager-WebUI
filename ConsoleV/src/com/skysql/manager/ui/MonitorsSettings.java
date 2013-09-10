@@ -231,7 +231,7 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 	}
 
 	public void deleteMonitor(final MonitorRecord monitor) {
-		secondaryDialog = new DialogWindow("Delete Monitor: " + monitor.getName());
+		secondaryDialog = new ModalWindow("Delete Monitor: " + monitor.getName(), null);
 		UI.getCurrent().addWindow(secondaryDialog);
 		secondaryDialog.addCloseListener(this);
 
@@ -320,7 +320,7 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 		final NativeSelect monitorInterval = new NativeSelect("Sampling interval");
 		final NativeSelect monitorChartType = new NativeSelect("Default display");
 
-		secondaryDialog = new DialogWindow(title);
+		secondaryDialog = new ModalWindow(title, null);
 		UI.getCurrent().addWindow(secondaryDialog);
 		secondaryDialog.addCloseListener(this);
 
@@ -395,7 +395,7 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 			monitorInterval.addItem(Integer.parseInt(interval));
 		}
 
-		Collection validIntervals = monitorInterval.getItemIds();
+		Collection<?> validIntervals = monitorInterval.getItemIds();
 		if (validIntervals.contains(monitor.getInterval())) {
 			monitorInterval.select(monitor.getInterval());
 		} else {

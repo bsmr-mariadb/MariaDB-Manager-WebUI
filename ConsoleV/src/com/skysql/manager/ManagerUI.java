@@ -66,30 +66,36 @@ public class ManagerUI extends UI {
 
 		log("init session: - " + session + " UI: " + this.toString());
 
-		do {
-			session.setAttribute(ManagerUI.class, this);
+		try {
 
-			AppData appData = AppData.newInstance();
-			if (appData == null) {
-				break;
-			}
-			session.setAttribute(AppData.class, appData);
+			do {
+				session.setAttribute(ManagerUI.class, this);
 
-			APIrestful.setURI(appData.getApiURI());
-			APIrestful.setKeys(appData.getApiKeys());
+				AppData appData = AppData.newInstance();
+				if (appData == null) {
+					break;
+				}
+				session.setAttribute(AppData.class, appData);
 
-			APIrestful api = APIrestful.newInstance();
-			session.setAttribute(APIrestful.class, api);
+				APIrestful.setURI(appData.getApiURI());
+				APIrestful.setKeys(appData.getApiKeys());
 
-			UserInfo userInfo = new UserInfo(null);
-			if (userInfo.getUsersList() == null || userInfo.getUsersList().isEmpty()) {
-				break;
-			}
-			session.setAttribute(UserInfo.class, userInfo);
+				APIrestful api = APIrestful.newInstance();
+				session.setAttribute(APIrestful.class, api);
 
-		} while (false);
+				UserInfo userInfo = new UserInfo(null);
+				if (userInfo.getUsersList() == null || userInfo.getUsersList().isEmpty()) {
+					break;
+				}
+				session.setAttribute(UserInfo.class, userInfo);
 
-		refreshContentBasedOnSessionData();
+			} while (false);
+
+			refreshContentBasedOnSessionData();
+
+		} catch (RuntimeException e) {
+
+		}
 
 	}
 

@@ -187,7 +187,7 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 		final PasswordField newPassword2;
 		final Button okButton = new Button("Add User");
 
-		secondaryDialog = new DialogWindow("Add User");
+		secondaryDialog = new ModalWindow("Add User", null);
 		UI.getCurrent().addWindow(secondaryDialog);
 		secondaryDialog.addCloseListener(this);
 
@@ -287,7 +287,7 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 	}
 
 	public void removeUser(Button.ClickEvent event) {
-		secondaryDialog = new DialogWindow("Remove User");
+		secondaryDialog = new ModalWindow("Remove User", null);
 		UI.getCurrent().addWindow(secondaryDialog);
 		secondaryDialog.addCloseListener(this);
 
@@ -363,7 +363,7 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 		final PasswordField newPassword2;
 		final Button okButton = new Button("Change Password");
 
-		secondaryDialog = new DialogWindow("Change Password");
+		secondaryDialog = new ModalWindow("Change Password", null);
 		UI.getCurrent().addWindow(secondaryDialog);
 		secondaryDialog.addCloseListener(this);
 

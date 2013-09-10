@@ -35,7 +35,9 @@ import com.skysql.manager.ui.ErrorDialog;
 
 public class Monitors {
 
-	//public static final String MONITOR_CAPACITY = "5";
+	public enum MonitorNames {
+		connections, traffic, availability, nodestate, capacity, hoststate;
+	}
 
 	private static LinkedHashMap<String, LinkedHashMap<String, MonitorRecord>> monitorsMap;
 	private static LinkedHashMap<String, MonitorRecord> currentList;
