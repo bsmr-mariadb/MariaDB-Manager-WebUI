@@ -190,15 +190,41 @@ public class Monitors {
 {"systemtype":"aws","monitor":"hoststate","name":"Host State","sql":"","description":"","charttype":null,"delta":"0","monitortype":"PING","systemaverage":"0","interval":"30","unit":null,"monitorid":"6"}]
 ***/
 
+/***
+{"monitorclasses":
+{"aws":[
+	{"systemtype":"aws","monitor":"connections","name":"Connections","sql":"select variable_value from global_status where variable_name = \"THREADS_CONNECTED\";","description":"","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"0","interval":"30","unit":null,"monitorid":"1"},
+	{"systemtype":"aws","monitor":"traffic","name":"Network Traffic","sql":"select round(sum(variable_value) \/ 1024) from global_status where variable_name in (\"BYTES_RECEIVED\", \"BYTES_SENT\");","description":"","charttype":"LineChart","delta":"1","monitortype":"SQL","systemaverage":"0","interval":"30","unit":"kB\/min","monitorid":"2"},
+	{"systemtype":"aws","monitor":"availability","name":"Availability","sql":"select 100;","description":"","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":"%","monitorid":"3"},{"systemtype":"aws","monitor":"nodestate","name":"Node State","sql":"crm status bynode","description":"","charttype":null,"delta":"0","monitortype":"CRM","systemaverage":"0","interval":"30","unit":null,"monitorid":"4"},
+	{"systemtype":"aws","monitor":"capacity","name":"Capacity","sql":"select round(((select variable_value from global_status where variable_name = \"THREADS_CONNECTED\") * 100) \/ variable_value) from global_variables where variable_name = \"MAX_CONNECTIONS\";","description":"","charttype":null,"delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":"%","monitorid":"5"},
+	{"systemtype":"aws","monitor":"hoststate","name":"Host State","sql":"","description":"","charttype":null,"delta":"0","monitortype":"PING","systemaverage":"0","interval":"30","unit":null,"monitorid":"6"}],
+"galera":[
+	{"systemtype":"galera","monitor":"connections","name":"Connections","sql":"select variable_value from global_status where variable_name = \"THREADS_CONNECTED\";","description":"","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"0","interval":"30","unit":null,"monitorid":"7"},
+	{"systemtype":"galera","monitor":"traffic","name":"Network Traffic","sql":"select round(sum(variable_value) \/ 1024) from global_status where variable_name in (\"BYTES_RECEIVED\", \"BYTES_SENT\");","description":"","charttype":"LineChart","delta":"1","monitortype":"SQL","systemaverage":"0","interval":"30","unit":"kB\/min","monitorid":"8"},
+	{"systemtype":"galera","monitor":"availability","name":"Availability","sql":"select 100;","description":"","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":"%","monitorid":"9"},{"systemtype":"galera","monitor":"capacity","name":"Capacity","sql":"select round(((select variable_value from global_status where variable_name = \"THREADS_CONNECTED\") * 100) \/ variable_value) from global_variables where variable_name = \"MAX_CONNECTIONS\";","description":"","charttype":null,"delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":"%","monitorid":"10"},
+	{"systemtype":"galera","monitor":"hoststate","name":"Host State","sql":"","description":"","charttype":null,"delta":"0","monitortype":"PING","systemaverage":"0","interval":"30","unit":null,"monitorid":"11"},
+	{"systemtype":"galera","monitor":"nodestate","name":"NodeState","sql":"select 100 + variable_value from global_status where variable_name = \"WSREP_LOCAL_STATE\" union select 107 limit 1;","description":"","charttype":null,"delta":"0","monitortype":"SQL_NODE_STATE","systemaverage":"1","interval":"30","unit":null,"monitorid":"12"},
+	{"systemtype":"galera","monitor":"clustersize","name":"Cluster Size","sql":"select variable_value from global_status where variable_name = \"WSREP_CLUSTER_SIZE\";","description":"Number of nodes in the cluster","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":null,"monitorid":"13"},
+	{"systemtype":"galera","monitor":"reppaused","name":"Replication Paused","sql":"select variable_value * 100 from global_status where variable_name = \"WSREP_FLOW_CONTROL_PAUSED\";","description":"Percentage of time for which replication was paused","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":"%","monitorid":"14"},
+	{"systemtype":"galera","monitor":"parallelism","name":"Parallelism","sql":"select variable_value from global_status where variable_name = \"WSREP_CERT_DEPS_DISTANCE\";","description":"Average No. of parallel transactions","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":null,"monitorid":"15"},
+	{"systemtype":"galera","monitor":"recvqueue","name":"Avg Receive Queue","sql":"select variable_value from global_status where variable_name = \"WSREP_LOCAL_RECV_QUEUE_AVG\";","description":"Average receive queue length","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":null,"monitorid":"16"},
+	{"systemtype":"galera","monitor":"flowcontrol","name":"Flow Controlled","sql":"select variable_value from global_status where variable_name = \"WSREP_FLOW_CONTROL_SENT\";","description":"Flow control messages sent","charttype":"LineChart","delta":"1","monitortype":"SQL","systemaverage":"0","interval":"30","unit":null,"monitorid":"17"},
+	{"systemtype":"galera","monitor":"sendqueue","name":"Avg Send Queue","sql":"select variable_value from global_status where variable_name = \"WSREP_LOCAL_SEND_QUEUE_AVG\";","description":"Average length of send queue","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":null,"monitorid":"18"}]}
+***/
 class MonitorsDeserializer implements JsonDeserializer<Monitors> {
 	public Monitors deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		Monitors monitors = new Monitors();
 
 		JsonArray array = null;
+		JsonObject object = null;
 
-		int length = 0;
 		if (json.getAsJsonObject().has("monitorclasses")) {
-			array = json.getAsJsonObject().get("monitorclasses").getAsJsonArray();
+			JsonElement monitorsElement = json.getAsJsonObject().get("monitorclasses");
+			if (monitorsElement.isJsonArray()) {
+				array = monitorsElement.getAsJsonArray();
+			} else {
+				object = monitorsElement.getAsJsonObject();
+			}
 		} else if (json.getAsJsonObject().has("monitorclass")) {
 			array = json.getAsJsonObject().get("monitorclass").getAsJsonArray();
 		} else {
@@ -212,8 +238,21 @@ class MonitorsDeserializer implements JsonDeserializer<Monitors> {
 			monitorsMap.put(type, new LinkedHashMap<String, MonitorRecord>());
 		}
 
-		length = array.size();
-		for (int i = 0; i < length; i++) {
+		if (array != null) {
+			parseMonitors(array, monitorsMap);
+		} else {
+			for (String type : SystemTypes.getList().keySet()) {
+				array = object.get(type).getAsJsonArray();
+				parseMonitors(array, monitorsMap);
+			}
+		}
+
+		return monitors;
+	}
+
+	private void parseMonitors(JsonArray array, LinkedHashMap<String, LinkedHashMap<String, MonitorRecord>> monitorsMap) {
+
+		for (int i = 0; i < array.size(); i++) {
 			JsonObject jsonObject = array.get(i).getAsJsonObject();
 			JsonElement element;
 			String systemType = (element = jsonObject.get("systemtype")).isJsonNull() ? null : element.getAsString();
@@ -235,6 +274,5 @@ class MonitorsDeserializer implements JsonDeserializer<Monitors> {
 			}
 		}
 
-		return monitors;
 	}
 }

@@ -131,7 +131,7 @@ class NodeStatesDeserializer implements JsonDeserializer<NodeStates> {
 		return nodeStates;
 	}
 
-	NodeStates parseStates(JsonArray array) {
+	private NodeStates parseStates(JsonArray array) {
 		NodeStates nodeStates = new NodeStates();
 
 		int length = array.size();

@@ -342,7 +342,6 @@ public class NodesLayout extends HorizontalLayout {
 						System.err.println(toolTip);
 						break;
 					}
-					// add to imagelayout instead?
 					button.setDescription(toolTip);
 					button.setData(newComponent);
 					if (button.isSelected()) {

@@ -110,34 +110,8 @@ public class SystemLayout extends VerticalLayout {
 		addComponent(systemSlot);
 
 		// initialize System button
-		/***
-		systemButton = new ComponentButton(systemRecord);
-		systemButton.addLayoutClickListener(componentListener);
-		systemSlot.addComponent(systemButton);
-		systemSlot.addLayoutClickListener(new LayoutClickListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-			public void layoutClick(LayoutClickEvent event) {
-
-				Component child;
-				if (event.isDoubleClick() && (child = event.getChildComponent()) != null && (child instanceof ComponentButton)) {
-					// Get the child component which was double-clicked
-					ComponentButton button = (ComponentButton) child;
-					if (isEditable) {
-						new ComponentDialog((ClusterComponent) button.getData(), button);
-					}
-
-				} else if (!isEditable && (child = event.getChildComponent()) != null && (child instanceof ComponentButton)) {
-					// Get the child component which was clicked
-					ComponentButton button = (ComponentButton) child;
-					OverviewPanel overviewPanel = getSession().getAttribute(OverviewPanel.class);
-					overviewPanel.clickLayout(button);
-				}
-
-			}
-		});
-		***/
 		refresh(null, null);
+
 	}
 
 	public ComponentButton getButton() {
@@ -155,12 +129,6 @@ public class SystemLayout extends VerticalLayout {
 
 	public void deleteComponent(ComponentButton button) {
 		removeComponent(button);
-
-		//		OverviewPanel overviewPanel = getSession().getAttribute(OverviewPanel.class);
-		//		if (button.isSelected()) {
-		//			overviewPanel.clickComponentButton(0);
-		//		}
-		//		overviewPanel.refresh();
 
 		VaadinSession session = getSession();
 		SystemInfo systemInfo = session.getAttribute(SystemInfo.class);
@@ -202,6 +170,7 @@ public class SystemLayout extends VerticalLayout {
 				systemButton.addLayoutClickListener(componentListener);
 				systemSlot.addComponent(systemButton);
 				systemButton.setSelected(systemButton.isSelected());
+				systemButton.setDescription(systemRecord.ToolTip());
 				setEditable(isEditable);
 
 				setVisible(systemRecord.getParentID() == null ? false : true);
