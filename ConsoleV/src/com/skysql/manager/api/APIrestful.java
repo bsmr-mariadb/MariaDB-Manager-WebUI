@@ -33,7 +33,9 @@ import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -67,6 +69,7 @@ public class APIrestful {
 	private String lastCall;
 	private String result;
 	private String errors;
+	private String version;
 
 	public static String getURI() {
 		return apiURI;
@@ -142,6 +145,10 @@ public class APIrestful {
 
 	public String getCall() {
 		return lastCall;
+	}
+
+	public String getVersion() {
+		return version;
 	}
 
 	protected void setSuccess(boolean success) {
@@ -252,12 +259,9 @@ public class APIrestful {
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			result = in.readLine();
 
-			//			Map<String, List<String>> headers = httpConnection.getHeaderFields();
-			//			for (String header : headers.keySet()) {
-			//				for (String string : headers.get(header)) {
-			//					System.out.println("header: " + header + ", value: " + string);
-			//				}
-			//			}
+			Map<String, List<String>> headers = httpConnection.getHeaderFields();
+			List<String> version = headers.get("X-SkySQL-API-Version");
+			api.version = version.get(0);
 
 			in.close();
 

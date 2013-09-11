@@ -138,7 +138,7 @@ public class LoginView extends VerticalLayout {
 		loginFormLayout.setComponentAlignment(login, Alignment.BOTTOM_CENTER);
 
 		if (version != null) {
-			Label versionLabel = new Label("Version " + version);
+			Label versionLabel = new Label("API Version " + version);
 			versionLabel.setSizeUndefined();
 			addComponent(versionLabel);
 			setComponentAlignment(versionLabel, Alignment.BOTTOM_LEFT);

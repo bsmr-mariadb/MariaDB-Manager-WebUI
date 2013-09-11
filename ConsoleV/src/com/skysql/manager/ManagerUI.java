@@ -127,8 +127,8 @@ public class ManagerUI extends UI {
 			return;
 		}
 
-		systemName = "{ Install/API name goes here }";
-		systemVersion = "{ API version goes here }";
+		systemName = "{ Installation/API name goes here }";
+		systemVersion = api.getVersion();
 
 		SystemInfo systemInfo = new SystemInfo(SystemInfo.SYSTEM_ROOT);
 		session.setAttribute(SystemInfo.class, systemInfo);

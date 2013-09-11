@@ -135,12 +135,14 @@ public class NodeInfo extends ClusterComponent {
 			JSONObject jsonParam = new JSONObject();
 			jsonParam.put("name", this.name);
 			jsonParam.put("hostname", this.hostname);
-			jsonParam.put("instanceID", this.instanceID);
+			jsonParam.put("instanceid", this.instanceID);
 			jsonParam.put("publicip", this.publicIP);
 			jsonParam.put("privateip", this.privateIP);
-			jsonParam.put("username", this.username);
+			jsonParam.put("dbusername", this.username);
 			if (this.password != null) {
-				jsonParam.put("passwd", this.password);
+				jsonParam.put("dbpassword", this.password);
+			} else {
+				jsonParam.put("dbpassword", JSONObject.NULL);
 			}
 			if (api.put("system/" + parentID + "/node" + (ID == null || ID.isEmpty() ? "" : "/" + ID), jsonParam.toString())) {
 				WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);

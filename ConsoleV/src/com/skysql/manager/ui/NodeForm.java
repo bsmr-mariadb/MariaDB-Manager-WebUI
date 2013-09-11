@@ -35,8 +35,8 @@ public class NodeForm extends VerticalLayout {
 	final TextField instanceID = new TextField("Instance ID");
 	final TextField publicIP = new TextField("Public IP");
 	final TextField privateIP = new TextField("Private IP");
-	final TextField username = new TextField("Username");
-	final TextField password = new TextField("Password");
+	final TextField username = new TextField("DB Username");
+	final TextField password = new TextField("DB Password");
 	final Form form = new Form();
 	private NodeInfo node;
 
@@ -79,8 +79,6 @@ public class NodeForm extends VerticalLayout {
 			publicIP.setValue(value);
 		}
 		form.addField("publicIP", publicIP);
-		publicIP.setRequired(true);
-		publicIP.setRequiredError("Public IP is a required field");
 
 		if ((value = node.getPrivateIP()) != null) {
 			privateIP.setValue(value);
@@ -94,6 +92,7 @@ public class NodeForm extends VerticalLayout {
 		}
 		form.addField("username", username);
 
+		password.setNullSettingAllowed(true);
 		if ((value = node.getPassword()) != null) {
 			password.setValue(value);
 		}
