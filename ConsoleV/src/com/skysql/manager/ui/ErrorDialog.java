@@ -29,22 +29,31 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+import com.vaadin.ui.Window.CloseEvent;
 
-public class ErrorDialog {
+@SuppressWarnings("serial")
+public class ErrorDialog implements Window.CloseListener {
 
 	Window dialogWindow;
 
 	public ErrorDialog(Exception e, String humanizedError) {
 
 		dialogWindow = new ModalWindow("An Error has occurred", "775px");
+		dialogWindow.setHeight("340px");
+		dialogWindow.addCloseListener(this);
+		UI current = UI.getCurrent();
+		if (current.getContent() == null) {
+			current.setContent(new ErrorView(Notification.Type.ERROR_MESSAGE, null));
+		}
 		UI.getCurrent().addWindow(dialogWindow);
 
 		HorizontalLayout wrapper = new HorizontalLayout();
-		wrapper.setWidth("100%");
+		wrapper.setSizeFull();
 		wrapper.setMargin(true);
 
 		VerticalLayout iconLayout = new VerticalLayout();
@@ -54,6 +63,7 @@ public class ErrorDialog {
 		iconLayout.addComponent(image);
 
 		VerticalLayout textLayout = new VerticalLayout();
+		textLayout.setHeight("100%");
 		textLayout.setSpacing(true);
 		wrapper.addComponent(textLayout);
 		wrapper.setExpandRatio(textLayout, 1.0f);
@@ -98,6 +108,7 @@ public class ErrorDialog {
 
 			public void buttonClick(ClickEvent event) {
 				dialogWindow.close();
+				//UI.getCurrent().close();
 			}
 		});
 
@@ -114,10 +125,19 @@ public class ErrorDialog {
 		buttonsBar.setComponentAlignment(okButton, Alignment.MIDDLE_RIGHT);
 
 		VerticalLayout windowLayout = (VerticalLayout) dialogWindow.getContent();
+		windowLayout.setHeight("100%");
 		windowLayout.setSpacing(false);
 		windowLayout.setMargin(false);
 		windowLayout.addComponent(wrapper);
+		windowLayout.setExpandRatio(wrapper, 1.0f);
 		windowLayout.addComponent(buttonsBar);
 
 	}
+
+	/** In case the window is closed otherwise. */
+	@Override
+	public void windowClose(CloseEvent e) {
+		UI.getCurrent().close();
+	}
+
 }

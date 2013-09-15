@@ -320,8 +320,9 @@ public class NodesLayout extends HorizontalLayout {
 					String newState = newComponent.getState();
 
 					String newCapacity = newComponent.getCapacity();
-					if ((newState != null && (!newState.equals(currentComponent.getState())) || (newCapacity != null && !newCapacity.equals(currentComponent
-							.getCapacity())))) {
+					if ((newState == null)
+							|| (newState != null && (!newState.equals(currentComponent.getState())) || (newCapacity != null && !newCapacity
+									.equals(currentComponent.getCapacity())))) {
 
 						button.setIcon(currentComponent.getType().toString(), newState, newCapacity);
 					}

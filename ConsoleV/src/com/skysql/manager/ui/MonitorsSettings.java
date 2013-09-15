@@ -67,8 +67,8 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 	private ListSelect select;
 	private LinkedHashMap<String, MonitorRecord> monitorsAll;
 	private FormLayout monitorLayout;
-	private Label name = new Label(), description = new Label(), unit = new Label(), delta = new Label(), average = new Label(), chartType = new Label(),
-			interval = new Label(), sql = new Label();
+	private Label id = new Label(), name = new Label(), description = new Label(), unit = new Label(), delta = new Label(), average = new Label(),
+			chartType = new Label(), interval = new Label(), sql = new Label();
 
 	MonitorsSettings(String systemID, String systemType) {
 		this.systemID = systemID;
@@ -127,6 +127,8 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 		selectLayout.setExpandRatio(monitorLayout, 1.0f);
 		monitorLayout.setSpacing(false);
 
+		id.setCaption("ID:");
+		monitorLayout.addComponent(id);
 		name.setCaption("Name:");
 		monitorLayout.addComponent(name);
 		description.setCaption("Description:");
@@ -199,10 +201,12 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 
 	}
 
-	private void displayMonitorRecord(String id) {
+	private void displayMonitorRecord(String monitorId) {
 
-		if (id != null) {
-			MonitorRecord monitor = monitorsAll.get(id);
+		if (monitorId != null) {
+			MonitorRecord monitor = monitorsAll.get(monitorId);
+
+			id.setValue(monitorId);
 			name.setValue(monitor.getName());
 			description.setValue(monitor.getDescription());
 			unit.setValue(monitor.getUnit());
@@ -215,6 +219,7 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 			deleteMonitor.setEnabled(true);
 			editMonitor.setEnabled(true);
 		} else {
+			id.setValue(null);
 			name.setValue(null);
 			description.setValue(null);
 			unit.setValue(null);
@@ -305,11 +310,12 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 	}
 
 	public void addMonitor() {
-		MonitorRecord monitor = new MonitorRecord();
+		MonitorRecord monitor = new MonitorRecord(systemType);
 		monitorForm(monitor, "Add Monitor", "Add a new SQL Monitor for Nodes and System", "Add Monitor");
 	}
 
 	public void monitorForm(final MonitorRecord monitor, String title, String description, String button) {
+		final TextField monitorID = new TextField("Monitor ID");
 		final TextField monitorName = new TextField("Monitor Name");
 		final TextField monitorDescription = new TextField("Description");
 		final TextField monitorUnit = new TextField("Measurement Unit");
@@ -335,13 +341,25 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 		form.setDescription(description);
 
 		String value;
+
+		if ((value = monitor.getID()) != null) {
+			monitorID.setValue(value);
+			monitorID.setEnabled(false);
+		}
+		form.addField("monitorID", monitorID);
+		form.getField("monitorID").setRequired(true);
+		form.getField("monitorID").setRequiredError("Monitor ID is missing");
+		monitorID.focus();
+
 		if ((value = monitor.getName()) != null) {
 			monitorName.setValue(value);
 		}
 		form.addField("monitorName", monitorName);
 		form.getField("monitorName").setRequired(true);
 		form.getField("monitorName").setRequiredError("Monitor Name is missing");
-		monitorName.focus();
+		if (monitor.getID() != null) {
+			monitorName.focus();
+		}
 
 		if ((value = monitor.getDescription()) != null) {
 			monitorDescription.setValue(value);
@@ -400,7 +418,7 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 			monitorInterval.select(monitor.getInterval());
 		} else {
 			SystemInfo systemInfo = getSession().getAttribute(SystemInfo.class);
-			String defaultInterval = systemInfo.getCurrentSystem().getProperties().get(SystemInfo.PROPERTY_DEFAULTMONITORINTERVAL);
+			String defaultInterval = systemInfo.getSystemRecord(systemID).getProperties().get(SystemInfo.PROPERTY_DEFAULTMONITORINTERVAL);
 			if (defaultInterval != null && validIntervals.contains(Integer.parseInt(defaultInterval))) {
 				monitorInterval.select(Integer.parseInt(defaultInterval));
 			} else if (!validIntervals.isEmpty()) {
@@ -449,7 +467,6 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
-				String monitorID = null;
 				try {
 					form.setComponentError(null);
 					form.commit();
@@ -461,11 +478,14 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 					monitor.setAverage(monitorAverage.getValue());
 					monitor.setInterval((Integer) monitorInterval.getValue());
 					monitor.setChartType((String) monitorChartType.getValue());
-					if ((monitorID = monitor.getID()) == null) {
-						monitorID = Monitors.setMonitor(monitor);
-						if (monitorID != null) {
-							select.addItem(monitorID);
-							select.select(monitorID);
+					String ID;
+					if ((ID = monitor.getID()) == null) {
+						ID = monitorID.getValue();
+						monitor.setID(ID);
+						Monitors.setMonitor(monitor);
+						if (ID != null) {
+							select.addItem(ID);
+							select.select(ID);
 							Monitors.reloadMonitors();
 							monitorsAll = Monitors.getMonitorsList(systemType);
 						}
@@ -473,9 +493,9 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 						Monitors.setMonitor(monitor);
 					}
 
-					if (monitorID != null) {
-						select.setItemCaption(monitorID, monitor.getName());
-						displayMonitorRecord(monitorID);
+					if (ID != null) {
+						select.setItemCaption(ID, monitor.getName());
+						displayMonitorRecord(ID);
 						secondaryDialog.close();
 					}
 

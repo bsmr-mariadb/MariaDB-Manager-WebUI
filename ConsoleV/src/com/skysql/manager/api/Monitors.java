@@ -19,7 +19,6 @@
 package com.skysql.manager.api;
 
 import java.lang.reflect.Type;
-import java.net.URLEncoder;
 import java.util.LinkedHashMap;
 
 import org.json.JSONObject;
@@ -90,41 +89,22 @@ public class Monitors {
 
 		try {
 			boolean success;
-			if (monitor.getID() != null) {
 
-				JSONObject jsonParam = new JSONObject();
-				jsonParam.put("name", monitor.getName());
-				jsonParam.put("description", monitor.getDescription());
-				jsonParam.put("sql", monitor.getSql());
-				jsonParam.put("unit", monitor.getUnit());
-				jsonParam.put("delta", monitor.isDelta() ? "1" : "0");
-				jsonParam.put("systemaverage", monitor.isAverage() ? "1" : "0");
-				jsonParam.put("monitortype", "SQL");
+			JSONObject jsonParam = new JSONObject();
+			jsonParam.put("name", monitor.getName());
+			jsonParam.put("description", monitor.getDescription());
+			jsonParam.put("sql", monitor.getSql());
+			jsonParam.put("unit", monitor.getUnit());
+			jsonParam.put("delta", monitor.isDelta() ? "1" : "0");
+			jsonParam.put("systemaverage", monitor.isAverage() ? "1" : "0");
+			jsonParam.put("monitortype", "SQL");
 
-				// type needs to indicate int/float/string etc. instead of LineChart/AreaChart
-				jsonParam.put("type", monitor.getChartType());
-				int interval = monitor.getInterval();
-				jsonParam.put("interval", String.valueOf(interval));
+			// type needs to indicate int/float/string etc. instead of LineChart/AreaChart
+			jsonParam.put("type", monitor.getChartType());
+			int interval = monitor.getInterval();
+			jsonParam.put("interval", String.valueOf(interval));
 
-				success = api.put("monitorclass/" + monitor.getID(), jsonParam.toString());
-			} else {
-
-				StringBuffer regParam = new StringBuffer();
-				regParam.append("name=" + URLEncoder.encode(monitor.getName(), "UTF-8"));
-				regParam.append("&description=" + URLEncoder.encode(monitor.getDescription(), "UTF-8"));
-				regParam.append("&sql=" + URLEncoder.encode(monitor.getSql(), "UTF-8"));
-				regParam.append("&unit=" + URLEncoder.encode(monitor.getUnit(), "UTF-8"));
-				regParam.append("&delta=" + (monitor.isDelta() ? "1" : "0"));
-				regParam.append("&systemaverage=" + (monitor.isAverage() ? "1" : "0"));
-				regParam.append("&monitortype=" + "SQL");
-
-				// type needs to indicate int/float/string etc. instead of LineChart/AreaChart
-				regParam.append("&type=" + URLEncoder.encode(monitor.getChartType(), "UTF-8"));
-				int interval = monitor.getInterval();
-				regParam.append("&interval=" + String.valueOf(interval));
-
-				success = api.post("monitorclass", regParam.toString());
-			}
+			success = api.put("monitorclass/" + monitor.getSystemType() + "/key/" + monitor.getID(), jsonParam.toString());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -148,7 +128,7 @@ public class Monitors {
 	public synchronized static boolean deleteMonitor(MonitorRecord monitor) {
 
 		APIrestful api = new APIrestful();
-		if (api.delete("monitorclass/" + monitor.getID())) {
+		if (api.delete("monitorclass/" + monitor.getSystemType() + "/key/" + monitor.getID())) {
 			WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
 			if (writeResponse != null && writeResponse.getDeleteCount() > 0) {
 				currentList.remove(monitor.getID());

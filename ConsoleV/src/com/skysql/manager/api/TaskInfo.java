@@ -50,14 +50,14 @@ public class TaskInfo {
 	public TaskInfo() {
 	}
 
-	public TaskInfo(String taskID, String node) {
+	public TaskInfo(String taskID, String systemID, String nodeID) {
 
 		APIrestful api = new APIrestful();
 		boolean success = false;
 		if (taskID != null) {
 			success = api.get("task/" + taskID);
-		} else if (node != null) {
-			success = api.get("task", "?nodeid=" + node);
+		} else if (systemID != null && nodeID != null) {
+			success = api.get("task", "?systemid=" + systemID + "&nodeid=" + nodeID);
 		}
 
 		if (success) {

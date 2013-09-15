@@ -28,9 +28,11 @@ import com.skysql.manager.api.SystemInfo;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
@@ -39,12 +41,15 @@ import com.vaadin.ui.Window.CloseEvent;
 public class SettingsDialog implements Window.CloseListener {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	Window dialogWindow;
+	ModalWindow dialogWindow;
 	Button openButton;
 	Button closebutton;
 	Label explanation;
 	private TabSheet tabsheet;
 	private String selectedTab;
+	private boolean refresh = false;
+	private boolean switchAllowed = true;
+	SettingsDialog settingsDialog;
 
 	private ClickListener settingsDialogOpenListener = new ClickListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
@@ -52,22 +57,25 @@ public class SettingsDialog implements Window.CloseListener {
 		public void buttonClick(Button.ClickEvent event) {
 
 			dialogWindow = new ModalWindow("Settings", "500px");
+			dialogWindow.addCloseListener(settingsDialog);
 			UI.getCurrent().addWindow(dialogWindow);
 
 			tabsheet = new TabSheet();
 			tabsheet.setImmediate(true);
 
-			// Account Tab
-			AccountSettings accountTab = new AccountSettings();
-			Tab tab = tabsheet.addTab(accountTab, "Accounts");
-			if (selectedTab != null && selectedTab.equals("Accounts")) {
+			Tab tab;
+
+			// General Tab
+			GeneralSettings backupsTab = new GeneralSettings(settingsDialog);
+			tab = tabsheet.addTab(backupsTab, "General");
+			if (selectedTab != null && selectedTab.equals("General")) {
 				tabsheet.setSelectedTab(tab);
 			}
 
-			// Backups Tab
-			BackupSettings backupsTab = new BackupSettings();
-			tab = tabsheet.addTab(backupsTab, "Backups");
-			if (selectedTab != null && selectedTab.equals("Backups")) {
+			// Users Tab
+			UsersSettings usersTab = new UsersSettings();
+			tab = tabsheet.addTab(usersTab, "Users");
+			if (selectedTab != null && selectedTab.equals("Users")) {
 				tabsheet.setSelectedTab(tab);
 			}
 
@@ -78,6 +86,7 @@ public class SettingsDialog implements Window.CloseListener {
 			if (systemID.equals(SystemInfo.SYSTEM_ROOT)) {
 				ClusterComponent clusterComponent = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
 				systemType = clusterComponent.getSystemType();
+				systemID = clusterComponent.getID();
 			} else {
 				systemType = systemInfo.getCurrentSystem().getSystemType();
 			}
@@ -90,12 +99,37 @@ public class SettingsDialog implements Window.CloseListener {
 			}
 
 			((ComponentContainer) dialogWindow.getContent()).addComponent(tabsheet);
+
+			// Handling tab changes
+			tabsheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+				private static final long serialVersionUID = -2358653511430014752L;
+
+				Component selected = tabsheet.getSelectedTab();
+				boolean preventEvent = false;
+
+				public void selectedTabChange(SelectedTabChangeEvent event) {
+					if (preventEvent) {
+						preventEvent = false;
+						return;
+					}
+					// Check the previous tab
+					if (switchAllowed) {
+						selected = tabsheet.getSelectedTab();
+					} else {
+						// Revert the tab change
+						preventEvent = true; // Prevent secondary change event
+						tabsheet.setSelectedTab(selected);
+					}
+				}
+			});
+
 		}
 	};
 
 	public SettingsDialog(String label) {
 
 		openButton = new Button(label, settingsDialogOpenListener);
+		settingsDialog = this;
 
 	}
 
@@ -106,18 +140,26 @@ public class SettingsDialog implements Window.CloseListener {
 
 	}
 
+	public void setRefresh(boolean refresh) {
+		this.refresh = refresh;
+	}
+
+	public void setClose(boolean close) {
+		dialogWindow.setClose(close);
+		switchAllowed = close;
+		//dialogWindow.setClosable(close);
+	}
+
 	public Button getButton() {
 		return (openButton);
 	}
 
-	/** Handle Close button click and close the window. */
-	public void closeButtonClick(Button.ClickEvent event) {
-		/* Windows are managed by the application object. */
-		dialogWindow.close();
+	public void windowClose(CloseEvent e) {
+		if (refresh) {
+			OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
+			overviewPanel.refresh();
+		}
+
 	}
 
-	/** In case the window is closed otherwise. */
-	public void windowClose(CloseEvent e) {
-		// anything special goes here
-	}
 }

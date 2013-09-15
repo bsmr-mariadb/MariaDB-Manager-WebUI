@@ -13,6 +13,11 @@
     padding-top: 10px;
 }
 
+hr {
+	size: 1px;
+	color: black;
+}
+
 .v-tabsheet-tabitem .v-captiontext {
 	font-size:15px !important;
 }

@@ -104,9 +104,9 @@ public class SystemRecord extends ClusterComponent {
 		return "<h2>System - (Double-click to open)</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Type:</b> " + this.systemType + "</li>"
 				+ "<li><b>Name:</b> " + this.name + "</li>" + "</li>" + "<li><b>State:</b> " + ((this.state == null) ? NOT_AVAILABLE : this.state) + "</li>"
 				+ "<li><b>Nodes:</b> " + ((this.nodes == null) ? NOT_AVAILABLE : Arrays.toString(this.nodes)) + "</li>" + "<li><b>Start Date:</b> "
-				+ ((this.startDate == null) ? NOT_AVAILABLE : this.startDate) + "</li>" + "<li><b>Last Access:</b> "
-				+ ((this.lastAccess == null) ? NOT_AVAILABLE : this.lastAccess) + "</li>" + "<li><b>Last Backup:</b> "
-				+ ((this.lastBackup == null) ? NOT_AVAILABLE : this.lastBackup) + "</li>" + "</ul>";
+				+ ((this.startDate == null) ? NOT_AVAILABLE : DateConversion.adjust(this.startDate)) + "</li>" + "<li><b>Last Access:</b> "
+				+ ((this.lastAccess == null) ? NOT_AVAILABLE : DateConversion.adjust(this.lastAccess)) + "</li>" + "<li><b>Last Backup:</b> "
+				+ ((this.lastBackup == null) ? NOT_AVAILABLE : DateConversion.adjust(this.lastBackup)) + "</li>" + "</ul>";
 	}
 
 	public boolean save() {

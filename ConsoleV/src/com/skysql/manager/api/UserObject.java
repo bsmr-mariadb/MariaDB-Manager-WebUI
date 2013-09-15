@@ -38,6 +38,9 @@ public class UserObject {
 
 	public static final String PROPERTY_CHART_MAPPINGS = "com.skysql.manager.chart.mappings";
 	public static final String PROPERTY_CHART_SETTINGS = "com.skysql.manager.chart.settings";
+	public static final String PROPERTY_TIME_ADJUST = "com.skysql.manager.time.adjust";
+	public static final String PROPERTY_TIME_FORMAT = "com.skysql.manager.time.format";
+	public static final String PROPERTY_COMMAND_EXECUTION = "com.skysql.manager.command.execution";
 
 	private String userID;
 	private String name;

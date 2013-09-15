@@ -102,7 +102,7 @@ public final class RunningTask {
 
 		if (command == null) {
 			observerMode = true;
-			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null);
+			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null);
 			taskRecord = taskInfo.getTasksList().get(0);
 			command = taskRecord.getCommand();
 		}
@@ -311,7 +311,8 @@ public final class RunningTask {
 				final NativeButton button = new NativeButton();
 				button.addStyleName(control);
 				button.setImmediate(true);
-				button.setDescription(control); // this should be a proper description
+				//button.setCaption(control);	// needs cleaning up of styles+layouts
+				//button.setDescription(control); // this should be a proper description
 				button.setData(control);
 				scriptingControlsLayout.addComponent(button);
 				scriptingControlsLayout.setComponentAlignment(button, Alignment.MIDDLE_CENTER);
@@ -339,6 +340,7 @@ public final class RunningTask {
 		taskImages = new Embedded[stepsIDs.length + 1]; // add one more for the "done" icon
 
 		// add steps icons
+		progressIconsLayout.removeAllComponents();
 		for (int index = 0; index < stepsIDs.length; index++) {
 			String stepID = stepsIDs[index];
 			StepRecord stepRecord = stepRecords.get(stepID);
@@ -454,9 +456,10 @@ public final class RunningTask {
 
 		UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
 		String userID = userObject.getUserID();
+		String looseExecution = userObject.getProperty(UserObject.PROPERTY_COMMAND_EXECUTION);
+		String state = (looseExecution != null && Boolean.valueOf(looseExecution)) ? null : nodeInfo.getState();
 
-		// TODO: test calling with null instead of state
-		TaskRun taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, command, params, nodeInfo.getState());
+		TaskRun taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, command, params, state);
 		if (taskRun.getTaskRecord() == null) {
 			commandSelect.select(null);
 			commandSelect.setEnabled(true);
@@ -467,9 +470,11 @@ public final class RunningTask {
 			return;
 		}
 
+		String taskSteps = taskRun.getTaskRecord().getSteps();
+		String nodeSteps = nodeInfo.getCommands().getSteps(command);
 		if (!taskRun.getTaskRecord().getSteps().equals(nodeInfo.getCommands().getSteps(command))) {
-			scriptLabel.setValue(command + " (Note: steps below have changed)");
 			buildProgressLayout(taskRun.getTaskRecord().getSteps());
+			scriptLabel.setValue(command + " (Updated Steps)");
 		}
 
 		nodeInfo.setTask(taskRun.getTaskRecord().getID());
@@ -536,7 +541,7 @@ public final class RunningTask {
 			++fCount;
 			ManagerUI.log("timer - task:" + nodeInfo.getTask() + " - " + fCount);
 
-			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null);
+			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null);
 			TaskRecord taskRecord = taskInfo.getTasksList().get(0);
 
 			VaadinSession vaadinSession = VaadinSession.getCurrent();

@@ -24,6 +24,8 @@ import com.vaadin.ui.Window;
 public class ModalWindow extends Window {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
+	private boolean closeAllowed = true;
+
 	public ModalWindow(String caption, String width) {
 		setModal(true);
 		if (width != null) {
@@ -35,5 +37,18 @@ public class ModalWindow extends Window {
 		setContent(layout);
 		layout.setSpacing(true);
 		layout.setMargin(true);
+	}
+
+	@Override
+	public void close() {
+		if (closeAllowed) {
+			super.close();
+		} else {
+
+		}
+	}
+
+	public void setClose(boolean allowed) {
+		closeAllowed = allowed;
 	}
 }

@@ -1,50 +1,43 @@
 package com.skysql.manager;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.util.Date;
+
+import com.skysql.manager.ui.GeneralSettings;
 
 public class DateConversion {
+	public static String DEFAULT_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+	private static boolean adjust = false;
+	private static String format = DEFAULT_TIME_FORMAT;
 
-	long start, end;
-	long delta, count;
-	long last = -1;
-
-	public DateConversion() {
+	public static void setAdjust(boolean adjust) {
+		DateConversion.adjust = adjust;
 	}
 
-	public DateConversion(String start, String end, String interval) {
-		this.start = dateToCal(start);
-		this.end = dateToCal(end);
-		count = Long.valueOf(interval) / 60;
-		delta = (this.end - this.start) / count;
+	public static void setAdjust(String adjust) {
+		DateConversion.adjust = (adjust == null ? GeneralSettings.DEFAULT_TIME_ADJUST : Boolean.valueOf(adjust));
 	}
 
-	public long convert(String date) {
-		if (delta != 0) {
-			long value = (dateToCal(date) - start) / delta;
-			if (value > last) {
-			} else {
-				value++;
-			}
-			last = value;
-			return value;
+	public static void setFormat(String format) {
+		DateConversion.format = (format == null ? DEFAULT_TIME_FORMAT : format);
+	}
+
+	public static String adjust(String timestamp) {
+		if (timestamp == null || adjust == false) {
+			return timestamp;
 		} else {
-			return 0;
-		}
-
-	}
-
-	private long dateToCal(String date) {
-		Calendar cal = new GregorianCalendar();
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-
-		try {
-			cal.setTime(sdf.parse(date));
-			return (cal.getTimeInMillis());
-		} catch (Exception e) {
-			e.printStackTrace();
-			return (0);
+			String adjusted = null;
+			SimpleDateFormat sdfInput = new SimpleDateFormat("E, d MMM y HH:mm:ss Z"); // Mon, 02 Sep 2013 13:08:14 +0000
+			try {
+				SimpleDateFormat sdfOutput = new SimpleDateFormat(format);
+				Date myDate = sdfInput.parse(timestamp);
+				adjusted = sdfOutput.format(myDate);
+			} catch (Exception e) {
+				System.err.println("Execption parsing timestamp: " + timestamp + " with format: " + format);
+				e.printStackTrace();
+				adjusted = "Format Error";
+			}
+			return adjusted;
 		}
 	}
 

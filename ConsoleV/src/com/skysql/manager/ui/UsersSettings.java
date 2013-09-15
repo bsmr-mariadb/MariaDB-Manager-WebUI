@@ -42,7 +42,7 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
 @SuppressWarnings("deprecation")
-public class AccountSettings extends HorizontalLayout implements Window.CloseListener {
+public class UsersSettings extends HorizontalLayout implements Window.CloseListener {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private TextField userName = new TextField("Full Name");
@@ -52,8 +52,8 @@ public class AccountSettings extends HorizontalLayout implements Window.CloseLis
 	private Window secondaryDialog;
 	private UserInfo userInfo;
 
-	AccountSettings() {
-		addStyleName("accountTab");
+	UsersSettings() {
+		addStyleName("usersTab");
 		setSpacing(true);
 
 		UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);

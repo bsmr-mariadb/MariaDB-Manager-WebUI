@@ -35,6 +35,7 @@ import com.skysql.manager.ui.OverviewPanel;
 import com.skysql.manager.ui.SetupDialog;
 import com.skysql.manager.ui.TabbedPanel;
 import com.skysql.manager.ui.TopPanel;
+import com.vaadin.annotations.PreserveOnRefresh;
 import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
@@ -50,6 +51,7 @@ import com.vaadin.ui.VerticalSplitPanel;
 @Theme("skystyle1")
 @Title("SkySQL Manager")
 @Push
+@PreserveOnRefresh
 public class ManagerUI extends UI {
 
 	private DebugPanel debugPanel;
@@ -73,14 +75,16 @@ public class ManagerUI extends UI {
 
 				AppData appData = AppData.newInstance();
 				if (appData == null) {
-					break;
+					setContent(new ErrorView(Notification.Type.ERROR_MESSAGE, null));
+					return;
 				}
 				session.setAttribute(AppData.class, appData);
 
-				APIrestful.setURI(appData.getApiURI());
-				APIrestful.setKeys(appData.getApiKeys());
-
-				APIrestful api = APIrestful.newInstance();
+				APIrestful api = APIrestful.newInstance(appData.getApiURI(), appData.getApiKeys());
+				if (api == null) {
+					setContent(new ErrorView(Notification.Type.ERROR_MESSAGE, null));
+					return;
+				}
 				session.setAttribute(APIrestful.class, api);
 
 				UserInfo userInfo = new UserInfo(null);
@@ -94,6 +98,7 @@ public class ManagerUI extends UI {
 			refreshContentBasedOnSessionData();
 
 		} catch (RuntimeException e) {
+			System.err.println("RunTime error: " + e.getLocalizedMessage());
 
 		}
 
@@ -144,6 +149,9 @@ public class ManagerUI extends UI {
 		if (userObject == null) {
 			setContent(new LoginView(systemName, systemVersion));
 		} else {
+			DateConversion.setAdjust(userObject.getProperty(UserObject.PROPERTY_TIME_ADJUST));
+			DateConversion.setFormat(userObject.getProperty(UserObject.PROPERTY_TIME_FORMAT));
+
 			initLayout();
 			initExecutor();
 		}

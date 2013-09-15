@@ -35,15 +35,8 @@ import com.skysql.manager.ui.ErrorDialog;
 public class NodeStates {
 
 	private static LinkedHashMap<String, NodeStates> nodeStateRecords;
-	private static LinkedHashMap<String, String> nodeStatesIDs;
-	private static LinkedHashMap<String, String> nodeStatesIcons;
-	private static LinkedHashMap<String, String> nodeStatesDescriptions;
-
-	public static String getNodeID(String state) {
-		GetNodeStates();
-		String ID = nodeStatesIDs.get(state);
-		return ID;
-	}
+	private LinkedHashMap<String, String> nodeStatesIcons;
+	private LinkedHashMap<String, String> nodeStatesDescriptions;
 
 	public static String getNodeIcon(String systemType, String state) {
 		GetNodeStates();
@@ -55,10 +48,11 @@ public class NodeStates {
 		return (icon == null ? "invalid" : icon);
 	}
 
-	public static String getDescription(String state) {
+	public static String getDescription(String systemType, String state) {
 		GetNodeStates();
-		String description = nodeStatesDescriptions.get(state);
-		return (description == null ? "Invalid" : description);
+		NodeStates nodeStates = NodeStates.nodeStateRecords.get(systemType);
+		String description = nodeStates.nodeStatesDescriptions.get(state);
+		return (description == null ? "Invalid (" + state + ")" : description);
 	}
 
 	public static boolean load() {
@@ -72,7 +66,6 @@ public class NodeStates {
 			if (api.get("nodestate")) {
 				try {
 					NodeStates nodeStates = APIrestful.getGson().fromJson(api.getResult(), NodeStates.class);
-					NodeStates.nodeStateRecords = nodeStates.nodeStateRecords;
 				} catch (NullPointerException e) {
 					new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
 					throw new RuntimeException("API response");
@@ -84,20 +77,16 @@ public class NodeStates {
 		}
 	}
 
-	protected void setNodeStates(LinkedHashMap<String, NodeStates> nodeStates) {
+	protected static void setNodeStates(LinkedHashMap<String, NodeStates> nodeStates) {
 		NodeStates.nodeStateRecords = nodeStates;
 	}
 
-	protected void setNodeStatesIDs(LinkedHashMap<String, String> pairs) {
-		NodeStates.nodeStatesIDs = pairs;
-	}
-
 	protected void setNodeStatesIcons(LinkedHashMap<String, String> pairs) {
-		NodeStates.nodeStatesIcons = pairs;
+		nodeStatesIcons = pairs;
 	}
 
 	protected void setNodeStatesDescriptions(LinkedHashMap<String, String> pairs) {
-		NodeStates.nodeStatesDescriptions = pairs;
+		nodeStatesDescriptions = pairs;
 	}
 }
 
@@ -135,17 +124,14 @@ class NodeStatesDeserializer implements JsonDeserializer<NodeStates> {
 		NodeStates nodeStates = new NodeStates();
 
 		int length = array.size();
-		LinkedHashMap<String, String> IDs = new LinkedHashMap<String, String>(length);
 		LinkedHashMap<String, String> icons = new LinkedHashMap<String, String>(length);
 		LinkedHashMap<String, String> descriptions = new LinkedHashMap<String, String>(length);
 		for (int i = 0; i < length; i++) {
 			JsonObject stateObject = array.get(i).getAsJsonObject();
 			String state = stateObject.get("state").getAsString();
-			IDs.put(state, stateObject.get("stateid").getAsString());
 			icons.put(state, stateObject.get("icon").getAsString());
 			descriptions.put(state, stateObject.get("description").getAsString());
 		}
-		nodeStates.setNodeStatesIDs(IDs);
 		nodeStates.setNodeStatesIcons(icons);
 		nodeStates.setNodeStatesDescriptions(descriptions);
 

@@ -26,6 +26,7 @@ import org.vaadin.jouni.animator.AnimatorProxy.AnimationListener;
 import org.vaadin.jouni.animator.shared.AnimType;
 
 import com.skysql.manager.ClusterComponent;
+import com.skysql.manager.DateConversion;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.ChartProperties;
 import com.skysql.manager.api.Monitors;
@@ -327,7 +328,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 	}
 
 	public void refresh() {
-		ClusterComponent componentInfo = getSession().getAttribute(ClusterComponent.class);
+		final ClusterComponent componentInfo = getSession().getAttribute(ClusterComponent.class);
 		if (componentInfo == null) {
 			return;
 		}
@@ -399,9 +400,9 @@ public class PanelInfo extends HorizontalSplitPanel {
 					(value = monitorLatest.get(MonitorNames.availability.toString())) != null ? value + "%" : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.connections.toString())) != null ? value : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.traffic.toString())) != null ? value + " KB" : NOT_AVAILABLE,
-					(value = systemRecord.getLastBackup()) != null ? value : NOT_AVAILABLE,
-					(value = systemRecord.getStartDate()) != null ? value : NOT_AVAILABLE,
-					(value = systemRecord.getLastAccess()) != null ? value : NOT_AVAILABLE };
+					(value = systemRecord.getLastBackup()) != null ? DateConversion.adjust(value) : NOT_AVAILABLE,
+					(value = systemRecord.getStartDate()) != null ? DateConversion.adjust(value) : NOT_AVAILABLE,
+					(value = systemRecord.getLastAccess()) != null ? DateConversion.adjust(value) : NOT_AVAILABLE };
 			values = systemValues;
 			break;
 

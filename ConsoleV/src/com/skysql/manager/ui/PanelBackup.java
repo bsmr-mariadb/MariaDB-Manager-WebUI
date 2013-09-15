@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.skysql.manager.BackupRecord;
+import com.skysql.manager.ClusterComponent;
+import com.skysql.manager.DateConversion;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.api.BackupStates;
 import com.skysql.manager.api.Backups;
@@ -156,7 +158,13 @@ public class PanelBackup extends VerticalLayout {
 		final String EIP = sysProperties.get(SystemInfo.PROPERTY_EIP);
 		***/
 
-		Backups backups = new Backups(systemInfo.getCurrentID(), null);
+		String systemID = systemInfo.getCurrentID();
+		if (SystemInfo.SYSTEM_ROOT.equals(systemID)) {
+			ClusterComponent clusterComponent = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
+			systemID = clusterComponent.getID();
+		}
+
+		Backups backups = new Backups(systemID, null);
 		backupsList = backups.getBackupsList();
 
 		managerUI.access(new Runnable() {
@@ -197,9 +205,10 @@ public class PanelBackup extends VerticalLayout {
 							***/
 
 							backupsTable.addItem(
-									new Object[] { backupRecord.getStarted(), backupRecord.getUpdated(), backupRecord.getRestored(), backupRecord.getLevel(),
-											backupRecord.getNode(), backupRecord.getSize(), backupRecord.getStorage(),
-											BackupStates.getDescriptions().get(backupRecord.getState()), backupLogLink }, backupRecord.getID());
+									new Object[] { DateConversion.adjust(backupRecord.getStarted()), DateConversion.adjust(backupRecord.getUpdated()),
+											DateConversion.adjust(backupRecord.getRestored()), backupRecord.getLevel(), backupRecord.getNode(),
+											backupRecord.getSize(), backupRecord.getStorage(), BackupStates.getDescriptions().get(backupRecord.getState()),
+											backupLogLink }, backupRecord.getID());
 						}
 					}
 				} else {

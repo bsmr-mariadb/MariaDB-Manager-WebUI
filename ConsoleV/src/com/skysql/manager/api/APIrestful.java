@@ -75,21 +75,17 @@ public class APIrestful {
 		return apiURI;
 	}
 
-	public static void setURI(String URI) {
-		APIrestful.apiURI = URI;
-	}
-
-	public static void setKeys(Hashtable<String, String> keys) {
-		if (keys.size() > 0) {
-			// for now take first set - in future loop through and take first one that works
-			keyID = (String) keys.keySet().toArray()[0];
-			keyCode = keys.get(keyID);
-		}
-	}
-
-	public static APIrestful newInstance() {
+	public static APIrestful newInstance(String URI, Hashtable<String, String> keys) {
 		if (api == null) {
 			api = new APIrestful();
+			apiURI = URI;
+			if (keys.size() > 0) {
+				// for now take first set - in future loop through and take first one that works
+				keyID = (String) keys.keySet().toArray()[0];
+				keyCode = keys.get(keyID);
+			}
+			api.get("systemtype");
+
 		}
 
 		return api;
@@ -228,7 +224,7 @@ public class APIrestful {
 			sc.setRequestProperty("Authorization", "api-auth-" + keyID + "-" + sb.toString());
 			sc.setRequestProperty("Date", date);
 			sc.setRequestProperty("Accept", "application/json");
-			sc.setRequestProperty("X-skysql-apiversion", "1");
+			sc.setRequestProperty("X-SkySQL-API-Version", "1");
 
 			switch (type) {
 			case GET:
@@ -287,7 +283,7 @@ public class APIrestful {
 			e.printStackTrace();
 			throw new RuntimeException("API not responding");
 		} catch (MalformedJsonException e) {
-			new ErrorDialog(e, "API did not return JSON for:" + api.errorString());
+			new ErrorDialog(e, "API did not return JSON for: " + api.errorString());
 			throw new RuntimeException("MalformedJson inputStream");
 
 		} catch (IOException e) {

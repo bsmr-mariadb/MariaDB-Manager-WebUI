@@ -120,8 +120,8 @@ public class MonitorRecord {
 		this.sql = sql;
 	}
 
-	public MonitorRecord() {
-
+	public MonitorRecord(String systemType) {
+		this.systemType = systemType;
 	}
 
 	public MonitorRecord(String systemType, String ID, String name, String description, String unit, String type, boolean delta, boolean average,

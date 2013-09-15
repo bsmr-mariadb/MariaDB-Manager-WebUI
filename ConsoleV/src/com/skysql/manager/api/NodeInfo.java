@@ -185,6 +185,7 @@ public class NodeInfo extends ClusterComponent {
 		this.type = CCType.node;
 		this.parentID = systemID;
 		this.systemType = systemType;
+		this.state = "placeholder";
 	}
 
 	public NodeInfo(String systemID, String systemType, String nodeID) {
@@ -226,10 +227,10 @@ public class NodeInfo extends ClusterComponent {
 		return "<h2>Node</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Name:</b> " + this.name + "</li>" + "<li><b>Hostname:</b> "
 				+ this.hostname + "</li>" + "<li><b>Public IP:</b> " + this.publicIP + "</li>" + "<li><b>Private IP:</b> " + this.privateIP + "</li>"
 				+ "<li><b>Instance ID:</b> " + this.instanceID + "<li><b>Username:</b> " + this.username + "<li><b>Password:</b> " + this.password + "</li>"
-				+ "<li><b>State:</b> " + ((this.state == null) ? NOT_AVAILABLE : NodeStates.getDescription(this.state)) + "</li>" + "<li><b>Monitors:</b> "
-				+ ((this.monitorLatest == null) ? NOT_AVAILABLE : monitorLatest.getData().toString()) + "</li>" + "<li><b>Available Commands:</b> "
-				+ ((this.commands == null) ? NOT_AVAILABLE : getCommands().getNames().keySet()) + "</li>" + "<li><b>Task ID:</b> "
-				+ ((this.task == null) ? NOT_AVAILABLE : this.task) + "</li>" + "<li><b>Running Command:</b> "
+				+ "<li><b>State:</b> " + ((this.state == null) ? NOT_AVAILABLE : NodeStates.getDescription(this.systemType, this.state)) + "</li>"
+				+ "<li><b>Monitors:</b> " + ((this.monitorLatest == null) ? NOT_AVAILABLE : monitorLatest.getData().toString()) + "</li>"
+				+ "<li><b>Available Commands:</b> " + ((this.commands == null) ? NOT_AVAILABLE : getCommands().getNames().keySet()) + "</li>"
+				+ "<li><b>Task ID:</b> " + ((this.task == null) ? NOT_AVAILABLE : this.task) + "</li>" + "<li><b>Running Command:</b> "
 				+ ((this.command == null) ? NOT_AVAILABLE : this.command) + "</li>" + "</ul>";
 
 	}

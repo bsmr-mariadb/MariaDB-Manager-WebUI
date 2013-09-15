@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import com.skysql.manager.ClusterComponent;
+import com.skysql.manager.DateConversion;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.CommandStates;
@@ -50,6 +51,7 @@ public class PanelControl extends VerticalLayout {
 	private String lastNodeID;
 	private int oldTasksCount;
 	private UpdaterThread updaterThread;
+	private Label placeholderLabel;
 
 	private ValueChangeListener commandListener = new ValueChangeListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
@@ -118,7 +120,7 @@ public class PanelControl extends VerticalLayout {
 		placeholderLayout = new VerticalLayout();
 		placeholderLayout.addStyleName("placeholderLayout");
 
-		Label placeholderLabel = new Label("No Command is currently running on this node");
+		placeholderLabel = new Label("No Command is currently running on this node");
 		placeholderLabel.addStyleName("instructions");
 		placeholderLabel.setSizeUndefined();
 		placeholderLayout.addComponent(placeholderLabel);
@@ -212,7 +214,7 @@ public class PanelControl extends VerticalLayout {
 		final RunningTask runningTask = nodeInfo.getCommandTask();
 
 		// update command history section
-		TaskInfo taskInfo = new TaskInfo(null, nodeInfo.getID());
+		TaskInfo taskInfo = new TaskInfo(null, nodeInfo.getParentID(), nodeInfo.getID());
 		final ArrayList<TaskRecord> tasksList = taskInfo.getTasksList();
 
 		managerUI.access(new Runnable() {
@@ -230,35 +232,42 @@ public class PanelControl extends VerticalLayout {
 						oldTasksCount = tasksList.size();
 						Collections.reverse(tasksList);
 						for (TaskRecord taskRecord : tasksList) {
-							logsTable.addItem(new Object[] { taskRecord.getStart(), taskRecord.getEnd(), taskRecord.getCommand(), taskRecord.getParams(),
-									taskRecord.getSteps(), taskRecord.getPID(), taskRecord.getPrivateIP(), userInfo.findNameByID(taskRecord.getUserID()),
-									CommandStates.getDescriptions().get(taskRecord.getState()) }, taskRecord.getID());
+							logsTable.addItem(new Object[] { DateConversion.adjust(taskRecord.getStart()), DateConversion.adjust(taskRecord.getEnd()),
+									taskRecord.getCommand(), taskRecord.getParams(), taskRecord.getSteps(), taskRecord.getPID(), taskRecord.getPrivateIP(),
+									userInfo.findNameByID(taskRecord.getUserID()), CommandStates.getDescriptions().get(taskRecord.getState()) },
+									taskRecord.getID());
 						}
 					}
 				}
 
-				String commands[] = new String[nodeInfo.getCommands().getNames().keySet().size()];
-				nodeInfo.getCommands().getNames().keySet().toArray(commands);
-				if (!newNodeID.equals(lastNodeID) || !Arrays.equals(commands, oldcommands)) {
-					commandSelect.removeValueChangeListener(commandListener);
-
-					// rebuild list of commands with what node is accepting
+				if (nodeInfo.getCommands() == null || nodeInfo.getCommands().getNames().isEmpty()) {
 					commandSelect.removeAllItems();
-					if ((commands != null) && (commands.length != 0)) {
-						for (String command : commands) {
-							commandSelect.addItem(command);
-						}
-					}
-					oldcommands = commands;
+					oldcommands = null;
+					placeholderLabel.setValue("No Command is currently available on this node");
+				} else {
+					placeholderLabel.setValue("No Command is currently running on this node");
+					String commands[] = new String[nodeInfo.getCommands().getNames().keySet().size()];
+					nodeInfo.getCommands().getNames().keySet().toArray(commands);
+					if (!newNodeID.equals(lastNodeID) || !Arrays.equals(commands, oldcommands)) {
+						oldcommands = commands;
+						commandSelect.removeValueChangeListener(commandListener);
 
+						// rebuild list of commands with what node is accepting
+						commandSelect.removeAllItems();
+						if ((commands != null) && (commands.length != 0)) {
+							for (String command : commands) {
+								commandSelect.addItem(command);
+							}
+						}
+
+						commandSelect.addValueChangeListener(commandListener);
+					}
+
+					commandSelect.removeValueChangeListener(commandListener);
+					String selected = (runningTask != null) ? runningTask.getCommand() : null;
+					commandSelect.select(selected);
 					commandSelect.addValueChangeListener(commandListener);
 				}
-
-				commandSelect.removeValueChangeListener(commandListener);
-				String selected = (runningTask != null) ? runningTask.getCommand() : null;
-				commandSelect.select(selected);
-				commandSelect.addValueChangeListener(commandListener);
-
 				commandSelect.setEnabled(taskID != null ? false : true);
 
 				if (runningTask != null) {
