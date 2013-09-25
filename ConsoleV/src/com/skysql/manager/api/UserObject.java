@@ -19,12 +19,12 @@
 package com.skysql.manager.api;
 
 import java.lang.reflect.Type;
-import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.google.gson.JsonDeserializationContext;
@@ -52,7 +52,7 @@ public class UserObject {
 	}
 
 	public String getName() {
-		return name;
+		return (name != null) ? name : userID;
 	}
 
 	public String getPassword() {
@@ -78,7 +78,7 @@ public class UserObject {
 					return true;
 				}
 			}
-		} catch (Exception e) {
+		} catch (JSONException e) {
 			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
 		}
@@ -95,11 +95,15 @@ public class UserObject {
 		try {
 			APIrestful api = new APIrestful();
 			JSONObject jsonParam = new JSONObject();
-			jsonParam.put("value", URLEncoder.encode(value, "UTF8"));
+			//jsonParam.put("value", URLEncoder.encode(value, "UTF8"));
+			jsonParam.put("value", value);
 			return api.put("user/" + userID + "/property/" + key, jsonParam.toString());
-		} catch (Exception e) {
+		} catch (JSONException e) {
 			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
+			//		} catch (UnsupportedEncodingException e) {
+			//			e.printStackTrace();
+			//			new ErrorDialog(e, "Error encoding API request");
 		}
 
 		return false;

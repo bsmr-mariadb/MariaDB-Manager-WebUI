@@ -50,7 +50,7 @@ public class ErrorDialog implements Window.CloseListener {
 		if (current.getContent() == null) {
 			current.setContent(new ErrorView(Notification.Type.ERROR_MESSAGE, null));
 		}
-		UI.getCurrent().addWindow(dialogWindow);
+		current.addWindow(dialogWindow);
 
 		HorizontalLayout wrapper = new HorizontalLayout();
 		wrapper.setSizeFull();

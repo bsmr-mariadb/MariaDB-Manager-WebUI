@@ -211,7 +211,6 @@ public class PanelControl extends VerticalLayout {
 
 		final String taskID = nodeInfo.getTask();
 		// String taskCommand = nodeInfo.getCommand();
-		final RunningTask runningTask = nodeInfo.getCommandTask();
 
 		// update command history section
 		TaskInfo taskInfo = new TaskInfo(null, nodeInfo.getParentID(), nodeInfo.getID());
@@ -223,6 +222,8 @@ public class PanelControl extends VerticalLayout {
 				// Here the UI is locked and can be updated
 
 				ManagerUI.log("PanelControl access run() - taskID: " + taskID);
+
+				RunningTask runningTask = nodeInfo.getCommandTask();
 
 				if (!newNodeID.equals(lastNodeID) || (tasksList != null && tasksList.size() != oldTasksCount)) {
 
@@ -238,6 +239,12 @@ public class PanelControl extends VerticalLayout {
 									taskRecord.getID());
 						}
 					}
+				}
+
+				// task is running although it was not started by us
+				if (taskID != null && runningTask == null) {
+					runningTask = new RunningTask(null, nodeInfo, commandSelect);
+					runningTask.addRefreshListener(refreshListener);
 				}
 
 				if (nodeInfo.getCommands() == null || nodeInfo.getCommands().getNames().isEmpty()) {
@@ -267,6 +274,7 @@ public class PanelControl extends VerticalLayout {
 					String selected = (runningTask != null) ? runningTask.getCommand() : null;
 					commandSelect.select(selected);
 					commandSelect.addValueChangeListener(commandListener);
+
 				}
 				commandSelect.setEnabled(taskID != null ? false : true);
 

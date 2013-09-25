@@ -24,7 +24,9 @@ ould have received a copy of the GNU General Public License along with
 package com.skysql.manager.api;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
@@ -36,18 +38,12 @@ import com.skysql.manager.ui.ErrorDialog;
 
 public class CommandStates {
 
-	public enum CommandState {
-		scheduled, running, paused, stopped, done, error;
+	public enum States {
+		running, paused, stopped, done, error;
 	}
 
 	private static CommandStates commandStates;
-	private static LinkedHashMap<String, String> icons;
 	private static LinkedHashMap<String, String> descriptions;
-
-	public static LinkedHashMap<String, String> getIcons() {
-		GetCommandStates();
-		return CommandStates.icons;
-	}
 
 	public static LinkedHashMap<String, String> getDescriptions() {
 		GetCommandStates();
@@ -78,15 +74,13 @@ public class CommandStates {
 		}
 	}
 
-	protected void setIcons(LinkedHashMap<String, String> pairs) {
-		CommandStates.icons = pairs;
-	}
-
 	protected void setDescriptions(LinkedHashMap<String, String> pairs) {
 		CommandStates.descriptions = pairs;
 	}
 
 }
+
+// {"commandStates":[{"state":"running","description":"Running"},{"state":"paused","description":"Paused"},{"state":"stopped","description":"Stopped"},{"state":"done","description":"Done"},{"state":"error","description":"Error"}]}
 
 class CommandStatesDeserializer implements JsonDeserializer<CommandStates> {
 	public CommandStates deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
@@ -94,24 +88,29 @@ class CommandStatesDeserializer implements JsonDeserializer<CommandStates> {
 
 		JsonElement jsonElement = json.getAsJsonObject().get("commandStates");
 		if (jsonElement.isJsonNull()) {
-			commandStates.setIcons(null);
 			commandStates.setDescriptions(null);
 		} else {
 			JsonArray array = jsonElement.getAsJsonArray();
 			int length = array.size();
 
-			LinkedHashMap<String, String> icons = new LinkedHashMap<String, String>(length);
 			LinkedHashMap<String, String> descriptions = new LinkedHashMap<String, String>(length);
+			List<CommandStates.States> validStates = Arrays.asList(CommandStates.States.values());
 			for (int i = 0; i < length; i++) {
 				JsonObject pair = array.get(i).getAsJsonObject();
-				icons.put(pair.get("state").getAsString(), pair.get("icon").getAsString());
-				descriptions.put(pair.get("state").getAsString(), pair.get("description").getAsString());
+				String state = pair.get("state").getAsString();
+				try {
+					if (validStates.contains(CommandStates.States.valueOf(state))) {
+						descriptions.put(state, pair.get("description").getAsString());
+					}
+				} catch (IllegalArgumentException e) {
+					//new ErrorDialog(e, "Unknown Command State (" + state + ") found in API response");
+					e.printStackTrace();
+					//throw new RuntimeException("Unknown Command State (" + state + ") found in API response");
+				}
 			}
-			commandStates.setIcons(icons);
 			commandStates.setDescriptions(descriptions);
 		}
 
 		return commandStates;
 	}
-
 }

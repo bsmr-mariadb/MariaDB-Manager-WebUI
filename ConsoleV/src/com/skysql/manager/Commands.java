@@ -22,14 +22,9 @@ import java.util.LinkedHashMap;
 
 public class Commands {
 
-	private LinkedHashMap<String, String> icons;
 	private LinkedHashMap<String, String> descriptions;
 	private LinkedHashMap<String, String> names;
 	private LinkedHashMap<String, String> steps;
-
-	public LinkedHashMap<String, String> getIcons() {
-		return icons;
-	}
 
 	public LinkedHashMap<String, String> getDescriptions() {
 		return descriptions;
@@ -41,10 +36,6 @@ public class Commands {
 
 	public String getSteps(String command) {
 		return steps.get(command);
-	}
-
-	public void setIcons(LinkedHashMap<String, String> pairs) {
-		icons = pairs;
 	}
 
 	public void setDescriptions(LinkedHashMap<String, String> pairs) {

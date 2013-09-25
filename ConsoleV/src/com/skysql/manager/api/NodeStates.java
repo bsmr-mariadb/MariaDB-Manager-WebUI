@@ -19,8 +19,10 @@
 package com.skysql.manager.api;
 
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -33,19 +35,48 @@ import com.google.gson.JsonParseException;
 import com.skysql.manager.ui.ErrorDialog;
 
 public class NodeStates {
+	private static String INVALID_ICON = "invalid";
+
+	private static final Map<String, String> awsIcons;
+	static {
+		awsIcons = new HashMap<String, String>();
+		awsIcons.put("master", "master");
+		awsIcons.put("slave", "slave");
+		awsIcons.put("offline", "offline");
+		awsIcons.put("stopped", "stopped");
+		awsIcons.put("error", "error");
+		awsIcons.put("standalone", "node");
+	}
+	private static final Map<String, String> galeraIcons;
+	static {
+		galeraIcons = new HashMap<String, String>();
+		galeraIcons.put("down", "stopped");
+		galeraIcons.put("open", "starting");
+		galeraIcons.put("primary", "master");
+		galeraIcons.put("joiner", "promoting");
+		galeraIcons.put("joined", "master");
+		galeraIcons.put("synced", "master");
+		galeraIcons.put("donor", "master");
+		galeraIcons.put("isolated", "isolated");
+	}
 
 	private static LinkedHashMap<String, NodeStates> nodeStateRecords;
-	private LinkedHashMap<String, String> nodeStatesIcons;
 	private LinkedHashMap<String, String> nodeStatesDescriptions;
 
 	public static String getNodeIcon(String systemType, String state) {
-		GetNodeStates();
-		NodeStates nodeStates = NodeStates.nodeStateRecords.get(systemType);
 		String icon = null;
-		if (nodeStates != null) {
-			icon = nodeStates.nodeStatesIcons.get(state);
+		if (systemType.equals("aws")) {
+			icon = awsIcons.get(state);
+		} else if (systemType.equals("galera")) {
+			icon = galeraIcons.get(state);
 		}
-		return (icon == null ? "invalid" : icon);
+
+		if (icon == null) {
+			System.err.println("Unknown system type + node state found in API response: " + systemType + ", " + state);
+			icon = INVALID_ICON;
+		}
+
+		return icon;
 	}
 
 	public static String getDescription(String systemType, String state) {
@@ -81,20 +112,12 @@ public class NodeStates {
 		NodeStates.nodeStateRecords = nodeStates;
 	}
 
-	protected void setNodeStatesIcons(LinkedHashMap<String, String> pairs) {
-		nodeStatesIcons = pairs;
-	}
-
 	protected void setNodeStatesDescriptions(LinkedHashMap<String, String> pairs) {
 		nodeStatesDescriptions = pairs;
 	}
 }
 
-/***
-{"nodestates":{
-"aws":[{"state":"master","stateid":1,"description":"Master","icon":"master"},{"state":"slave","stateid":2,"description":"Slave Online","icon":"slave"},{"state":"offline","stateid":3,"description":"Slave Offline","icon":"offline"},{"state":"stopped","stateid":5,"description":"Slave Stopped","icon":"stopped"},{"state":"error","stateid":13,"description":"Slave Error","icon":"error"},{"state":"standalone","stateid":18,"description":"Standalone Database","icon":"node"}],
-"galera":[{"state":"down","stateid":100,"description":"Down","icon":"stopped"},{"state":"open","stateid":101,"description":"Open","icon":"starting"},{"state":"primary","stateid":102,"description":"Primary","icon":"master"},{"state":"joiner","stateid":103,"description":"Joiner","icon":"promoting"},{"state":"joined","stateid":104,"description":"Joined","icon":"master"},{"state":"synced","stateid":105,"description":"Synced","icon":"master"},{"state":"donor","stateid":106,"description":"Donor","icon":"master"},{"state":"isolated","stateid":99,"description":"Isolated","icon":"isolated"}]},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
-***/
+// {"nodestates":{"aws":[{"state":"master","stateid":1,"description":"Master"},{"state":"slave","stateid":2,"description":"Slave Online"},{"state":"offline","stateid":3,"description":"Slave Offline"},{"state":"stopped","stateid":5,"description":"Slave Stopped"},{"state":"error","stateid":13,"description":"Slave Error"},{"state":"standalone","stateid":18,"description":"Standalone Database"}],"galera":[{"state":"down","stateid":100,"description":"Down"},{"state":"open","stateid":101,"description":"Open"},{"state":"primary","stateid":102,"description":"Primary"},{"state":"joiner","stateid":103,"description":"Joiner"},{"state":"joined","stateid":104,"description":"Joined"},{"state":"synced","stateid":105,"description":"Synced"},{"state":"donor","stateid":106,"description":"Donor"},{"state":"isolated","stateid":99,"description":"Isolated"}]}
 
 class NodeStatesDeserializer implements JsonDeserializer<NodeStates> {
 	public NodeStates deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
@@ -124,15 +147,12 @@ class NodeStatesDeserializer implements JsonDeserializer<NodeStates> {
 		NodeStates nodeStates = new NodeStates();
 
 		int length = array.size();
-		LinkedHashMap<String, String> icons = new LinkedHashMap<String, String>(length);
 		LinkedHashMap<String, String> descriptions = new LinkedHashMap<String, String>(length);
 		for (int i = 0; i < length; i++) {
 			JsonObject stateObject = array.get(i).getAsJsonObject();
 			String state = stateObject.get("state").getAsString();
-			icons.put(state, stateObject.get("icon").getAsString());
 			descriptions.put(state, stateObject.get("description").getAsString());
 		}
-		nodeStates.setNodeStatesIcons(icons);
 		nodeStates.setNodeStatesDescriptions(descriptions);
 
 		return nodeStates;

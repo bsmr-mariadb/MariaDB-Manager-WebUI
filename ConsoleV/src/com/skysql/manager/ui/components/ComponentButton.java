@@ -20,6 +20,7 @@ package com.skysql.manager.ui.components;
 
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.SystemRecord;
+import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.NodeStates;
 import com.skysql.manager.ui.ComponentDialog;
 import com.vaadin.event.MouseEvents;
@@ -45,7 +46,7 @@ public class ComponentButton extends VerticalLayout {
 	private boolean isSelected = false, isEditable = false;
 	private Embedded editButton, deleteButton;
 	private VerticalLayout imageLayout;
-	private Label nodeName;
+	private Label nameLabel, commandLabel;
 	private ClusterComponent componentInfo;
 	private ComponentButton thisButton;
 
@@ -71,10 +72,20 @@ public class ComponentButton extends VerticalLayout {
 			//imageLayout.addStyleName(icon);
 			imageLayout.addStyleName(componentInfo.getType().toString());
 
-			nodeName = new Label(componentInfo.getName());
-			nodeName.setSizeUndefined();
-			imageLayout.addComponent(nodeName);
-			imageLayout.setComponentAlignment(nodeName, Alignment.BOTTOM_CENTER);
+			if (componentInfo.getType() == ClusterComponent.CCType.node) {
+				NodeInfo nodeInfo = (NodeInfo) componentInfo;
+				commandLabel = new Label(nodeInfo.getCommand());
+				commandLabel.addStyleName("commandOverlay");
+				commandLabel.setSizeUndefined();
+				imageLayout.addComponent(commandLabel);
+				imageLayout.setComponentAlignment(commandLabel, Alignment.TOP_CENTER);
+			}
+
+			nameLabel = new Label(componentInfo.getName());
+			nameLabel.setSizeUndefined();
+			imageLayout.addComponent(nameLabel);
+			imageLayout.setComponentAlignment(nameLabel, Alignment.BOTTOM_CENTER);
+
 		}
 		addComponent(imageLayout);
 		setComponentAlignment(imageLayout, Alignment.TOP_CENTER);
@@ -82,12 +93,20 @@ public class ComponentButton extends VerticalLayout {
 
 	}
 
-	public String getName() {
-		return nodeName.getValue();
-	}
+	//	public String getName() {
+	//		return nameLabel.getValue();
+	//	}
 
 	public void setName(String name) {
-		nodeName.setValue(name);
+		nameLabel.setValue(name);
+	}
+
+	//	public String getCommand() {
+	//		return commandLabel.getValue();
+	//	}
+
+	public void setCommand(String command) {
+		commandLabel.setValue(command);
 	}
 
 	public void setDescription(String description) {
@@ -129,6 +148,13 @@ public class ComponentButton extends VerticalLayout {
 		imageLayout.setStyleName(icon);
 		imageLayout.addStyleName(type);
 		setSelected(isSelected);
+
+	}
+
+	public void displayCommand(String command) {
+		//		if (isEditable) {
+		//			return;
+		//		}
 
 	}
 

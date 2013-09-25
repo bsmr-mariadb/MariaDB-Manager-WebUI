@@ -18,22 +18,40 @@
 
 package com.skysql.manager;
 
-public class StepRecord {
+public class ScheduledRecord {
 
-	private String icon;
-	private String description;
+	private String ID;
+	private String state;
+	private String iCal;
+	private String nodeID;
+	private String taskID;
 
-	public String getIcon() {
-		return icon;
+	public String getID() {
+		return ID;
 	}
 
-	public String getDescription() {
-		return description;
+	public String getState() {
+		return state;
 	}
 
-	public StepRecord(String icon, String description) {
-		this.icon = icon;
-		this.description = description;
+	public String getICal() {
+		return iCal;
+	}
+
+	public String getNodeID() {
+		return nodeID;
+	}
+
+	public String getTaskID() {
+		return taskID;
+	}
+
+	public ScheduledRecord(String ID, String state, String iCal, String nodeID, String taskID) {
+		this.ID = ID;
+		this.state = state;
+		this.iCal = iCal;
+		this.nodeID = nodeID;
+		this.taskID = taskID;
 	}
 
 }

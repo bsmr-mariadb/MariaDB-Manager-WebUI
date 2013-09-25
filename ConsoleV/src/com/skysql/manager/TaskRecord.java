@@ -32,6 +32,7 @@ public class TaskRecord {
 	private String userID;
 	private String start;
 	private String end;
+	private String error;
 
 	public String getID() {
 		return id;
@@ -81,8 +82,12 @@ public class TaskRecord {
 		return end;
 	}
 
+	public String getError() {
+		return error;
+	}
+
 	public TaskRecord(String id, String node, String command, String params, String steps, String pid, String privateIP, String index, String state,
-			String userID, String start, String end) {
+			String userID, String start, String end, String error) {
 		this.id = id;
 		this.node = node;
 		this.command = command;
@@ -95,6 +100,7 @@ public class TaskRecord {
 		this.userID = userID;
 		this.start = start;
 		this.end = end;
+		this.error = error;
 	}
 
 }

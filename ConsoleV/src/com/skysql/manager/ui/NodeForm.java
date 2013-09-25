@@ -29,7 +29,6 @@ import com.vaadin.ui.VerticalLayout;
 public class NodeForm extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	final TextField id = new TextField("ID");
 	final TextField name = new TextField("Name");
 	final TextField hostname = new TextField("Hostname");
 	final TextField instanceID = new TextField("Instance ID");
@@ -51,19 +50,12 @@ public class NodeForm extends VerticalLayout {
 		form.setFooter(null);
 		form.setDescription(description);
 
-		if (node.getID() == null) {
-			form.addField("id", id);
-			id.focus();
-		}
-
 		String value;
 		if ((value = node.getName()) != null) {
 			name.setValue(value);
-		}
-		form.addField("name", name);
-		if (node.getID() != null) {
 			name.focus();
 		}
+		form.addField("name", name);
 
 		if ((value = node.getHostname()) != null) {
 			hostname.setValue(value);
@@ -87,13 +79,13 @@ public class NodeForm extends VerticalLayout {
 		privateIP.setRequired(true);
 		privateIP.setRequiredError("Private IP is a required field");
 
-		if ((value = node.getUsername()) != null) {
+		if ((value = node.getDBUsername()) != null) {
 			username.setValue(value);
 		}
 		form.addField("username", username);
 
 		password.setNullSettingAllowed(true);
-		if ((value = node.getPassword()) != null) {
+		if ((value = node.getDBPassword()) != null) {
 			password.setValue(value);
 		}
 		form.addField("password", password);
@@ -111,8 +103,8 @@ public class NodeForm extends VerticalLayout {
 			node.setInstanceID(instanceID.getValue());
 			node.setPublicIP(publicIP.getValue());
 			node.setPrivateIP(privateIP.getValue());
-			node.setUsername(username.getValue());
-			node.setPassword(password.getValue());
+			node.setDBUsername(username.getValue());
+			node.setDBPassword(password.getValue());
 
 			return true;
 

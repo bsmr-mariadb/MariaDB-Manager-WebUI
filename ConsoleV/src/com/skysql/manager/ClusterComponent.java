@@ -32,6 +32,7 @@ public class ClusterComponent {
 	protected String parentID;
 	protected String systemType;
 	protected String state;
+	protected String updated;
 	protected String capacity;
 	protected ComponentButton button;
 	protected MonitorLatest monitorLatest;
@@ -82,6 +83,14 @@ public class ClusterComponent {
 
 	public void setState(String state) {
 		this.state = state;
+	}
+
+	public String getUpdated() {
+		return updated;
+	}
+
+	public void setUpdated(String updated) {
+		this.updated = updated;
 	}
 
 	public String getCapacity() {

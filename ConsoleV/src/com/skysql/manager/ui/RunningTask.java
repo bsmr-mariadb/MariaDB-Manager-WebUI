@@ -18,48 +18,36 @@
 
 package com.skysql.manager.ui;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import com.skysql.manager.BackupRecord;
 import com.skysql.manager.ExecutorFactory;
 import com.skysql.manager.ManagerUI;
-import com.skysql.manager.StepRecord;
 import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.BackupStates;
 import com.skysql.manager.api.Backups;
-import com.skysql.manager.api.CommandStates;
-import com.skysql.manager.api.CommandStates.CommandState;
 import com.skysql.manager.api.NodeInfo;
-import com.skysql.manager.api.Steps;
 import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.api.TaskInfo;
 import com.skysql.manager.api.TaskRun;
-import com.skysql.manager.api.UserInfo;
 import com.skysql.manager.api.UserObject;
+import com.skysql.manager.ui.components.ScriptingControlsLayout;
+import com.skysql.manager.ui.components.ScriptingControlsLayout.Controls;
+import com.skysql.manager.ui.components.ScriptingProgressLayout;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.server.VaadinSession;
-import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Embedded;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.ListSelect;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.VerticalLayout;
 
@@ -69,20 +57,16 @@ public final class RunningTask {
 	private static final String NOT_AVAILABLE = "n/a";
 	private static final String CMD_BACKUP = "backup";
 	private static final String CMD_RESTORE = "restore";
-	private VerticalLayout containerLayout, scriptingProgressLayout, scriptingControlsLayout, scriptingResultLayout;
-	private HorizontalLayout scriptingLayout, progressIconsLayout;
-	private Label scriptLabel, progressLabel, resultLabel;
+	private VerticalLayout containerLayout;
+	private ScriptingControlsLayout scriptingControlsLayout;
+	private ScriptingProgressLayout scriptingProgressLayout;
+	private HorizontalLayout scriptingLayout;
 	private ScheduledFuture<?> runTimerFuture;
-	private long startTime, runningTime;
-	private Embedded[] taskImages;
-	private LinkedHashMap<String, NativeButton> ctrlButtons = new LinkedHashMap<String, NativeButton>();
-	private String primitives[];
-	private int lastIndex = -1, lastProgressIndex = 0;
 	private String command, params;
 	private NodeInfo nodeInfo;
 	private TaskRecord taskRecord;
 	private boolean observerMode;
-	private boolean paramSelected;
+	private boolean paramsReady;
 	private GridLayout backupInfoGrid;
 	private Link backupLogLink;
 	private ListSelect commandSelect;
@@ -105,6 +89,7 @@ public final class RunningTask {
 			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null);
 			taskRecord = taskInfo.getTasksList().get(0);
 			command = taskRecord.getCommand();
+			this.command = command;
 		}
 
 		nodeInfo.setCommandTask(this);
@@ -118,7 +103,7 @@ public final class RunningTask {
 		scriptingLayout.setSizeFull();
 		containerLayout.addComponent(scriptingLayout);
 
-		if (command.equalsIgnoreCase(CMD_BACKUP) || command.equalsIgnoreCase(CMD_RESTORE)) {
+		if (command.equals(CMD_BACKUP) || command.equals(CMD_RESTORE)) {
 
 			// add PARAMETER layout
 			parameterLayout.setSizeFull();
@@ -199,6 +184,7 @@ public final class RunningTask {
 								} else {
 									selectParameter(backupRecord.getID());
 								}
+								scriptingControlsLayout.enableControls(true, Controls.run);
 								break;
 							}
 						}
@@ -235,136 +221,26 @@ public final class RunningTask {
 		}
 
 		// COLUMN 2. CONTROLS
-		scriptingControlsLayout = new VerticalLayout();
-		scriptingControlsLayout.addStyleName("scriptingControlsLayout");
-		scriptingControlsLayout.setSizeFull();
-		scriptingControlsLayout.setSpacing(true);
-		scriptingControlsLayout.setMargin(true);
+		// controls = taskRun.getControls(); this is for when they are server-side driven
+		scriptingControlsLayout = new ScriptingControlsLayout(this, new Controls[] { Controls.run, Controls.schedule, Controls.stop });
 		scriptingLayout.addComponent(scriptingControlsLayout);
 		scriptingLayout.setComponentAlignment(scriptingControlsLayout, Alignment.MIDDLE_LEFT);
 
-		// COLUMN 3. PROGRESS
-		scriptingProgressLayout = new VerticalLayout();
-		scriptingProgressLayout.addStyleName("scriptingProgressLayout");
-		//scriptingProgressLayout.setSizeFull();
-		scriptingProgressLayout.setSpacing(true);
-		scriptingProgressLayout.setMargin(true);
+		// this needs to be done properly
+		if (!command.equals(CMD_RESTORE) && !observerMode) {
+			scriptingControlsLayout.enableControls(true, Controls.run);
+		}
+
+		// COLUMN 3. PROGRESS & RESULT
+		scriptingProgressLayout = new ScriptingProgressLayout(this, observerMode);
 		scriptingLayout.addComponent(scriptingProgressLayout);
 		scriptingLayout.setComponentAlignment(scriptingProgressLayout, Alignment.MIDDLE_LEFT);
 
-		scriptLabel = new Label("");
-		scriptLabel.addStyleName("instructions");
-		scriptingProgressLayout.addComponent(scriptLabel);
-		scriptingProgressLayout.setComponentAlignment(scriptLabel, Alignment.TOP_CENTER);
+		scriptingProgressLayout.buildProgress(taskRecord, command, nodeInfo.getCommands().getSteps(command));
 
-		progressIconsLayout = new HorizontalLayout();
-		progressIconsLayout.addStyleName("progressIconsLayout");
-		scriptingProgressLayout.addComponent(progressIconsLayout);
-		scriptingProgressLayout.setComponentAlignment(progressIconsLayout, Alignment.MIDDLE_CENTER);
-
-		progressLabel = new Label("");
-		progressLabel.setImmediate(true);
-		scriptingProgressLayout.addComponent(progressLabel);
-		scriptingProgressLayout.setComponentAlignment(progressLabel, Alignment.BOTTOM_CENTER);
-
-		// COLUMN 4. RESULT
-		scriptingResultLayout = new VerticalLayout();
-		scriptingResultLayout.addStyleName("scriptingResultsLayout");
-		scriptingResultLayout.setSizeFull();
-		scriptingResultLayout.setSpacing(true);
-		scriptingResultLayout.setMargin(true);
-		scriptingLayout.addComponent(scriptingResultLayout);
-		scriptingLayout.setComponentAlignment(scriptingResultLayout, Alignment.MIDDLE_LEFT);
-
-		resultLabel = new Label("Has not run yet", ContentMode.HTML);
-		resultLabel.addStyleName("instructions");
-		resultLabel.setImmediate(true);
-		scriptingResultLayout.addComponent(resultLabel);
-		scriptingResultLayout.setComponentAlignment(resultLabel, Alignment.MIDDLE_CENTER);
-
-		// controls = taskRun.getControls(); this is for when they are server-side driven
-		buildControlsLayout("run");
-
-		buildProgressLayout(nodeInfo.getCommands().getSteps(command));
-
-	}
-
-	private void buildControlsLayout(String controls) {
-
-		// observer mode
 		if (observerMode) {
-			// String userName = Users.getUserNames().get(taskRecord.getUser());
-			String userID = taskRecord.getUserID();
-			UserInfo userInfo = (UserInfo) VaadinSession.getCurrent().getAttribute(UserInfo.class);
-			String userName = userInfo.findNameByID(userID);
-			String started = taskRecord.getStart();
-
-			final Label label = new Label("The " + command + " command<br>was started at " + started + "<br>by " + userName);
-			label.addStyleName("instructions");
-			label.setImmediate(true);
-			scriptingControlsLayout.addComponent(label);
-			scriptingControlsLayout.setComponentAlignment(label, Alignment.TOP_CENTER);
-
-		} else {
-
-			for (String control : controls.split(",")) {
-				final NativeButton button = new NativeButton();
-				button.addStyleName(control);
-				button.setImmediate(true);
-				//button.setCaption(control);	// needs cleaning up of styles+layouts
-				//button.setDescription(control); // this should be a proper description
-				button.setData(control);
-				scriptingControlsLayout.addComponent(button);
-				scriptingControlsLayout.setComponentAlignment(button, Alignment.MIDDLE_CENTER);
-				ctrlButtons.put(control, button);
-				button.addClickListener(new Button.ClickListener() {
-					private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-					public void buttonClick(ClickEvent event) {
-						event.getButton().setEnabled(false);
-						scriptCommand((String) event.getButton().getData());
-					}
-				});
-			}
+			activateTimer();
 		}
-
-	}
-
-	private void buildProgressLayout(String steps) {
-		scriptLabel.setValue(command);
-
-		LinkedHashMap<String, StepRecord> stepRecords = Steps.getStepsList();
-
-		String[] stepsIDs = steps.split(",");
-		primitives = new String[stepsIDs.length];
-		taskImages = new Embedded[stepsIDs.length + 1]; // add one more for the "done" icon
-
-		// add steps icons
-		progressIconsLayout.removeAllComponents();
-		for (int index = 0; index < stepsIDs.length; index++) {
-			String stepID = stepsIDs[index];
-			StepRecord stepRecord = stepRecords.get(stepID);
-			String iconName = stepRecord.getIcon();
-			String description = stepRecord.getDescription();
-
-			Embedded image = new Embedded(null, new ThemeResource("img/scripting/pending/" + iconName + ".png"));
-			image.addStyleName("stepIcons");
-			image.setImmediate(true);
-			image.setAlternateText(stepID);
-			image.setDescription(description);
-			progressIconsLayout.addComponent(image);
-			primitives[index] = iconName;
-			taskImages[index] = image;
-
-		}
-		Embedded image = new Embedded(null, new ThemeResource("img/scripting/pending/done.png"));
-		image.addStyleName("stepIcons");
-		image.setImmediate(true);
-		image.setAlternateText("Done");
-		image.setDescription("Done");
-		progressIconsLayout.addComponent(image);
-		taskImages[stepsIDs.length] = image;
-
 	}
 
 	public VerticalLayout getLayout() {
@@ -421,28 +297,31 @@ public final class RunningTask {
 	public void selectParameter(String parameter) {
 		params = parameter;
 
-		if (!paramSelected) {
-			paramSelected = true;
+		if (!paramsReady) {
+			paramsReady = true;
 
-			// update enable/disabled state of control buttons
-			// String controls[] = taskRun.getControls(); this is for when they
-			// are server-side driven
-			String controls[] = new String[] { "run" };
-			for (String key : ctrlButtons.keySet()) {
-				NativeButton button = ctrlButtons.get(key);
-				button.setEnabled(Arrays.asList(controls).contains(key) ? true : false);
-			}
-
+			//scriptingControlsLayout.enableControls(true, Controls.run);
 		}
 	}
 
-	private void scriptCommand(String cmd) {
-		if (cmd.equalsIgnoreCase("run")) {
+	public void controlClicked(Controls control) {
+		switch (control) {
+		case run:
 			start();
-		} else if (cmd.equalsIgnoreCase("pause")) {
+			break;
+
+		case schedule:
+			schedule();
+			break;
+
+		case pause:
 			pause();
-		} else if (cmd.equalsIgnoreCase("stop")) {
+			break;
+
+		case stop:
 			stop();
+			break;
+
 		}
 	}
 
@@ -451,8 +330,7 @@ public final class RunningTask {
 		commandSelect.setEnabled(false);
 		parameterLayout.setEnabled(false);
 
-		startTime = System.currentTimeMillis();
-		resultLabel.setValue("Launching");
+		scriptingProgressLayout.start();
 
 		UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
 		String userID = userObject.getUserID();
@@ -464,7 +342,7 @@ public final class RunningTask {
 			commandSelect.select(null);
 			commandSelect.setEnabled(true);
 			parameterLayout.setEnabled(true);
-			resultLabel.setValue("Failed to launch: " + taskRun.getError());
+			scriptingProgressLayout.setResult("Failed to launch: " + taskRun.getError());
 			OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
 			overviewPanel.refresh();
 			return;
@@ -472,15 +350,19 @@ public final class RunningTask {
 
 		String taskSteps = taskRun.getTaskRecord().getSteps();
 		String nodeSteps = nodeInfo.getCommands().getSteps(command);
-		if (!taskRun.getTaskRecord().getSteps().equals(nodeInfo.getCommands().getSteps(command))) {
-			buildProgressLayout(taskRun.getTaskRecord().getSteps());
-			scriptLabel.setValue(command + " (Updated Steps)");
+		if (!taskSteps.equals(nodeSteps)) {
+			scriptingProgressLayout.buildProgress(taskRecord, command, taskSteps);
+			scriptingProgressLayout.setTitle(command + " (Updated Steps)");
 		}
 
 		nodeInfo.setTask(taskRun.getTaskRecord().getID());
+		taskRecord = taskRun.getTaskRecord();
 
 		activateTimer();
 
+	}
+
+	void schedule() {
 	}
 
 	void stop() {
@@ -544,66 +426,8 @@ public final class RunningTask {
 			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null);
 			TaskRecord taskRecord = taskInfo.getTasksList().get(0);
 
-			VaadinSession vaadinSession = VaadinSession.getCurrent();
-			vaadinSession.lock();
+			scriptingProgressLayout.refresh(taskInfo, taskRecord);
 
-			try {
-				String stateString;
-				if ((stateString = taskRecord.getState()) == null) {
-					return; // we're waiting for something to happen
-				}
-				CommandState state = CommandState.valueOf(stateString);
-				resultLabel.setValue(CommandStates.getDescriptions().get(state));
-
-				String indexString;
-				if ((indexString = taskRecord.getIndex()) == null) {
-					return; // we're waiting for something to happen
-				}
-				int index = Integer.parseInt(indexString) - 1;
-
-				while (lastProgressIndex < index) {
-					taskImages[lastProgressIndex].setSource(new ThemeResource("img/scripting/done/" + primitives[lastProgressIndex] + ".png"));
-					lastProgressIndex++;
-				}
-
-				if ((state.equals(CommandState.running)) && (index != lastIndex)) {
-					taskImages[index].setSource(new ThemeResource("img/scripting/active/" + primitives[index] + ".png"));
-					progressLabel.setValue(taskImages[index].getDescription());
-					lastIndex = index;
-
-				} else if (state.equals(CommandState.done)) {
-					runningTime = System.currentTimeMillis() - startTime;
-
-					taskImages[lastIndex].setSource(new ThemeResource("img/scripting/done/" + primitives[lastIndex] + ".png"));
-					taskImages[lastIndex + 1].setSource(new ThemeResource("img/scripting/done/done.png"));
-					String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime), TimeUnit.MILLISECONDS.toSeconds(runningTime)
-							- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
-					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-					Date date = new Date();
-					progressLabel.setValue("Done");
-					resultLabel.setValue("Completed successfully<br/><br/>on " + dateFormat.format(date) + "<br/><br/>in " + time);
-
-					close();
-
-				} else if (state.equals(CommandState.error)) {
-					ManagerUI.log(nodeInfo.getTask() + " - updating error position");
-
-					taskImages[taskImages.length - 1].setSource(new ThemeResource("img/scripting/error.png"));
-					progressLabel.setValue("Error!");
-					String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime), TimeUnit.MILLISECONDS.toSeconds(runningTime)
-							- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
-					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-					Date date = new Date();
-					resultLabel.setValue("Command failed<br/><br/>on " + dateFormat.format(date) + "<br/><br/>after " + time + "<br/><br/>with error: "
-							+ taskInfo.getError());
-
-					close();
-
-				}
-
-			} finally {
-				vaadinSession.unlock();
-			}
 		}
 	}
 

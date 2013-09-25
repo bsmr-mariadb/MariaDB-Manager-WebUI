@@ -18,8 +18,11 @@
 
 package com.skysql.manager.api;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.net.URLEncoder;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.google.gson.JsonDeserializationContext;
@@ -43,9 +46,12 @@ public class NodeInfo extends ClusterComponent {
 	private String hostname;
 	private String privateIP;
 	private String publicIP;
+	private String port;
 	private String instanceID;
-	private String username;
-	private String password;
+	private String dbUsername;
+	private String dbPassword;
+	private String repUsername;
+	private String repPassword;
 	private RunningTask commandTask;
 
 	public Commands getCommands() {
@@ -80,6 +86,14 @@ public class NodeInfo extends ClusterComponent {
 		this.hostname = hostname;
 	}
 
+	public String getPublicIP() {
+		return publicIP;
+	}
+
+	public void setPublicIP(String publicIP) {
+		this.publicIP = publicIP;
+	}
+
 	public String getPrivateIP() {
 		return privateIP;
 	}
@@ -88,12 +102,12 @@ public class NodeInfo extends ClusterComponent {
 		this.privateIP = privateIP;
 	}
 
-	public String getPublicIP() {
-		return publicIP;
+	public String getPort() {
+		return port;
 	}
 
-	public void setPublicIP(String publicIP) {
-		this.publicIP = publicIP;
+	public void setPort(String port) {
+		this.port = port;
 	}
 
 	public String getInstanceID() {
@@ -104,20 +118,36 @@ public class NodeInfo extends ClusterComponent {
 		this.instanceID = instanceID;
 	}
 
-	public String getUsername() {
-		return username;
+	public String getDBUsername() {
+		return dbUsername;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
+	public void setDBUsername(String username) {
+		this.dbUsername = username;
 	}
 
-	public String getPassword() {
-		return password;
+	public String getDBPassword() {
+		return dbPassword;
 	}
 
-	public void setPassword(String password) {
-		this.password = password;
+	public void setDBPassword(String password) {
+		this.dbPassword = password;
+	}
+
+	public String getRepUsername() {
+		return repUsername;
+	}
+
+	public void setRepUsername(String username) {
+		this.repUsername = username;
+	}
+
+	public String getRepPassword() {
+		return repPassword;
+	}
+
+	public void setRepPassword(String password) {
+		this.repPassword = password;
 	}
 
 	public RunningTask getCommandTask() {
@@ -130,36 +160,52 @@ public class NodeInfo extends ClusterComponent {
 
 	public boolean save() {
 
+		APIrestful api = new APIrestful();
+		boolean success = false;
+
 		try {
-			APIrestful api = new APIrestful();
-			JSONObject jsonParam = new JSONObject();
-			jsonParam.put("name", this.name);
-			jsonParam.put("hostname", this.hostname);
-			jsonParam.put("instanceid", this.instanceID);
-			jsonParam.put("publicip", this.publicIP);
-			jsonParam.put("privateip", this.privateIP);
-			jsonParam.put("dbusername", this.username);
-			if (this.password != null) {
-				jsonParam.put("dbpassword", this.password);
-			} else {
-				jsonParam.put("dbpassword", JSONObject.NULL);
-			}
-			if (api.put("system/" + parentID + "/node" + (ID == null || ID.isEmpty() ? "" : "/" + ID), jsonParam.toString())) {
-				WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
-				if (writeResponse != null) {
-					if (ID == null && !writeResponse.getInsertKey().isEmpty()) {
-						ID = writeResponse.getInsertKey();
-						return true;
-					} else if (!ID.isEmpty() && (writeResponse.getUpdateCount() > 0 || !writeResponse.getInsertKey().isEmpty())) {
-						return true;
-					} else {
-						return false;
-					}
+			if (this.ID != null) {
+				JSONObject jsonParam = new JSONObject();
+				jsonParam.put("name", this.name);
+				jsonParam.put("hostname", this.hostname);
+				jsonParam.put("instanceid", this.instanceID);
+				jsonParam.put("publicip", this.instanceID);
+				jsonParam.put("privateip", this.privateIP);
+				jsonParam.put("dbusername", this.dbUsername);
+				if (this.dbPassword != null) {
+					jsonParam.put("dbpassword", this.dbPassword);
+				} else {
+					jsonParam.put("dbpassword", JSONObject.NULL);
 				}
+				success = api.put("system/" + parentID + "/node/" + ID, jsonParam.toString());
+			} else {
+				StringBuffer regParam = new StringBuffer();
+				regParam.append("name=" + URLEncoder.encode(this.name, "UTF-8"));
+				regParam.append("&hostname=" + URLEncoder.encode(this.hostname, "UTF-8"));
+				regParam.append("&instanceid=" + URLEncoder.encode(this.instanceID, "UTF-8"));
+				regParam.append("&publicip=" + URLEncoder.encode(this.instanceID, "UTF-8"));
+				regParam.append("&privateip=" + URLEncoder.encode(this.privateIP, "UTF-8"));
+				regParam.append("&dbusername=" + URLEncoder.encode(this.dbUsername, "UTF-8"));
+				regParam.append("&dbpassword=" + URLEncoder.encode(this.dbPassword, "UTF-8"));
+				success = api.post("system/" + parentID + "/node", regParam.toString());
 			}
-		} catch (Exception e) {
+
+		} catch (JSONException e) {
 			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			new ErrorDialog(e, "Error encoding API request");
+		}
+
+		if (success) {
+			WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
+			if (writeResponse != null && !writeResponse.getInsertKey().isEmpty()) {
+				ID = writeResponse.getInsertKey();
+				return true;
+			} else if (writeResponse != null && writeResponse.getUpdateCount() > 0) {
+				return true;
+			}
 		}
 
 		return false;
@@ -200,17 +246,21 @@ public class NodeInfo extends ClusterComponent {
 				this.ID = nodeID;
 				this.name = nodeInfo.name;
 				this.state = nodeInfo.state;
+				this.updated = nodeInfo.updated;
 				this.capacity = nodeInfo.capacity;
 				this.commands = nodeInfo.commands;
 				this.monitorLatest = nodeInfo.monitorLatest;
 				this.task = nodeInfo.task;
 				this.command = nodeInfo.command;
 				this.hostname = nodeInfo.hostname;
-				this.privateIP = nodeInfo.privateIP;
 				this.publicIP = nodeInfo.publicIP;
+				this.privateIP = nodeInfo.privateIP;
+				this.port = nodeInfo.port;
 				this.instanceID = nodeInfo.instanceID;
-				this.username = nodeInfo.username;
-				this.password = nodeInfo.password;
+				this.dbUsername = nodeInfo.dbUsername;
+				this.dbPassword = nodeInfo.dbPassword;
+				this.repUsername = nodeInfo.repUsername;
+				this.repPassword = nodeInfo.repPassword;
 			} catch (NullPointerException e) {
 				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
 				throw new RuntimeException("API response");
@@ -226,8 +276,8 @@ public class NodeInfo extends ClusterComponent {
 
 		return "<h2>Node</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Name:</b> " + this.name + "</li>" + "<li><b>Hostname:</b> "
 				+ this.hostname + "</li>" + "<li><b>Public IP:</b> " + this.publicIP + "</li>" + "<li><b>Private IP:</b> " + this.privateIP + "</li>"
-				+ "<li><b>Instance ID:</b> " + this.instanceID + "<li><b>Username:</b> " + this.username + "<li><b>Password:</b> " + this.password + "</li>"
-				+ "<li><b>State:</b> " + ((this.state == null) ? NOT_AVAILABLE : NodeStates.getDescription(this.systemType, this.state)) + "</li>"
+				+ "<li><b>Instance ID:</b> " + this.instanceID + "<li><b>DB Username:</b> " + this.dbUsername + "<li><b>DB Password:</b> " + this.dbPassword
+				+ "</li>" + "<li><b>State:</b> " + ((this.state == null) ? NOT_AVAILABLE : NodeStates.getDescription(this.systemType, this.state)) + "</li>"
 				+ "<li><b>Monitors:</b> " + ((this.monitorLatest == null) ? NOT_AVAILABLE : monitorLatest.getData().toString()) + "</li>"
 				+ "<li><b>Available Commands:</b> " + ((this.commands == null) ? NOT_AVAILABLE : getCommands().getNames().keySet()) + "</li>"
 				+ "<li><b>Task ID:</b> " + ((this.task == null) ? NOT_AVAILABLE : this.task) + "</li>" + "<li><b>Running Command:</b> "
@@ -237,7 +287,7 @@ public class NodeInfo extends ClusterComponent {
 
 }
 
-// {"node":{"systemid":"1","nodeid":"1","name":"Node1","state":"offline","hostname":"","publicip":"10.0.0.1","privateip":"10.0.0.1","port":"0","instanceid":"","dbusername":"","dbpassword":"","commands":[{"command":"backup","description":"Backup Offline Slave Node","icon":"backup","steps":"backup"},{"command":"restart","description":"Restore Offline Slave Node","icon":"stop","steps":"restore"}],"monitorlatest":{"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null},"command":null,"taskid":null},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
+// {"node":{"systemid":"1","nodeid":"1","name":"Node1","state":"","updated":"Thu, 19 Sep 2013 06:51:07 +0000","hostname":"","publicip":"","privateip":"10.0.0.1","port":"0","instanceid":"","dbusername":"","dbpassword":"","repusername":"","reppassword":"","commands":null,"monitorlatest":{"connections":"10","traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null},"command":null,"taskid":null}
 
 class NodeInfoDeserializer implements JsonDeserializer<NodeInfo> {
 	public NodeInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
@@ -251,14 +301,18 @@ class NodeInfoDeserializer implements JsonDeserializer<NodeInfo> {
 			JsonObject jsonObject = element.getAsJsonObject();
 			nodeInfo.setName(((element = jsonObject.get("name")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setState(((element = jsonObject.get("state")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setTask(((element = jsonObject.get("taskid")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setCommand(((element = jsonObject.get("command")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setUpdated(((element = jsonObject.get("updated")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setHostname(((element = jsonObject.get("hostname")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setPrivateIP(((element = jsonObject.get("privateip")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setPublicIP(((element = jsonObject.get("publicip")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setPrivateIP(((element = jsonObject.get("privateip")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setPort(((element = jsonObject.get("port")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setInstanceID(((element = jsonObject.get("instanceid")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setUsername(((element = jsonObject.get("dbusername")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setPassword(((element = jsonObject.get("dbpassword")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setDBUsername(((element = jsonObject.get("dbusername")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setDBPassword(((element = jsonObject.get("dbpassword")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setRepUsername(((element = jsonObject.get("repusername")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setRepPassword(((element = jsonObject.get("reppassword")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setCommand(((element = jsonObject.get("command")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setTask(((element = jsonObject.get("taskid")) == null || element.isJsonNull()) ? null : element.getAsString());
 
 			if ((element = jsonObject.get("monitorlatest")) != null && !element.isJsonNull()) {
 				MonitorLatest monitorLatest = APIrestful.getGson().fromJson(element.toString(), MonitorLatest.class);

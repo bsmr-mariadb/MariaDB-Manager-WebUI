@@ -64,7 +64,7 @@ public class APIrestful {
 	private static Gson gson;
 	private static APIrestful api;
 
-	private boolean success;
+	protected boolean success;
 	private int errorCode = 200;
 	private String lastCall;
 	private String result;
@@ -123,7 +123,7 @@ public class APIrestful {
 		return gson;
 	}
 
-	private enum CallType {
+	protected enum CallType {
 		GET, PUT, POST, DELETE;
 	}
 

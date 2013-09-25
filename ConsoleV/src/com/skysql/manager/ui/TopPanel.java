@@ -49,27 +49,21 @@ public class TopPanel extends HorizontalLayout {
 		userSettingsLayout.setSizeUndefined();
 		userSettingsLayout.setSpacing(true);
 		addComponent(userSettingsLayout);
-		setComponentAlignment(userSettingsLayout, Alignment.BOTTOM_RIGHT);
+		setComponentAlignment(userSettingsLayout, Alignment.MIDDLE_RIGHT);
 
 		// User icon and name
 		VerticalLayout userLayout = new VerticalLayout();
 		userSettingsLayout.addComponent(userLayout);
 
 		UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
-		Embedded userIcon = new Embedded(null, new ThemeResource("img/user.png"));
-		userLayout.addComponent(userIcon);
-		userLayout.setComponentAlignment(userIcon, Alignment.MIDDLE_CENTER);
 		String name = userObject.getName();
-		if (name == null || name.isEmpty()) {
-			name = userObject.getUserID();
-		}
-		userName = new Label(name);
+		userName = new Label("Welcome, " + name);
 		userName.setSizeUndefined();
 		userLayout.addComponent(userName);
 		userLayout.setComponentAlignment(userName, Alignment.MIDDLE_CENTER);
 
 		// buttons
-		VerticalLayout buttonsLayout = new VerticalLayout();
+		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.setSizeUndefined();
 		buttonsLayout.setSpacing(true);
 		userSettingsLayout.addComponent(buttonsLayout);

@@ -33,6 +33,10 @@ hr {
 
 }
 
+.commandOverlay {
+	background: orange;	
+}
+
 .v-nativebutton-backButton {
 	border: none;
 	background: transparent url(img/back.png) no-repeat;

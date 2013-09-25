@@ -21,6 +21,7 @@ package com.skysql.manager.api;
 import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.google.gson.JsonArray;
@@ -103,7 +104,7 @@ public class UserInfo {
 			jsonParam.put("name", name);
 			jsonParam.put("password", password);
 			success = api.put("user/" + userID, jsonParam.toString());
-		} catch (Exception e) {
+		} catch (JSONException e) {
 			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
 		}

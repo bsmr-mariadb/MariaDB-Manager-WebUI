@@ -18,6 +18,7 @@
 
 package com.skysql.manager.api;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
@@ -62,7 +63,7 @@ public class TaskRun {
 			}
 			success = api.post("command/" + command, regParam.toString());
 
-		} catch (Exception e) {
+		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
 		}

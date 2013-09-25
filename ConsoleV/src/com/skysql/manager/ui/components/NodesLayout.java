@@ -301,7 +301,7 @@ public class NodesLayout extends HorizontalLayout {
 			***/
 
 			if (updaterThread.flagged) {
-				ManagerUI.log("NodesLayout - flagged is set before Node: " + button.getName());
+				ManagerUI.log("NodesLayout - flagged is set before run() ");
 				return;
 			}
 
@@ -337,6 +337,7 @@ public class NodesLayout extends HorizontalLayout {
 						toolTip = nodeInfo.ToolTip();
 						// carry over RunningTask(s)
 						nodeInfo.setCommandTask(((NodeInfo) currentComponent).getCommandTask());
+						button.setCommand(nodeInfo.getCommand());
 						break;
 					default:
 						toolTip = "Unknown component type";

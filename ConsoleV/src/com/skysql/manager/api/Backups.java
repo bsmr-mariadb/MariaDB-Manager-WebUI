@@ -43,7 +43,7 @@ public class Backups {
 	}
 
 	public LinkedHashMap<String, BackupRecord> getBackupsForNode(String nodeID) {
-		LinkedHashMap<String, BackupRecord> backupsForNode = new LinkedHashMap();
+		LinkedHashMap<String, BackupRecord> backupsForNode = new LinkedHashMap<String, BackupRecord>();
 
 		for (String key : backupsList.keySet()) {
 			BackupRecord record = backupsList.get(key);
@@ -104,7 +104,6 @@ class BackupsDeserializer implements JsonDeserializer<Backups> {
 				String parent = (element = backupJson.get("parentid")).isJsonNull() ? null : element.getAsString();
 				String status = (element = backupJson.get("state")).isJsonNull() ? null : element.getAsString();
 				String started = (element = backupJson.get("started")).isJsonNull() ? null : element.getAsString();
-
 				String updated = (element = backupJson.get("updated")).isJsonNull() ? null : element.getAsString();
 				String restored = (element = backupJson.get("restored")).isJsonNull() ? null : element.getAsString();
 				String size = (element = backupJson.get("size")).isJsonNull() ? null : element.getAsString();

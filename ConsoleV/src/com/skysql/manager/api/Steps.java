@@ -19,7 +19,9 @@
 package com.skysql.manager.api;
 
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
@@ -27,20 +29,50 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.skysql.manager.StepRecord;
 import com.skysql.manager.ui.ErrorDialog;
 
 public class Steps {
+	private static String INVALID_ICON = "invalid";
 
-	private static Steps steps;
-	private static LinkedHashMap<String, StepRecord> stepsList;
-
-	public static LinkedHashMap<String, StepRecord> getStepsList() {
-		GetSteps();
-		return Steps.stepsList;
+	private static final Map<String, String> stepIcons;
+	static {
+		stepIcons = new HashMap<String, String>();
+		stepIcons.put("start", "starting");
+		stepIcons.put("stop", "stopping");
+		stepIcons.put("isolate", "isolating");
+		stepIcons.put("recover", "recovering");
+		stepIcons.put("promote", "promoting");
+		stepIcons.put("synchronize", "synchronizing");
+		stepIcons.put("backup", "backingup");
+		stepIcons.put("restore", "restoring");
 	}
 
-	protected void setStepsList(LinkedHashMap<String, StepRecord> stepsList) {
+	private static Steps steps;
+	private static LinkedHashMap<String, String> stepsList;
+
+	public static String getIcon(String step) {
+		String icon = stepIcons.get(step);
+
+		if (icon == null) {
+			System.err.println("Unknown step found in API response: " + step);
+			icon = INVALID_ICON;
+		}
+
+		return icon;
+	}
+
+	public static String getDescription(String step) {
+		GetSteps();
+		String description = stepsList.get(step);
+		if (description == null) {
+			System.err.println("Unknown step found in API response: " + step);
+			description = "Unknown step: " + step;
+		}
+
+		return description;
+	}
+
+	protected void setStepsList(LinkedHashMap<String, String> stepsList) {
 		Steps.stepsList = stepsList;
 	}
 
@@ -68,7 +100,7 @@ public class Steps {
 
 }
 
-// {"command_steps":[{"state":"start","icon":"starting","description":"Start node up, start replication"},{"state":"stop","icon":"stopping","description":"Stop replication, shut node down"},{"state":"isolate","icon":"isolating","description":"Take node out of replication"},{"state":"recover","icon":"recovering","description":"Put node back into replication"},{"state":"promote","icon":"promoting","description":"Promote a slave to master"},{"state":"synchronize","icon":"synchronizing","description":"Synchronize a node"},{"state":"backup","icon":"backingup","description":"Backup a node"},{"state":"restore","icon":"restoring","description":"Restore a node"}],"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
+// {"command_steps":[{"step":"start","description":"Start node up, start replication"},{"step":"stop","description":"Stop replication, shut node down"},{"step":"isolate","description":"Take node out of replication"},{"step":"recover","description":"Put node back into replication"},{"step":"promote","description":"Promote a slave to master"},{"step":"synchronize","description":"Synchronize a node"},{"step":"backup","description":"Backup a node"},{"step":"restore","description":"Restore a node"},{"step":"restart","description":"Restart a node from error state"}]}
 
 class StepsDeserializer implements JsonDeserializer<Steps> {
 	public Steps deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
@@ -82,16 +114,14 @@ class StepsDeserializer implements JsonDeserializer<Steps> {
 			JsonArray array = jsonElement.getAsJsonArray();
 			int length = array.size();
 
-			LinkedHashMap<String, StepRecord> stepsList = new LinkedHashMap<String, StepRecord>(length);
+			LinkedHashMap<String, String> stepsList = new LinkedHashMap<String, String>(length);
 			for (int i = 0; i < length; i++) {
 				JsonObject backupJson = array.get(i).getAsJsonObject();
 
 				JsonElement element;
-				String id = (element = backupJson.get("state")).isJsonNull() ? null : element.getAsString();
-				String icon = (element = backupJson.get("icon")).isJsonNull() ? null : element.getAsString();
+				String id = (element = backupJson.get("step")).isJsonNull() ? null : element.getAsString();
 				String description = (element = backupJson.get("description")).isJsonNull() ? null : element.getAsString();
-				StepRecord stepRecord = new StepRecord(icon, description);
-				stepsList.put(id, stepRecord);
+				stepsList.put(id, description);
 			}
 			steps.setStepsList(stepsList);
 		}

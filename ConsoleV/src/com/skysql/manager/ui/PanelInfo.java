@@ -375,9 +375,9 @@ public class PanelInfo extends HorizontalSplitPanel {
 			if (chartProperties == null) {
 				chartProperties = new ChartProperties(null);
 				getSession().setAttribute(ChartProperties.class, chartProperties);
-				chartControls.selectInterval(chartProperties.getTimeSpan());
-				chartControls.selectTheme(chartProperties.getTheme());
 			}
+			chartControls.selectInterval(chartProperties.getTimeSpan());
+			chartControls.selectTheme(chartProperties.getTheme());
 
 			chartsArrayLayout = new ChartsLayout(false);
 			chartsArrayLayout.initializeCharts(chartProperties, componentInfo.getSystemType());

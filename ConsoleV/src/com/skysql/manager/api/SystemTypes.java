@@ -32,6 +32,8 @@ import com.skysql.manager.ui.ErrorDialog;
 
 public class SystemTypes {
 
+	public static String DEFAULT_SYSTEMTYPE = "galera";
+
 	private static SystemTypes systemTypes;
 	private static LinkedHashMap<String, String> typesList;
 

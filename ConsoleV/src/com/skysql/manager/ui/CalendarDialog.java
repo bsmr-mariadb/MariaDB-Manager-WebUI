@@ -45,8 +45,8 @@ public class CalendarDialog implements Window.CloseListener {
 
 		public void buttonClick(Button.ClickEvent event) {
 
-			dialogWindow = new ModalWindow("Calendar", "600px");
-			dialogWindow.setHeight("300px");
+			dialogWindow = new ModalWindow("Backups", "680px");
+			dialogWindow.setHeight("420px");
 			UI.getCurrent().addWindow(dialogWindow);
 
 			Calendar cal = new Calendar("Calendar");

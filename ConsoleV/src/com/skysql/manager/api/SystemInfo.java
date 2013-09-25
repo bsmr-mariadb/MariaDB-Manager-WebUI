@@ -90,30 +90,6 @@ public class SystemInfo {
 		return (systemRecord);
 	}
 
-	public boolean add(SystemRecord systemRecord) {
-
-		try {
-			APIrestful api = new APIrestful();
-			JSONObject jsonParam = new JSONObject();
-			jsonParam.put("name", systemRecord.getName());
-			jsonParam.put("systemtype", systemRecord.getSystemType());
-
-			if (api.put("system/" + systemRecord.getID(), jsonParam.toString())) {
-				WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
-				if (writeResponse != null && (!writeResponse.getInsertKey().isEmpty() || writeResponse.getUpdateCount() > 0)) {
-					return true;
-				}
-			}
-
-		} catch (JSONException e) {
-			e.printStackTrace();
-			new ErrorDialog(e, "JSON error encoding API request");
-		}
-
-		return false;
-
-	}
-
 	public boolean setProperty(String property, String value) {
 		APIrestful api = new APIrestful();
 
@@ -126,7 +102,7 @@ public class SystemInfo {
 					return true;
 				}
 			}
-		} catch (Exception e) {
+		} catch (JSONException e) {
 			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
 		}
@@ -175,6 +151,26 @@ public class SystemInfo {
 }
 
 // {"system":{"systemid":"1","systemtype":"aws","name":"sistema1","started":"Wed, 31 Jul 2013 18:48:41 +0000","lastaccess":"Wed, 31 Jul 2013 18:48:41 +0000","state":"running","nodes":["1"],"lastbackup":null,"properties":{},"monitorlatest":{"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null}},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
+/***
+{"systems":[{
+	"systemid":"1",
+	"systemtype":"aws",
+	"name":"aws1",
+	"started":"Thu, 19 Sep 2013 13:34:34 +0000",
+	"lastaccess":"Thu, 19 Sep 2013 13:34:34 +0000",
+	"updated":"Thu, 19 Sep 2013 16:37:52 +0000",
+	"state":"running",
+	"dbusername":"",
+	"dbpassword":"",
+	"repusername":"",
+	"reppassword":"",
+	"nodes":["1","2"],
+	"lastbackup":null,
+	"properties":{},
+	"monitorlatest":{"connections":"10","traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null}
+	}
+],"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
+***/
 
 class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 	public SystemInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {

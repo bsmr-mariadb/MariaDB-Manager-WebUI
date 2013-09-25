@@ -95,11 +95,15 @@ public class DebugPanel extends VerticalLayout {
 	public void setLog(String log) {
 		logBuffer.append(log + "\n");
 		VaadinSession session = getSession();
-		session.lock();
-		try {
+		if (session != null) {
+			session.lock();
+			try {
+				logArea.setValue(logBuffer.toString());
+			} finally {
+				session.unlock();
+			}
+		} else {
 			logArea.setValue(logBuffer.toString());
-		} finally {
-			session.unlock();
 		}
 
 	}

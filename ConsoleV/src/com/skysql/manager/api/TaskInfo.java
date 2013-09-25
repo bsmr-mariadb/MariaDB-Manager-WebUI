@@ -120,7 +120,7 @@ class TaskInfoDeserializer implements JsonDeserializer<TaskInfo> {
 			String end = (element = taskObject.get("completed")).isJsonNull() ? null : element.getAsString();
 			String index = (element = taskObject.get("stepindex")).isJsonNull() ? null : element.getAsString();
 			String status = (element = taskObject.get("state")).isJsonNull() ? null : element.getAsString();
-			TaskRecord taskRecord = new TaskRecord(id, node, command, params, steps, pid, privateIP, index, status, user, start, end);
+			TaskRecord taskRecord = new TaskRecord(id, node, command, params, steps, pid, privateIP, index, status, user, start, end, null);
 			tasksList.add(taskRecord);
 		}
 

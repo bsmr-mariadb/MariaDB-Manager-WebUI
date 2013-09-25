@@ -18,7 +18,6 @@
 
 package com.skysql.manager.ui;
 
-import com.skysql.manager.AppData.Debug;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.api.BackupStates;
 import com.skysql.manager.api.CommandStates;
@@ -30,6 +29,7 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -138,16 +138,13 @@ public class LoginView extends VerticalLayout {
 		loginFormLayout.setComponentAlignment(login, Alignment.BOTTOM_CENTER);
 
 		if (version != null) {
-			Label versionLabel = new Label("API Version " + version);
+			Label versionLabel = new Label("API Version " + version + "<br/>GUI Version R37", ContentMode.HTML);
 			versionLabel.setSizeUndefined();
 			addComponent(versionLabel);
 			setComponentAlignment(versionLabel, Alignment.BOTTOM_LEFT);
 		}
 
 		preload();
-
-		if (Debug.ON) {
-		}
 
 	}
 
