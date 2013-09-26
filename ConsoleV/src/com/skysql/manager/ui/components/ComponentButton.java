@@ -38,7 +38,9 @@ import com.vaadin.ui.Window;
 public class ComponentButton extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	public static final String COMPONENT_HEIGHT = "120px";
+	public static final float COMPONENT_HEIGHT = 68;
+	public static final float NODE_WIDTH = 48;
+	public static final float SYSTEM_WIDTH = 74;
 
 	private static final String ICON_MASTER = "master";
 	private static final String ICON_SLAVE = "slave";
@@ -59,18 +61,33 @@ public class ComponentButton extends VerticalLayout {
 		componentInfo.setButton(this);
 		setData(componentInfo);
 
-		setHeight(COMPONENT_HEIGHT);
-		setWidth(componentInfo.getType() == ClusterComponent.CCType.system ? "120px" : "96px");
+		setHeight(COMPONENT_HEIGHT + 8, Unit.PIXELS);
+		float componentWidth = (componentInfo.getType() == ClusterComponent.CCType.system) ? SYSTEM_WIDTH : NODE_WIDTH;
+		setWidth(componentWidth + 8, Unit.PIXELS);
 
 		imageLayout = new VerticalLayout();
-		//imageLayout.setWidth(componentInfo.getType() == ClusterComponent.CCType.system ? "160px" : "96px");
-		imageLayout.setHeight(COMPONENT_HEIGHT);
+		imageLayout.setHeight(COMPONENT_HEIGHT + 8, Unit.PIXELS);
+		imageLayout.setWidth(componentWidth, Unit.PIXELS);
+		//imageLayout.setMargin(new MarginInfo(true, true, false, true));
 		imageLayout.setImmediate(true);
 
 		if (componentInfo.getParentID() != null) {
-			String icon = NodeStates.getNodeIcon(componentInfo.getSystemType(), componentInfo.getState());
-			//imageLayout.addStyleName(icon);
-			imageLayout.addStyleName(componentInfo.getType().toString());
+			String icon = null;
+			switch (componentInfo.getType()) {
+			case system:
+				icon = "system";
+				break;
+
+			case node:
+				icon = NodeStates.getNodeIcon(componentInfo.getSystemType(), componentInfo.getState());
+				break;
+
+			default:
+				// unknown component type
+				break;
+			}
+			imageLayout.addStyleName(icon);
+			//imageLayout.addStyleName(componentInfo.getType().toString());
 
 			if (componentInfo.getType() == ClusterComponent.CCType.node) {
 				NodeInfo nodeInfo = (NodeInfo) componentInfo;
@@ -175,7 +192,7 @@ public class ComponentButton extends VerticalLayout {
 				break;
 			}
 
-			editButton = new Embedded(null, new ThemeResource("img/edit24.png"));
+			editButton = new Embedded(null, new ThemeResource("img/edit.png"));
 			editButton.addStyleName("editNode");
 			editButton.setDescription("Edit " + componentType);
 			editButton.setData(this);
@@ -188,7 +205,7 @@ public class ComponentButton extends VerticalLayout {
 				}
 			});
 
-			deleteButton = new Embedded(null, new ThemeResource("img/delete24.png"));
+			deleteButton = new Embedded(null, new ThemeResource("img/delete.png"));
 			switch (componentInfo.getType()) {
 			case system:
 				deleteButton.addStyleName("deleteSystem");

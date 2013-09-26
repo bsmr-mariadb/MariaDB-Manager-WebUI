@@ -102,6 +102,7 @@ public final class RunningTask {
 		scriptingLayout.setSpacing(true);
 		scriptingLayout.setSizeFull();
 		containerLayout.addComponent(scriptingLayout);
+		containerLayout.setComponentAlignment(scriptingLayout, Alignment.MIDDLE_LEFT);
 
 		if (command.equals(CMD_BACKUP) || command.equals(CMD_RESTORE)) {
 
@@ -184,7 +185,6 @@ public final class RunningTask {
 								} else {
 									selectParameter(backupRecord.getID());
 								}
-								scriptingControlsLayout.enableControls(true, Controls.run);
 								break;
 							}
 						}
@@ -222,12 +222,12 @@ public final class RunningTask {
 
 		// COLUMN 2. CONTROLS
 		// controls = taskRun.getControls(); this is for when they are server-side driven
-		scriptingControlsLayout = new ScriptingControlsLayout(this, new Controls[] { Controls.run, Controls.schedule, Controls.stop });
+		scriptingControlsLayout = new ScriptingControlsLayout(this, new Controls[] { Controls.run, Controls.stop });
 		scriptingLayout.addComponent(scriptingControlsLayout);
 		scriptingLayout.setComponentAlignment(scriptingControlsLayout, Alignment.MIDDLE_LEFT);
 
 		// this needs to be done properly
-		if (!command.equals(CMD_RESTORE) && !observerMode) {
+		if (!observerMode) {
 			scriptingControlsLayout.enableControls(true, Controls.run);
 		}
 
@@ -251,16 +251,17 @@ public final class RunningTask {
 		return command;
 	}
 
-	private String backupLabels[] = { "Node", "Level", "State", "Size", "Completed", "Restored" };
+	private String backupLabels[] = { "Node", "Level", "State", "Size", "Restored" };
 
 	final public void displayBackupInfo(VerticalLayout layout, BackupRecord record) {
 		String value;
 		String values[] = { (value = record.getID()) != null ? value : NOT_AVAILABLE, (value = record.getLevel()) != null ? value : NOT_AVAILABLE,
 				((value = record.getState()) != null) && (value = BackupStates.getDescriptions().get(value)) != null ? value : "Invalid",
-				(value = record.getSize()) != null ? value : NOT_AVAILABLE, (value = record.getUpdated()) != null ? value : NOT_AVAILABLE,
-				(value = record.getRestored()) != null ? value : NOT_AVAILABLE };
+				(value = record.getSize()) != null ? value : NOT_AVAILABLE, (value = record.getRestored()) != null ? value : NOT_AVAILABLE };
 
 		GridLayout newBackupInfoGrid = new GridLayout(2, backupLabels.length);
+		newBackupInfoGrid.setSpacing(true);
+
 		for (int i = 0; i < backupLabels.length; i++) {
 			newBackupInfoGrid.addComponent(new Label(backupLabels[i]), 0, i);
 			newBackupInfoGrid.addComponent(new Label(values[i]), 1, i);

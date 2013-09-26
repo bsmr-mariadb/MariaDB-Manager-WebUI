@@ -45,18 +45,18 @@ public class NodeStates {
 		awsIcons.put("offline", "offline");
 		awsIcons.put("stopped", "stopped");
 		awsIcons.put("error", "error");
-		awsIcons.put("standalone", "node");
+		awsIcons.put("standalone", "standalone");
 	}
 	private static final Map<String, String> galeraIcons;
 	static {
 		galeraIcons = new HashMap<String, String>();
-		galeraIcons.put("down", "stopped");
-		galeraIcons.put("open", "starting");
-		galeraIcons.put("primary", "master");
-		galeraIcons.put("joiner", "promoting");
-		galeraIcons.put("joined", "master");
-		galeraIcons.put("synced", "master");
-		galeraIcons.put("donor", "master");
+		galeraIcons.put("down", "down");
+		galeraIcons.put("open", "open");
+		galeraIcons.put("primary", "primary");
+		galeraIcons.put("joiner", "joiner");
+		galeraIcons.put("joined", "joined");
+		galeraIcons.put("synced", "synced");
+		galeraIcons.put("donor", "donor");
 		galeraIcons.put("isolated", "isolated");
 	}
 

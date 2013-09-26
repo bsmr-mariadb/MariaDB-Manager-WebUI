@@ -315,7 +315,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 				}
 				proxy.animate(topMid, isExpanded ? AnimType.ROLL_UP_CLOSE : AnimType.ROLL_DOWN_OPEN).setDuration(500).setDelay(100);
 
-				expandButton.setStyleName(isExpanded ? "shrinkButton" : "expandButton");
+				expandButton.setStyleName(isExpanded ? "contractButton" : "expandButton");
 			}
 		});
 

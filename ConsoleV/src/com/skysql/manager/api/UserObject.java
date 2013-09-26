@@ -52,7 +52,7 @@ public class UserObject {
 	}
 
 	public String getName() {
-		return (name != null) ? name : userID;
+		return (name != null && !name.isEmpty()) ? name : userID;
 	}
 
 	public String getPassword() {

@@ -79,30 +79,36 @@ hr {
 
 .panelHeaderLayout {
 	font-size: 15px;
-	background: lightsteelblue;
+	background: #99aeca;
 }
 
 .panelHeaderLayout-editable {
 	font-size: 15px;
-	background: orange;
+	background: #ffdb58;
 }
 
 .editNode {
 	position: absolute;
     top: 5px;
-    left: 5px;
+    left: -6px;
 }
 
 .deleteNode {
 	position: absolute;
     top: 5px;
-    left: 67px;
+    left: 40px;
+}
+
+.editSystem {
+	position: absolute;
+    top: 5px;
+    left: 0px;
 }
 
 .deleteSystem {
 	position: absolute;
     top: 5px;
-    left: 91px;
+    left:40px;
 }
 
 .editChart {
@@ -122,17 +128,12 @@ hr {
 }
 
 .v-verticallayout-loginView {
-	background: #A8C8F9;
+	background: #99aeca;
 }
 
 .v-verticallayout-loginForm .v-label {
 	font-size: 16px !important;
 	white-space:nowrap;	
-}
-
-
-.v-verticallayout-invalid {
-    background: transparent url(img/normal/invalid.png) no-repeat;
 }
 
 .componentButton {
@@ -157,104 +158,137 @@ hr {
 .v-nativebutton-expandButton {
 	border: none;
 	background: transparent url(img/expand.png) no-repeat;
- 	width: 27px;
-	height: 21px;
+ 	width: 22px;
+	height: 22px;
 }
 
-.v-nativebutton-shrinkButton {
+.v-nativebutton-contractButton {
 	border: none;
-	background: transparent url(img/shrink.png) no-repeat;
- 	width: 27px;
-	height: 21px;
+	background: transparent url(img/contract.png) no-repeat;
+ 	width: 22px;
+	height: 22px;
 }
 
 /*.v-button-with-hand {
    cursor: pointer;
 }*/
 
+/*** aws:
+	{"state":"master","stateid":1,"description":"Master"},
+	{"state":"slave","stateid":2,"description":"Slave Online"},
+	{"state":"offline","stateid":3,"description":"Slave Offline"},
+	{"state":"stopped","stateid":5,"description":"Slave Stopped"},
+	{"state":"error","stateid":13,"description":"Slave Error"},
+	{"state":"standalone","stateid":18,"description":"Standalone Database"}
+***/
+
 .v-verticallayout-master {
-    background: transparent url(img/normal/master_0.png) no-repeat;
+    background: transparent url(img/components/DB-green_40.png) no-repeat;
     display: block;
 }
 .v-verticallayout-master-20 {
-    background: transparent url(img/normal/master_20.png) no-repeat;
+    background: transparent url(img/components/DB-green_20.png) no-repeat;
 }
 .v-verticallayout-master-40 {
-    background: transparent url(img/normal/master_40.png) no-repeat;
+    background: transparent url(img/components/DB-green_40.png) no-repeat;
 }
 .v-verticallayout-master-60 {
-    background: transparent url(img/normal/master_60.png) no-repeat;
+    background: transparent url(img/components/DB-green_60.png) no-repeat;
 }
 .v-verticallayout-master-80 {
-    background: transparent url(img/normal/master_80.png) no-repeat;
+    background: transparent url(img/components/DB-green_80.png) no-repeat;
 }
 .v-verticallayout-master-100 {
-    background: transparent url(img/normal/master_100.png) no-repeat;
+    background: transparent url(img/components/DB-green_100.png) no-repeat;
 }
 
 .v-verticallayout-slave {
-	 background: transparent url(img/normal/node_0.png) no-repeat;
+	 background: transparent url(img/components/DB-green_40.png) no-repeat;
 }
 .v-verticallayout-slave-20 {
-	 background: transparent url(img/normal/node_20.png) no-repeat;
+	 background: transparent url(img/components/DB-green_20.png) no-repeat;
 }
 .v-verticallayout-slave-40 {
-	 background: transparent url(img/normal/node_40.png) no-repeat;
+	 background: transparent url(img/components/DB-green_40.png) no-repeat;
 }
 .v-verticallayout-slave-60 {
-	 background: transparent url(img/normal/node_60.png) no-repeat;
+	 background: transparent url(img/components/DB-green_60.png) no-repeat;
 }
 .v-verticallayout-slave-80 {
-	 background: transparent url(img/normal/node_80.png) no-repeat;
+	 background: transparent url(img/components/DB-green_80.png) no-repeat;
 }
 .v-verticallayout-slave-100 {
-	 background: transparent url(img/normal/node_100.png) no-repeat;
+	 background: transparent url(img/components/DB-green_100.png) no-repeat;
 }
 
-.v-verticallayout-offline {
-    background: transparent url(img/normal/offline.png) no-repeat;
-}
-.v-verticallayout-stopping {
-    background: transparent url(img/normal/stopping.png) no-repeat;
-}
+.v-verticallayout-offline,
 .v-verticallayout-stopped {
-    background: transparent url(img/normal/stopped.png) no-repeat;
+    background: transparent url(img/components/DB-blue.png) no-repeat;
 }
-.v-verticallayout-isolating {
-    background: transparent url(img/normal/isolating.png) no-repeat;
+
+.v-verticallayout-standalone {
+    background: transparent url(img/components/DB-mustard.png) no-repeat;
 }
+
+/*** galera: 
+	{"state":"down","stateid":100,"description":"Down"},
+	{"state":"open","stateid":101,"description":"Open"},
+	{"state":"primary","stateid":102,"description":"Primary"},
+	{"state":"joiner","stateid":103,"description":"Joiner"},
+	{"state":"joined","stateid":104,"description":"Joined"},
+	{"state":"synced","stateid":105,"description":"Synced"},
+	{"state":"donor","stateid":106,"description":"Donor"},
+	{"state":"isolated","stateid":99,"description":"Isolated"}
+***/
+/***
+		galeraIcons.put("down", "stopped");
+		galeraIcons.put("open", "starting");
+		galeraIcons.put("primary", "master");
+		galeraIcons.put("joiner", "promoting");
+		galeraIcons.put("joined", "master");
+		galeraIcons.put("synced", "master");
+		galeraIcons.put("donor", "master");
+		galeraIcons.put("isolated", "isolated");
+***/
+.v-verticallayout-down {
+    background: transparent url(img/components/DB-blue.png) no-repeat;
+}
+.v-verticallayout-open {
+    background: transparent url(img/components/DB-cornflour.png) no-repeat;
+}
+.v-verticallayout-primary,
+.v-verticallayout-joiner,
+.v-verticallayout-joined,
+.v-verticallayout-synced,
+.v-verticallayout-donor {
+    background: transparent url(img/components/DB-green_40.png) no-repeat;
+}
+
 .v-verticallayout-isolated {
-    background: transparent url(img/normal/isolated.png) no-repeat;
-}
-.v-verticallayout-recovering {
-    background: transparent url(img/normal/recovering.png) no-repeat;
-}
-.v-verticallayout-restoring {
-    background: transparent url(img/normal/restoring.png) no-repeat;
-}
-.v-verticallayout-backingup {
-    background: transparent url(img/normal/backingup.png) no-repeat;
-}
-.v-verticallayout-starting {
-    background: transparent url(img/normal/starting.png) no-repeat;
-}
-.v-verticallayout-promoting {
-    background: transparent url(img/normal/promoting.png) no-repeat;
-}
-.v-verticallayout-synchronizing {
-    background: transparent url(img/normal/synchronizing.png) no-repeat;
+    background: transparent url(img/components/DB-mustard.png) no-repeat;
 }
 .v-verticallayout-error {
-    background: transparent url(img/normal/error.png) no-repeat;
+    background: transparent url(img/components/DB-red.png) no-repeat;
+}
+.v-verticallayout-invalid {
+    background: transparent url(img/components/DB-questionmark.png) no-repeat;
 }
 
-.v-verticallayout-system,
-.v-verticallayout-sys_stopping,
-.v-verticallayout-sys_stopped,
-.v-verticallayout-sys_starting {
-    background: transparent url(img/normal/system.png) no-repeat;
+.v-verticallayout-system {
+    background: transparent url(img/components/cluster.png) no-repeat;
 }
 
+.node {
+	position: absolute;
+    top: 4px;
+    left: 4px;
+}
+
+.system {
+	position: absolute;
+    top: 4px;
+    left: 4px;
+}
 
 .node .v-label {
 	 position: relative;
@@ -371,32 +405,24 @@ hr {
 .v-nativebutton-run {
     outline: none;
     border: none;
-    background: transparent url(img/scripting/controls/start.png) no-repeat;
-    width: 48px;
-    height: 48px;
-}    
-
-.v-nativebutton-pause {
-    outline: none;
-    border: none;
-    background: transparent url(img/scripting/controls/pause.png) no-repeat;
-    width: 48px;
-    height: 48px;
+    background: transparent url(img/controls/start.png) no-repeat;
+    width: 32px;
+    height: 32px;
 }    
 
 .v-nativebutton-stop {
     outline: none;
     border: none;
-    background: transparent url(img/scripting/controls/stop.png) no-repeat;
-    width: 48px;
-    height: 48px;
+    background: transparent url(img/controls/stop.png) no-repeat;
+    width: 32px;
+    height: 32px;
 }    
 
 .v-nativebutton-schedule {
     outline: none;
     border: none;
-    background: transparent url(img/scripting/controls/schedule.png) no-repeat;
-    width: 48px;
+    background: transparent url(img/controls/schedule.png) no-repeat;
+    width: 41px;
     height: 48px;
 }    
 

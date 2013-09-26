@@ -42,6 +42,8 @@ import com.vaadin.ui.themes.Runo;
 @SuppressWarnings("serial")
 public class OverviewPanel extends Panel {
 
+	public static float PANEL_HEIGHT = ComponentButton.COMPONENT_HEIGHT + 35;
+
 	private SystemInfo systemInfo;
 	private SystemRecord systemRecord;
 	public ComponentButton selectedButton;
@@ -150,7 +152,7 @@ public class OverviewPanel extends Panel {
 		});
 
 		Panel panel = new Panel();
-		panel.setHeight("155px");
+		panel.setHeight(PANEL_HEIGHT, Unit.PIXELS);
 		panel.addStyleName(Runo.PANEL_LIGHT);
 		nodesSlot.addComponent(panel);
 

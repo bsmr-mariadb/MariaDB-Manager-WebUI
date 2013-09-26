@@ -134,7 +134,7 @@ public class ChartButton extends CustomComponent {
 			draggable.addStyleName("draggableLabel");
 			layout.addComponent(draggable);
 
-			editButton = new Embedded(null, new ThemeResource("img/edit24.png"));
+			editButton = new Embedded(null, new ThemeResource("img/edit.png"));
 			editButton.addStyleName("editChart");
 			editButton.setDescription("Edit Chart");
 			editButton.setData(this);
@@ -147,7 +147,7 @@ public class ChartButton extends CustomComponent {
 				}
 			});
 
-			deleteButton = new Embedded(null, new ThemeResource("img/delete24.png"));
+			deleteButton = new Embedded(null, new ThemeResource("img/delete.png"));
 			deleteButton.addStyleName("deleteChart");
 			deleteButton.setDescription("Delete Chart");
 			deleteButton.setData(this);

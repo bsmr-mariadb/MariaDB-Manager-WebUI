@@ -155,7 +155,7 @@ public class NodesLayout extends HorizontalLayout {
 
 		placeholderLayout = new VerticalLayout();
 		placeholderLayout.addStyleName("placeholderLayout");
-		placeholderLayout.setHeight(ComponentButton.COMPONENT_HEIGHT);
+		placeholderLayout.setHeight(ComponentButton.COMPONENT_HEIGHT, Unit.PIXELS);
 
 		Label placeholderLabel = new Label("No " + message + " available");
 		placeholderLabel.addStyleName("instructions");

@@ -96,7 +96,6 @@ public class PanelControl extends VerticalLayout {
 
 		newLayout = new HorizontalLayout();
 		newLayout.addStyleName("newLayout");
-		//newLayout.setHeight("210px");
 		newLayout.setMargin(true);
 		newLayout.setSpacing(true);
 		addComponent(newLayout);
@@ -109,6 +108,7 @@ public class PanelControl extends VerticalLayout {
 
 		commandSelect = new ListSelect("Commands");
 		commandSelect.setImmediate(true);
+		commandSelect.setRows(8);
 		commandSelect.setNullSelectionAllowed(false);
 		commandSelect.setWidth("12em");
 		commandSelect.addValueChangeListener(commandListener);

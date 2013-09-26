@@ -128,7 +128,7 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 
 		String[] stepsIDs = steps.split(",");
 		primitives = new String[stepsIDs.length];
-		taskImages = new Embedded[stepsIDs.length + 1]; // add one more for the "done" icon
+		taskImages = new Embedded[stepsIDs.length];
 
 		// add steps icons
 		progressIconsLayout.removeAllComponents();
@@ -137,23 +137,22 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 			String iconName = Steps.getIcon(stepID);
 			String description = Steps.getDescription(stepID);
 
-			Embedded image = new Embedded(null, new ThemeResource("img/scripting/pending/" + iconName + ".png"));
-			image.addStyleName("stepIcons");
+			VerticalLayout stepLayout = new VerticalLayout();
+			progressIconsLayout.addComponent(stepLayout);
+			stepLayout.addStyleName("stepIcons");
+			Label name = new Label(stepID);
+			stepLayout.addComponent(name);
+			stepLayout.setComponentAlignment(name, Alignment.MIDDLE_CENTER);
+			Embedded image = new Embedded(null, new ThemeResource("img/scripting/pending.png"));
 			image.setImmediate(true);
-			image.setAlternateText(stepID);
 			image.setDescription(description);
-			progressIconsLayout.addComponent(image);
+			stepLayout.addComponent(image);
 			primitives[index] = iconName;
 			taskImages[index] = image;
 
 		}
-		Embedded image = new Embedded(null, new ThemeResource("img/scripting/pending/done.png"));
-		image.addStyleName("stepIcons");
-		image.setImmediate(true);
-		image.setAlternateText("Done");
-		image.setDescription("Done");
-		progressIconsLayout.addComponent(image);
-		taskImages[stepsIDs.length] = image;
+
+		setProgress("");
 
 	}
 
@@ -222,20 +221,19 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 				int index = Integer.parseInt(indexString) - 1;
 
 				while (lastProgressIndex < index) {
-					taskImages[lastProgressIndex].setSource(new ThemeResource("img/scripting/done/" + primitives[lastProgressIndex] + ".png"));
+					taskImages[lastProgressIndex].setSource(new ThemeResource("img/scripting/past.png"));
 					lastProgressIndex++;
 				}
 
 				if (state.equals(CommandStates.States.running) && index != lastIndex) {
 					setResult("Running...");
-					taskImages[index].setSource(new ThemeResource("img/scripting/active/" + primitives[index] + ".png"));
+					taskImages[index].setSource(new ThemeResource("img/scripting/active.png"));
 					setProgress(taskImages[index].getDescription());
 					lastIndex = index;
 				} else if (state.equals(CommandStates.States.done)) {
 					runningTime = System.currentTimeMillis() - startTime;
 
-					taskImages[lastIndex].setSource(new ThemeResource("img/scripting/done/" + primitives[lastIndex] + ".png"));
-					taskImages[lastIndex + 1].setSource(new ThemeResource("img/scripting/done/done.png"));
+					taskImages[lastIndex].setSource(new ThemeResource("img/scripting/done.png/"));
 					String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime), TimeUnit.MILLISECONDS.toSeconds(runningTime)
 							- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
 					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");

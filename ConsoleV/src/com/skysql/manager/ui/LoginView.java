@@ -34,7 +34,6 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Embedded;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.PasswordField;
@@ -82,26 +81,34 @@ public class LoginView extends VerticalLayout {
 	public LoginView(String name, String version) {
 
 		setSizeFull();
-		addStyleName("loginView");
 		setMargin(true);
 
-		Embedded logo = new Embedded(null, new ThemeResource("img/companylogo.png"));
-		addComponent(logo);
-		setComponentAlignment(logo, Alignment.MIDDLE_CENTER);
+		VerticalLayout loginBox = new VerticalLayout();
+		loginBox.addStyleName("loginView");
+		loginBox.setSizeUndefined();
+		loginBox.setMargin(true);
+		loginBox.setSpacing(true);
+		addComponent(loginBox);
+		setExpandRatio(loginBox, 1.0f);
+		setComponentAlignment(loginBox, Alignment.MIDDLE_CENTER);
 
-		HorizontalLayout featuresLayout = new HorizontalLayout();
-		Embedded cloud = new Embedded(null, new ThemeResource("img/productlogo.png"));
-		featuresLayout.addComponent(cloud);
-		featuresLayout.setComponentAlignment(cloud, Alignment.MIDDLE_CENTER);
-		addComponent(featuresLayout);
-		setComponentAlignment(featuresLayout, Alignment.MIDDLE_CENTER);
+		Embedded logo = new Embedded(null, new ThemeResource("img/companylogo.png"));
+		loginBox.addComponent(logo);
+		loginBox.setComponentAlignment(logo, Alignment.TOP_CENTER);
+
+		//		HorizontalLayout featuresLayout = new HorizontalLayout();
+		//		Embedded cloud = new Embedded(null, new ThemeResource("img/productlogo.png"));
+		//		featuresLayout.addComponent(cloud);
+		//		featuresLayout.setComponentAlignment(cloud, Alignment.MIDDLE_CENTER);
+		//		addComponent(featuresLayout);
+		//		setComponentAlignment(featuresLayout, Alignment.MIDDLE_CENTER);
 
 		VerticalLayout loginFormLayout = new VerticalLayout();
 		loginFormLayout.addStyleName("loginForm");
 		loginFormLayout.setMargin(true);
 		loginFormLayout.setSpacing(true);
-		addComponent(loginFormLayout);
-		setComponentAlignment(loginFormLayout, Alignment.MIDDLE_CENTER);
+		loginBox.addComponent(loginFormLayout);
+		loginBox.setComponentAlignment(loginFormLayout, Alignment.MIDDLE_CENTER);
 
 		Label welcome = new Label("Welcome to " + name);
 		welcome.setSizeUndefined();
@@ -138,7 +145,7 @@ public class LoginView extends VerticalLayout {
 		loginFormLayout.setComponentAlignment(login, Alignment.BOTTOM_CENTER);
 
 		if (version != null) {
-			Label versionLabel = new Label("API Version " + version + "<br/>GUI Version R37", ContentMode.HTML);
+			Label versionLabel = new Label("API Version " + version + "<br/>GUI Version R38", ContentMode.HTML);
 			versionLabel.setSizeUndefined();
 			addComponent(versionLabel);
 			setComponentAlignment(versionLabel, Alignment.BOTTOM_LEFT);
