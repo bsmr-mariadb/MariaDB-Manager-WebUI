@@ -46,9 +46,9 @@ public class LoginView extends VerticalLayout {
 
 	private UpdaterThread updaterThread;
 
-	private TextField userName = new TextField("Username");
-	private PasswordField password = new PasswordField("Password");
-	final private Button login = new Button("Login");
+	private TextField userName = new TextField();
+	private PasswordField password = new PasswordField();
+	final private Button login = new Button("Sign In");
 
 	private Button.ClickListener loginListener = new Button.ClickListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
@@ -82,19 +82,19 @@ public class LoginView extends VerticalLayout {
 
 		setSizeFull();
 		setMargin(true);
+		addStyleName("loginView");
+
+		Embedded logo = new Embedded(null, new ThemeResource("img/loginlogo.png"));
+		addComponent(logo);
+		setComponentAlignment(logo, Alignment.BOTTOM_CENTER);
 
 		VerticalLayout loginBox = new VerticalLayout();
-		loginBox.addStyleName("loginView");
+		loginBox.addStyleName("loginBox");
 		loginBox.setSizeUndefined();
 		loginBox.setMargin(true);
 		loginBox.setSpacing(true);
 		addComponent(loginBox);
-		setExpandRatio(loginBox, 1.0f);
 		setComponentAlignment(loginBox, Alignment.MIDDLE_CENTER);
-
-		Embedded logo = new Embedded(null, new ThemeResource("img/companylogo.png"));
-		loginBox.addComponent(logo);
-		loginBox.setComponentAlignment(logo, Alignment.TOP_CENTER);
 
 		//		HorizontalLayout featuresLayout = new HorizontalLayout();
 		//		Embedded cloud = new Embedded(null, new ThemeResource("img/productlogo.png"));
@@ -110,12 +110,14 @@ public class LoginView extends VerticalLayout {
 		loginBox.addComponent(loginFormLayout);
 		loginBox.setComponentAlignment(loginFormLayout, Alignment.MIDDLE_CENTER);
 
-		Label welcome = new Label("Welcome to " + name);
-		welcome.setSizeUndefined();
-		loginFormLayout.addComponent(welcome);
-		loginFormLayout.setComponentAlignment(welcome, Alignment.TOP_CENTER);
+		//		Label welcome = new Label("Welcome to " + name);
+		//		welcome.setSizeUndefined();
+		//		loginFormLayout.addComponent(welcome);
+		//		loginFormLayout.setComponentAlignment(welcome, Alignment.TOP_CENTER);
 
-		userName.focus();
+		// userName.focus();
+		userName.setStyleName("loginControl");
+		userName.setInputPrompt("Username");
 		userName.setImmediate(true);
 		userName.addValueChangeListener(new ValueChangeListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
@@ -128,6 +130,11 @@ public class LoginView extends VerticalLayout {
 		loginFormLayout.addComponent(userName);
 		loginFormLayout.setComponentAlignment(userName, Alignment.MIDDLE_CENTER);
 
+		// spacer
+		loginFormLayout.addComponent(new Label(""));
+
+		password.setStyleName("loginControl");
+		password.setInputPrompt("Password");
 		password.setImmediate(true);
 		password.addValueChangeListener(new ValueChangeListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
@@ -139,13 +146,17 @@ public class LoginView extends VerticalLayout {
 		loginFormLayout.addComponent(password);
 		loginFormLayout.setComponentAlignment(password, Alignment.MIDDLE_CENTER);
 
+		// spacer
+		loginFormLayout.addComponent(new Label(" "));
+
+		login.setStyleName("loginControl");
 		login.setEnabled(false);
 
 		loginFormLayout.addComponent(login);
 		loginFormLayout.setComponentAlignment(login, Alignment.BOTTOM_CENTER);
 
 		if (version != null) {
-			Label versionLabel = new Label("API Version " + version + "<br/>GUI Version R38", ContentMode.HTML);
+			Label versionLabel = new Label("API Version " + version + "<br/>GUI Version 1.0.39 Beta", ContentMode.HTML);
 			versionLabel.setSizeUndefined();
 			addComponent(versionLabel);
 			setComponentAlignment(versionLabel, Alignment.BOTTOM_LEFT);

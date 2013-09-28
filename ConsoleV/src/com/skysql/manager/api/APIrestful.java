@@ -272,15 +272,12 @@ public class APIrestful {
 
 		} catch (NoSuchAlgorithmException e) {
 			new ErrorDialog(e, "Could not use MD5 to encode HTTP request header");
-			e.printStackTrace();
 			throw new RuntimeException();
 		} catch (MalformedURLException e) {
 			new ErrorDialog(e, "Bad URL: " + url.toString());
-			e.printStackTrace();
 			throw new RuntimeException();
 		} catch (ConnectException e) {
 			new ErrorDialog(e, "API not responding at: " + getURI());
-			e.printStackTrace();
 			throw new RuntimeException("API not responding");
 		} catch (MalformedJsonException e) {
 			new ErrorDialog(e, "API did not return JSON for: " + api.errorString());
@@ -317,16 +314,13 @@ public class APIrestful {
 			switch (errorCode) {
 			case 400:
 			case 404:
-				Notification.show(errors, Notification.Type.WARNING_MESSAGE);
-				return false;
-
 			case 409:
+				Notification.show(errors, Notification.Type.WARNING_MESSAGE);
 				return false;
 
 			default:
 				break;
 			}
-			e.printStackTrace();
 			new ErrorDialog(e, "API returned an error for:" + errorString());
 			throw new RuntimeException("API Error");
 

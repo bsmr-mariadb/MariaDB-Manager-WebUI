@@ -56,7 +56,6 @@ public class RunSQL {
 			result = api.getResult();
 			errors = api.getErrors();
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
 		}
 	}

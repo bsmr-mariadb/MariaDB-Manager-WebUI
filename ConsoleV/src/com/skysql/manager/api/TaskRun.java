@@ -64,7 +64,6 @@ public class TaskRun {
 			success = api.post("command/" + command, regParam.toString());
 
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
 		}
 

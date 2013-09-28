@@ -79,7 +79,6 @@ public class UserObject {
 				}
 			}
 		} catch (JSONException e) {
-			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
 		}
 
@@ -95,15 +94,10 @@ public class UserObject {
 		try {
 			APIrestful api = new APIrestful();
 			JSONObject jsonParam = new JSONObject();
-			//jsonParam.put("value", URLEncoder.encode(value, "UTF8"));
 			jsonParam.put("value", value);
 			return api.put("user/" + userID + "/property/" + key, jsonParam.toString());
 		} catch (JSONException e) {
-			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
-			//		} catch (UnsupportedEncodingException e) {
-			//			e.printStackTrace();
-			//			new ErrorDialog(e, "Error encoding API request");
 		}
 
 		return false;

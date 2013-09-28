@@ -105,7 +105,6 @@ public class UserInfo {
 			jsonParam.put("password", password);
 			success = api.put("user/" + userID, jsonParam.toString());
 		} catch (JSONException e) {
-			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
 		}
 

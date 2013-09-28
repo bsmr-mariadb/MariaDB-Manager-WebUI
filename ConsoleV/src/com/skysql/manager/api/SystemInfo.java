@@ -103,7 +103,6 @@ public class SystemInfo {
 				}
 			}
 		} catch (JSONException e) {
-			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
 		}
 

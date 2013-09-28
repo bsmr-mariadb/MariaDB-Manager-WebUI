@@ -18,6 +18,8 @@
 
 package com.skysql.manager;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 
@@ -111,22 +113,36 @@ public class SystemRecord extends ClusterComponent {
 
 	public boolean save() {
 
-		try {
-			APIrestful api = new APIrestful();
-			JSONObject jsonParam = new JSONObject();
-			jsonParam.put("name", name);
-			jsonParam.put("systemtype", systemType);
+		APIrestful api = new APIrestful();
+		boolean success = false;
 
-			if (api.put("system/" + ID, jsonParam.toString())) {
-				WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
-				if (writeResponse != null && (!writeResponse.getInsertKey().isEmpty() || writeResponse.getUpdateCount() > 0)) {
-					return true;
-				}
+		try {
+			if (getID() != null) {
+				JSONObject jsonParam = new JSONObject();
+				jsonParam.put("name", getName());
+				jsonParam.put("systemtype", getSystemType());
+				success = api.put("system/" + getID(), jsonParam.toString());
+			} else {
+				StringBuffer regParam = new StringBuffer();
+				regParam.append("name=" + URLEncoder.encode(getName(), "UTF-8"));
+				regParam.append("&systemtype=" + URLEncoder.encode(getSystemType(), "UTF-8"));
+				success = api.post("system", regParam.toString());
 			}
 
 		} catch (JSONException e) {
-			e.printStackTrace();
-			new ErrorDialog(e, "JSON error encoding API request");
+			new ErrorDialog(e, "Error encoding API request");
+		} catch (UnsupportedEncodingException e) {
+			new ErrorDialog(e, "Error encoding API request");
+		}
+
+		if (success) {
+			WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
+			if (writeResponse != null && !writeResponse.getInsertKey().isEmpty()) {
+				setID(writeResponse.getInsertKey());
+				return true;
+			} else if (writeResponse != null && writeResponse.getUpdateCount() > 0) {
+				return true;
+			}
 		}
 
 		return false;

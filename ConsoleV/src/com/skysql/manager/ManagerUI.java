@@ -49,7 +49,7 @@ import com.vaadin.ui.VerticalSplitPanel;
 
 @SuppressWarnings("serial")
 @Theme("skystyle1")
-@Title("SkySQL Manager")
+@Title("MariaDB Manager")
 @Push
 @PreserveOnRefresh
 public class ManagerUI extends UI {
@@ -240,10 +240,8 @@ public class ManagerUI extends UI {
 			try {
 				overviewPanel.refresh();
 			} catch (RuntimeException e) {
-				e.printStackTrace();
 				new ErrorDialog(e, null);
 			} catch (Exception e) {
-				e.printStackTrace();
 				new ErrorDialog(e, null);
 			} finally {
 

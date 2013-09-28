@@ -108,7 +108,6 @@ public class Monitors {
 			success = api.put("monitorclass/" + monitor.getSystemType() + "/key/" + monitor.getID(), jsonParam.toString());
 
 		} catch (JSONException e) {
-			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
 		}
 

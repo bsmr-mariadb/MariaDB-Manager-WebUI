@@ -27,7 +27,6 @@ import com.skysql.manager.ManagerUI;
 import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.CommandStates;
 import com.skysql.manager.api.Steps;
-import com.skysql.manager.api.TaskInfo;
 import com.skysql.manager.api.UserInfo;
 import com.skysql.manager.ui.RunningTask;
 import com.vaadin.server.ThemeResource;
@@ -51,7 +50,6 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 	private Embedded[] taskImages;
 	private String primitives[];
 	private TaskRecord taskRecord;
-	private TaskInfo taskInfo;
 	private long startTime, runningTime;
 	private RunningTask runningTask;
 
@@ -156,8 +154,7 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 
 	}
 
-	public void refresh(TaskInfo taskInfo, TaskRecord taskRecord) {
-		this.taskInfo = taskInfo;
+	public void refresh(TaskRecord taskRecord) {
 		this.taskRecord = taskRecord;
 
 		ManagerUI.log("ScheduledLayout refresh()");
@@ -233,7 +230,7 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 				} else if (state.equals(CommandStates.States.done)) {
 					runningTime = System.currentTimeMillis() - startTime;
 
-					taskImages[lastIndex].setSource(new ThemeResource("img/scripting/done.png/"));
+					taskImages[lastIndex].setSource(new ThemeResource("img/scripting/past.png/"));
 					String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime), TimeUnit.MILLISECONDS.toSeconds(runningTime)
 							- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
 					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -250,8 +247,8 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 							- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
 					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 					Date date = new Date();
-					setResult("Command failed<br/><br/>on " + dateFormat.format(date) + "<br/><br/>after " + time + "<br/><br/>with error: "
-							+ taskInfo.getError());
+					// TODO: where do we get the error?
+					setResult("Command failed<br/><br/>on " + dateFormat.format(date) + "<br/><br/>after " + time + "<br/><br/>with error: n/a");
 
 					runningTask.close();
 

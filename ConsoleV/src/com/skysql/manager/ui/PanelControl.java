@@ -20,7 +20,6 @@ package com.skysql.manager.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.DateConversion;
@@ -209,8 +208,8 @@ public class PanelControl extends VerticalLayout {
 
 		final UserInfo userInfo = (UserInfo) getSession().getAttribute(UserInfo.class);
 
-		final String taskID = nodeInfo.getTask();
-		// String taskCommand = nodeInfo.getCommand();
+		TaskRecord taskRecord = nodeInfo.getTask();
+		final String taskID = (taskRecord != null && taskRecord.getState().equals("running")) ? taskRecord.getID() : null;
 
 		// update command history section
 		TaskInfo taskInfo = new TaskInfo(null, nodeInfo.getParentID(), nodeInfo.getID());
@@ -231,7 +230,6 @@ public class PanelControl extends VerticalLayout {
 
 					if (tasksList != null) {
 						oldTasksCount = tasksList.size();
-						Collections.reverse(tasksList);
 						for (TaskRecord taskRecord : tasksList) {
 							logsTable.addItem(new Object[] { DateConversion.adjust(taskRecord.getStart()), DateConversion.adjust(taskRecord.getEnd()),
 									taskRecord.getCommand(), taskRecord.getParams(), taskRecord.getSteps(), taskRecord.getPID(), taskRecord.getPrivateIP(),

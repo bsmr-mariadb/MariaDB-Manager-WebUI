@@ -76,6 +76,8 @@ public final class RunningTask {
 	private ListSelect selectPrevBackup;
 	private String firstItem;
 	private ValueChangeListener listener;
+	private OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
+	private String lastTaskID;
 
 	RunningTask(String command, NodeInfo nodeInfo, ListSelect commandSelect) {
 		this.command = command;
@@ -86,8 +88,7 @@ public final class RunningTask {
 
 		if (command == null) {
 			observerMode = true;
-			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null);
-			taskRecord = taskInfo.getTasksList().get(0);
+			taskRecord = nodeInfo.getTask();
 			command = taskRecord.getCommand();
 			this.command = command;
 		}
@@ -344,7 +345,6 @@ public final class RunningTask {
 			commandSelect.setEnabled(true);
 			parameterLayout.setEnabled(true);
 			scriptingProgressLayout.setResult("Failed to launch: " + taskRun.getError());
-			OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
 			overviewPanel.refresh();
 			return;
 		}
@@ -356,8 +356,9 @@ public final class RunningTask {
 			scriptingProgressLayout.setTitle(command + " (Updated Steps)");
 		}
 
-		nodeInfo.setTask(taskRun.getTaskRecord().getID());
+		nodeInfo.setTask(taskRun.getTaskRecord());
 		taskRecord = taskRun.getTaskRecord();
+		lastTaskID = taskRun.getTaskRecord().getID();
 
 		activateTimer();
 
@@ -424,10 +425,18 @@ public final class RunningTask {
 			++fCount;
 			ManagerUI.log("timer - task:" + nodeInfo.getTask() + " - " + fCount);
 
-			TaskInfo taskInfo = new TaskInfo(nodeInfo.getTask(), null, null);
+			NodeInfo newNodeInfo = new NodeInfo(nodeInfo.getParentID(), nodeInfo.getSystemType(), nodeInfo.getID());
+			//TaskRecord taskRecord = newNodeInfo.getTask();
+			TaskInfo taskInfo = new TaskInfo(lastTaskID, null, null);
 			TaskRecord taskRecord = taskInfo.getTasksList().get(0);
+			if (taskRecord != null && taskRecord.getID().equals(nodeInfo.getTask().getID())) {
+				scriptingProgressLayout.refresh(taskRecord);
+			} else {
+				// we either got no TaskRecord or a different one than we were tracking; either way shut down the timer and cleanup.
+				close();
+			}
 
-			scriptingProgressLayout.refresh(taskInfo, taskRecord);
+			overviewPanel.updateSelectedButton(newNodeInfo.getState(), taskRecord);
 
 		}
 	}

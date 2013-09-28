@@ -34,7 +34,14 @@ hr {
 }
 
 .commandOverlay {
-	background: orange;	
+	background: #e5eaf1;
+	padding: 3px;
+	border-width: 2px;
+	border-style: solid;
+	border-color: black;
+	position: absolute;
+   	left: -2px;
+ 
 }
 
 .v-nativebutton-backButton {
@@ -108,7 +115,7 @@ hr {
 .deleteSystem {
 	position: absolute;
     top: 5px;
-    left:40px;
+    left:65px;
 }
 
 .editChart {
@@ -128,11 +135,41 @@ hr {
 }
 
 .v-verticallayout-loginView {
-	background: #99aeca;
+	/* background: transparent url(img/loginbackground.png) no-repeat; */
+	background: url(img/loginbackground.png) no-repeat center center fixed; 
+    background-size: cover;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+	/***
+	background-image: url(img/loginbackground.png);
+	background-position: 0px 0px;
+	background-repeat: repeat-x;
+	animation: animatedBackground 80s linear infinite;
+	-ms-animation: animatedBackground 80s linear infinite;
+	-moz-animation: animatedBackground 80s linear infinite;
+	-webkit-animation: animatedBackground 80s linear infinite;
+	***/
 }
 
-.v-verticallayout-loginForm .v-label {
+.v-textfield-loginControl {
+	font-size: 18px !important;
+	line-height: 22px;
+	height: 28px !important;
+}
+
+.v-button-loginControl .v-button-wrap {
 	font-size: 16px !important;
+}
+
+.v-verticallayout-loginBox {
+	background: #002b64;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+}
+
+.v-verticallayout-loginForm {
 	white-space:nowrap;	
 }
 
@@ -169,18 +206,12 @@ hr {
 	height: 22px;
 }
 
-/*.v-button-with-hand {
-   cursor: pointer;
-}*/
 
-/*** aws:
-	{"state":"master","stateid":1,"description":"Master"},
-	{"state":"slave","stateid":2,"description":"Slave Online"},
-	{"state":"offline","stateid":3,"description":"Slave Offline"},
-	{"state":"stopped","stateid":5,"description":"Slave Stopped"},
-	{"state":"error","stateid":13,"description":"Slave Error"},
-	{"state":"standalone","stateid":18,"description":"Standalone Database"}
-***/
+.v-verticallayout-placeholder {
+    background: transparent url(img/components/DB-placeholder.png) no-repeat;
+}
+
+/* AWS Node States */
 
 .v-verticallayout-master {
     background: transparent url(img/components/DB-green_40.png) no-repeat;
@@ -230,32 +261,23 @@ hr {
     background: transparent url(img/components/DB-mustard.png) no-repeat;
 }
 
-/*** galera: 
-	{"state":"down","stateid":100,"description":"Down"},
-	{"state":"open","stateid":101,"description":"Open"},
-	{"state":"primary","stateid":102,"description":"Primary"},
-	{"state":"joiner","stateid":103,"description":"Joiner"},
-	{"state":"joined","stateid":104,"description":"Joined"},
-	{"state":"synced","stateid":105,"description":"Synced"},
-	{"state":"donor","stateid":106,"description":"Donor"},
-	{"state":"isolated","stateid":99,"description":"Isolated"}
-***/
-/***
-		galeraIcons.put("down", "stopped");
-		galeraIcons.put("open", "starting");
-		galeraIcons.put("primary", "master");
-		galeraIcons.put("joiner", "promoting");
-		galeraIcons.put("joined", "master");
-		galeraIcons.put("synced", "master");
-		galeraIcons.put("donor", "master");
-		galeraIcons.put("isolated", "isolated");
-***/
+/* GALERA Node States */
+
+.v-verticallayout-created,
+.v-verticallayout-connected,
+.v-verticallayout-unconnected,
+.v-verticallayout-unprovisioned,
+.v-verticallayout-unmanaged,
+.v-verticallayout-provisioned,
 .v-verticallayout-down {
     background: transparent url(img/components/DB-blue.png) no-repeat;
 }
-.v-verticallayout-open {
-    background: transparent url(img/components/DB-cornflour.png) no-repeat;
-}
+
+/*{ 
+	background: transparent url(img/components/DB-cornflour.png) no-repeat;
+}*/
+
+.v-verticallayout-open,
 .v-verticallayout-primary,
 .v-verticallayout-joiner,
 .v-verticallayout-joined,
@@ -267,9 +289,10 @@ hr {
 .v-verticallayout-isolated {
     background: transparent url(img/components/DB-mustard.png) no-repeat;
 }
-.v-verticallayout-error {
+.v-verticallayout-incompatible {
     background: transparent url(img/components/DB-red.png) no-repeat;
 }
+
 .v-verticallayout-invalid {
     background: transparent url(img/components/DB-questionmark.png) no-repeat;
 }

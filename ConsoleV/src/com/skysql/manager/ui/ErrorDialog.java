@@ -43,6 +43,10 @@ public class ErrorDialog implements Window.CloseListener {
 
 	public ErrorDialog(Exception e, String humanizedError) {
 
+		if (e != null) {
+			e.printStackTrace();
+		}
+
 		dialogWindow = new ModalWindow("An Error has occurred", "775px");
 		dialogWindow.setHeight("340px");
 		dialogWindow.addCloseListener(this);

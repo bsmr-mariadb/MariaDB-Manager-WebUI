@@ -45,7 +45,7 @@
 		<dependency org="org.vaadin.addons" name="animator" rev="1.7.3" />
 		<!-- <dependency org="org.vaadin.addons" name="dragdroplayouts" rev="1.0.0.alpha4" /> -->
 		<dependency org="com.google.code.gson" name="gson" rev="2.2.3"/>
-
+ 		<dependency org="org.mnode.ical4j" name="ical4j" rev="1.0.5" />
 
 	</dependencies>
 </ivy-module>

@@ -103,8 +103,7 @@ class CommandStatesDeserializer implements JsonDeserializer<CommandStates> {
 						descriptions.put(state, pair.get("description").getAsString());
 					}
 				} catch (IllegalArgumentException e) {
-					//new ErrorDialog(e, "Unknown Command State (" + state + ") found in API response");
-					e.printStackTrace();
+					new ErrorDialog(e, "Unknown Command State (" + state + ") found in API response");
 					//throw new RuntimeException("Unknown Command State (" + state + ") found in API response");
 				}
 			}

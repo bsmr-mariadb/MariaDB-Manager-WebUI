@@ -3,10 +3,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.skysql.manager</groupId>
-	<artifactId>SkySQLManager</artifactId>
+	<artifactId>MariaDBManager</artifactId>
 	<packaging>war</packaging>
 	<version>1.0</version>
-	<name>SkySQL Manager</name>
+	<name>MariaDB Manager</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -110,8 +110,12 @@
       		<version>2.2.3</version>
       		<scope>compile</scope>
     	</dependency>
+		<dependency>
+			<groupId>org.mnode.ical4j</groupId>
+			<artifactId>ical4j</artifactId>
+			<version>1.0.5</version>
+		</dependency>	
 	</dependencies>
-
 	<build>
     	<sourceDirectory>src</sourceDirectory>
     	<resources>

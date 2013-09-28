@@ -84,7 +84,6 @@ public class AppData {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
 			new ErrorDialog(e, "Error setting up application");
 		}
 

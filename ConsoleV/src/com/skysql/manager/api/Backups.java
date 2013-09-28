@@ -62,7 +62,7 @@ public class Backups {
 
 		APIrestful api = new APIrestful();
 		// TODO: incorporate or eliminate date parameter
-		if (api.get("system/" + system + "/backup")) {
+		if (api.get("system/" + system + "/backup", "?limit=1000")) {
 			try {
 				Backups backups = APIrestful.getGson().fromJson(api.getResult(), Backups.class);
 				this.backupsList = backups.backupsList;
@@ -80,6 +80,7 @@ public class Backups {
 
 // {"total":"0","backups":[],"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
 // {"total":"1","backups":[{"systemid":"1","backupid":"1","nodeid":"1","level":"1","parentid":null,"state":"5","started":"Tue, 20 Aug 2013 08:00:00 +0000","updated":"Tue, 20 Aug 2013 08:05:00 +0000","restored":null,"size":"10000","storage":"storage","binlog":"binlog","log":null}],"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
+// {"total":"1","backups":[{"systemid":"1","backupid":"1","nodeid":"1","level":"1","parentid":null,"state":"done","started":"Fri, 20 Sep 2013 08:00:00 +0000","updated":"Sat, 21 Sep 2013 09:00:00 +0000","restored":null,"size":"1000","backupurl":"http:\/\/backupURL","binlog":"binlog","log":"log"}],"warnings":["Configuration at \/etc\/skysqlmgr\/api.ini does not specify a logging directory","Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
 
 class BackupsDeserializer implements JsonDeserializer<Backups> {
 	public Backups deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
@@ -107,7 +108,7 @@ class BackupsDeserializer implements JsonDeserializer<Backups> {
 				String updated = (element = backupJson.get("updated")).isJsonNull() ? null : element.getAsString();
 				String restored = (element = backupJson.get("restored")).isJsonNull() ? null : element.getAsString();
 				String size = (element = backupJson.get("size")).isJsonNull() ? null : element.getAsString();
-				String storage = (element = backupJson.get("storage")).isJsonNull() ? null : element.getAsString();
+				String storage = (element = backupJson.get("backupurl")).isJsonNull() ? null : element.getAsString();
 				String log = (element = backupJson.get("log")).isJsonNull() ? null : element.getAsString();
 				BackupRecord backupRecord = new BackupRecord(id, status, started, updated, level, node, size, storage, restored, log, parent);
 				backupsList.put(id, backupRecord);

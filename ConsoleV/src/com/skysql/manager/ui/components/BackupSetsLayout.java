@@ -138,16 +138,15 @@ public class BackupSetsLayout extends HorizontalLayout {
 						oldBackupsCount = size;
 
 						backupsTable.removeAllItems();
-						ListIterator<Map.Entry<String, BackupRecord>> iter = new ArrayList<Entry<String, BackupRecord>>(backupsList.entrySet())
-								.listIterator(backupsList.size());
+						ListIterator<Map.Entry<String, BackupRecord>> iter = new ArrayList<Entry<String, BackupRecord>>(backupsList.entrySet()).listIterator(0);
 
-						while (iter.hasPrevious()) {
+						while (iter.hasNext()) {
 							if (updaterThread.flagged) {
 								ManagerUI.log("PanelBackup - flagged is set during table population");
 								return;
 							}
 
-							Map.Entry<String, BackupRecord> entry = iter.previous();
+							Map.Entry<String, BackupRecord> entry = iter.next();
 							BackupRecord backupRecord = entry.getValue();
 							Link backupLogLink = null;
 

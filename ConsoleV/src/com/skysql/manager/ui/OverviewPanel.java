@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.SystemRecord;
+import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.ui.components.ComponentButton;
@@ -161,6 +162,11 @@ public class OverviewPanel extends Panel {
 		nodesLayout.setWidth("100%");
 		panel.setContent(nodesLayout);
 
+	}
+
+	public void updateSelectedButton(String state, TaskRecord taskRecord) {
+		selectedButton.setIcon("node", state, null);
+		selectedButton.setCommandLabel(taskRecord);
 	}
 
 	public void setEnabled(boolean enabled) {

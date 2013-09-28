@@ -337,7 +337,7 @@ public class NodesLayout extends HorizontalLayout {
 						toolTip = nodeInfo.ToolTip();
 						// carry over RunningTask(s)
 						nodeInfo.setCommandTask(((NodeInfo) currentComponent).getCommandTask());
-						button.setCommand(nodeInfo.getCommand());
+						button.setCommandLabel(nodeInfo.getTask());
 						break;
 					default:
 						toolTip = "Unknown component type";

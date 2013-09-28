@@ -20,10 +20,8 @@ package com.skysql.manager.ui.components;
 
 import com.vaadin.addon.charts.ChartOptions;
 import com.vaadin.addon.charts.model.style.Theme;
-import com.vaadin.addon.charts.themes.GrayTheme;
 import com.vaadin.addon.charts.themes.GridTheme;
 import com.vaadin.addon.charts.themes.HighChartsDefaultTheme;
-import com.vaadin.addon.charts.themes.SkiesTheme;
 import com.vaadin.addon.charts.themes.VaadinTheme;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.FormLayout;
@@ -45,10 +43,10 @@ public class ChartControls extends HorizontalLayout {
 	public static final Integer DEFAULT_INTERVAL = INTERVAL_30_MIN;
 
 	private enum Themes {
-		Vaadin, Skies, Grid, Gray, Highcharts;
+		Default, Grid, Highcharts;
 	}
 
-	public static final String DEFAULT_THEME = Themes.Vaadin.name();
+	public static final String DEFAULT_THEME = Themes.Default.name();
 
 	private NativeSelect selectInterval, selectTheme;
 	private ValueChangeListener intervalListener, themeListener;
@@ -122,20 +120,12 @@ public class ChartControls extends HorizontalLayout {
 
 		Theme theme = null;
 		switch (Themes.valueOf(themeName)) {
-		case Vaadin:
+		case Default:
 			theme = new VaadinTheme();
-			break;
-
-		case Skies:
-			theme = new SkiesTheme();
 			break;
 
 		case Grid:
 			theme = new GridTheme();
-			break;
-
-		case Gray:
-			theme = new GrayTheme();
 			break;
 
 		case Highcharts:

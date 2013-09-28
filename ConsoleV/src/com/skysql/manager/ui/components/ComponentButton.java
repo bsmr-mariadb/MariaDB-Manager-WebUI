@@ -20,6 +20,8 @@ package com.skysql.manager.ui.components;
 
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.SystemRecord;
+import com.skysql.manager.TaskRecord;
+import com.skysql.manager.api.CommandStates;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.NodeStates;
 import com.skysql.manager.ui.ComponentDialog;
@@ -91,11 +93,13 @@ public class ComponentButton extends VerticalLayout {
 
 			if (componentInfo.getType() == ClusterComponent.CCType.node) {
 				NodeInfo nodeInfo = (NodeInfo) componentInfo;
-				commandLabel = new Label(nodeInfo.getCommand());
-				commandLabel.addStyleName("commandOverlay");
+				TaskRecord taskRecord = nodeInfo.getTask();
+				commandLabel = new Label();
 				commandLabel.setSizeUndefined();
 				imageLayout.addComponent(commandLabel);
 				imageLayout.setComponentAlignment(commandLabel, Alignment.TOP_CENTER);
+				imageLayout.setExpandRatio(commandLabel, 1.0f);
+				//setCommandLabel(taskRecord);
 			}
 
 			nameLabel = new Label(componentInfo.getName());
@@ -122,8 +126,37 @@ public class ComponentButton extends VerticalLayout {
 	//		return commandLabel.getValue();
 	//	}
 
-	public void setCommand(String command) {
-		commandLabel.setValue(command);
+	public void setCommandLabel(TaskRecord taskRecord) {
+		if (taskRecord != null) {
+			switch (CommandStates.States.valueOf(taskRecord.getState())) {
+			case running:
+			case paused:
+				setCommand(taskRecord.getCommand());
+				break;
+			case done:
+				setCommand(null);
+				break;
+			case error:
+				setError(taskRecord.getError());
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
+	private void setCommand(String command) {
+		if (command != null) {
+			commandLabel.setStyleName("commandOverlay");
+		} else {
+			commandLabel.setStyleName(null);
+		}
+		commandLabel.setValue((command != null) ? command : "");
+	}
+
+	private void setError(String error) {
+		commandLabel.setStyleName("errorOverlay");
+		commandLabel.setValue(error);
 	}
 
 	public void setDescription(String description) {
@@ -146,25 +179,27 @@ public class ComponentButton extends VerticalLayout {
 	}
 
 	public void setIcon(String type, String status, String capacity) {
-		String icon = NodeStates.getNodeIcon(componentInfo.getSystemType(), status);
-		if (capacity != null && (icon.equals(ICON_MASTER) || icon.equals(ICON_SLAVE))) {
+		if (type.equals("node")) {
+			String icon = NodeStates.getNodeIcon(componentInfo.getSystemType(), status);
+			if (capacity != null && (icon.equals(ICON_MASTER) || icon.equals(ICON_SLAVE))) {
 
-			double capacity_num = Double.parseDouble(capacity);
-			if (capacity_num > 0 && capacity_num < 20)
-				icon += "-20";
-			else if (capacity_num < 40)
-				icon += "-40";
-			else if (capacity_num < 60)
-				icon += "-60";
-			else if (capacity_num < 80)
-				icon += "-80";
-			else if (capacity_num <= 100)
-				icon += "-100";
+				double capacity_num = Double.parseDouble(capacity);
+				if (capacity_num > 0 && capacity_num < 20)
+					icon += "-20";
+				else if (capacity_num < 40)
+					icon += "-40";
+				else if (capacity_num < 60)
+					icon += "-60";
+				else if (capacity_num < 80)
+					icon += "-80";
+				else if (capacity_num <= 100)
+					icon += "-100";
+			}
+
+			imageLayout.setStyleName(icon);
+			imageLayout.addStyleName(type);
+			setSelected(isSelected);
 		}
-
-		imageLayout.setStyleName(icon);
-		imageLayout.addStyleName(type);
-		setSelected(isSelected);
 
 	}
 

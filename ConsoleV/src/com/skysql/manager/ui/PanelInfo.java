@@ -28,6 +28,7 @@ import org.vaadin.jouni.animator.shared.AnimType;
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.DateConversion;
 import com.skysql.manager.SystemRecord;
+import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.ChartProperties;
 import com.skysql.manager.api.Monitors;
 import com.skysql.manager.api.Monitors.MonitorNames;
@@ -410,12 +411,14 @@ public class PanelInfo extends HorizontalSplitPanel {
 			NodeInfo nodeInfo = (NodeInfo) componentInfo;
 			currentLabels = nodeLabels;
 			monitorLatest = nodeInfo.getMonitorLatest().getData();
+			TaskRecord taskRecord = nodeInfo.getTask();
 			String nodeValues[] = { (value = nodeInfo.getState()) != null ? value : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.availability.toString())) != null ? value + "%" : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.connections.toString())) != null ? value : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.traffic.toString())) != null ? value + " KB" : NOT_AVAILABLE,
-					(value = nodeInfo.getCommand()) != null ? value : NOT_AVAILABLE, (value = nodeInfo.getPublicIP()) != null ? value : NOT_AVAILABLE,
-					(value = nodeInfo.getPrivateIP()) != null ? value : NOT_AVAILABLE, (value = nodeInfo.getInstanceID()) != null ? value : NOT_AVAILABLE };
+					(taskRecord != null && (value = taskRecord.getCommand()) != null) ? value : NOT_AVAILABLE,
+					(value = nodeInfo.getPublicIP()) != null ? value : NOT_AVAILABLE, (value = nodeInfo.getPrivateIP()) != null ? value : NOT_AVAILABLE,
+					(value = nodeInfo.getInstanceID()) != null ? value : NOT_AVAILABLE };
 			values = nodeValues;
 			break;
 

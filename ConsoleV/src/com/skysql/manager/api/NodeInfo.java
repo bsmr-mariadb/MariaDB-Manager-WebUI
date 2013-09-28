@@ -33,6 +33,7 @@ import com.google.gson.JsonParseException;
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.Commands;
 import com.skysql.manager.MonitorLatest;
+import com.skysql.manager.TaskRecord;
 import com.skysql.manager.ui.ErrorDialog;
 import com.skysql.manager.ui.RunningTask;
 
@@ -41,8 +42,7 @@ public class NodeInfo extends ClusterComponent {
 	private static final String NOT_AVAILABLE = "n/a";
 
 	private Commands commands;
-	private String task;
-	private String command;
+	private TaskRecord task;
 	private String hostname;
 	private String privateIP;
 	private String publicIP;
@@ -62,20 +62,12 @@ public class NodeInfo extends ClusterComponent {
 		this.commands = commands;
 	}
 
-	public String getTask() {
+	public TaskRecord getTask() {
 		return task;
 	}
 
-	public void setTask(String task) {
+	public void setTask(TaskRecord task) {
 		this.task = task;
-	}
-
-	public String getCommand() {
-		return command;
-	}
-
-	public void setCommand(String command) {
-		this.command = command;
 	}
 
 	public String getHostname() {
@@ -191,10 +183,8 @@ public class NodeInfo extends ClusterComponent {
 			}
 
 		} catch (JSONException e) {
-			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
 			new ErrorDialog(e, "Error encoding API request");
 		}
 
@@ -251,7 +241,6 @@ public class NodeInfo extends ClusterComponent {
 				this.commands = nodeInfo.commands;
 				this.monitorLatest = nodeInfo.monitorLatest;
 				this.task = nodeInfo.task;
-				this.command = nodeInfo.command;
 				this.hostname = nodeInfo.hostname;
 				this.publicIP = nodeInfo.publicIP;
 				this.privateIP = nodeInfo.privateIP;
@@ -277,17 +266,17 @@ public class NodeInfo extends ClusterComponent {
 		return "<h2>Node</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Name:</b> " + this.name + "</li>" + "<li><b>Hostname:</b> "
 				+ this.hostname + "</li>" + "<li><b>Public IP:</b> " + this.publicIP + "</li>" + "<li><b>Private IP:</b> " + this.privateIP + "</li>"
 				+ "<li><b>Instance ID:</b> " + this.instanceID + "<li><b>DB Username:</b> " + this.dbUsername + "<li><b>DB Password:</b> " + this.dbPassword
-				+ "</li>" + "<li><b>State:</b> " + ((this.state == null) ? NOT_AVAILABLE : NodeStates.getDescription(this.systemType, this.state)) + "</li>"
+				+ "</li>" + "<li><b>State:</b> "
+				+ ((this.state == null) ? NOT_AVAILABLE : this.state + " - " + NodeStates.getDescription(this.systemType, this.state)) + "</li>"
 				+ "<li><b>Monitors:</b> " + ((this.monitorLatest == null) ? NOT_AVAILABLE : monitorLatest.getData().toString()) + "</li>"
 				+ "<li><b>Available Commands:</b> " + ((this.commands == null) ? NOT_AVAILABLE : getCommands().getNames().keySet()) + "</li>"
-				+ "<li><b>Task ID:</b> " + ((this.task == null) ? NOT_AVAILABLE : this.task) + "</li>" + "<li><b>Running Command:</b> "
-				+ ((this.command == null) ? NOT_AVAILABLE : this.command) + "</li>" + "</ul>";
+				+ "<li><b>Command running:</b> " + ((this.task == null) ? NOT_AVAILABLE : this.task.getCommand()) + "</li>" + "</ul>";
 
 	}
 
 }
 
-// {"node":{"systemid":"1","nodeid":"1","name":"Node1","state":"","updated":"Thu, 19 Sep 2013 06:51:07 +0000","hostname":"","publicip":"","privateip":"10.0.0.1","port":"0","instanceid":"","dbusername":"","dbpassword":"","repusername":"","reppassword":"","commands":null,"monitorlatest":{"connections":"10","traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null},"command":null,"taskid":null}
+// {"node":{"systemid":"1","nodeid":"1","name":"node1","state":"joined","updated":"Thu, 26 Sep 2013 13:21:30 +0000","hostname":"","publicip":"","privateip":"10.0.1.1","port":"0","instanceid":"","dbusername":"","dbpassword":"","repusername":"","reppassword":"","commands":[{"command":"stop","description":"Stop Node when Joined","steps":"stop"},{"command":"restart","description":"Restart Node when Joined","steps":"stop,start"},{"command":"isolate","description":"Take Joined Node out of Replication","steps":"isolate"},{"command":"recover","description":"Recover Joined Node","steps":"recover"},{"command":"backup","description":"Backup Joined Node","steps":"isolate,backup,recover"}],"monitorlatest":{"connections":"11","traffic":null,"availability":null,"capacity":null,"hoststate":null,"nodestate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null},"task":{"taskid":"1","systemid":"1","nodeid":"1","privateip":"10.0.1.1","username":"admin","command":"restart","parameters":"","steps":"stop,start","started":"Thu, 26 Sep 2013 13:29:16 +0000","pid":"2360","updated":"Thu, 26 Sep 2013 13:29:16 +0000","completed":"Thu, 26 Sep 2013 13:29:16 +0000","stepindex":"1","state":"done"}},"warnings":["Configuration at \/etc\/skysqlmgr\/api.ini does not specify a logging directory","Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
 
 class NodeInfoDeserializer implements JsonDeserializer<NodeInfo> {
 	public NodeInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
@@ -311,17 +300,21 @@ class NodeInfoDeserializer implements JsonDeserializer<NodeInfo> {
 			nodeInfo.setDBPassword(((element = jsonObject.get("dbpassword")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setRepUsername(((element = jsonObject.get("repusername")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setRepPassword(((element = jsonObject.get("reppassword")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setCommand(((element = jsonObject.get("command")) == null || element.isJsonNull()) ? null : element.getAsString());
-			nodeInfo.setTask(((element = jsonObject.get("taskid")) == null || element.isJsonNull()) ? null : element.getAsString());
+
+			if ((element = jsonObject.get("commands")) != null && !element.isJsonNull()) {
+				Commands commands = APIrestful.getGson().fromJson("{\"commands\":" + element.toString() + "}", Commands.class);
+				nodeInfo.setCommands(commands);
+			}
 
 			if ((element = jsonObject.get("monitorlatest")) != null && !element.isJsonNull()) {
 				MonitorLatest monitorLatest = APIrestful.getGson().fromJson(element.toString(), MonitorLatest.class);
 				nodeInfo.setMonitorLatest(monitorLatest);
 			}
 
-			if ((element = jsonObject.get("commands")) != null && !element.isJsonNull()) {
-				Commands commands = APIrestful.getGson().fromJson("{\"commands\":" + element.toString() + "}", Commands.class);
-				nodeInfo.setCommands(commands);
+			if ((element = jsonObject.get("task")) != null && !element.isJsonNull() && !element.getAsJsonObject().entrySet().isEmpty()) {
+				TaskInfo taskInfo = APIrestful.getGson().fromJson("{\"task\":" + element.toString() + "}", TaskInfo.class);
+				TaskRecord taskRecord = taskInfo.getTasksList().get(0);
+				nodeInfo.setTask(taskRecord);
 			}
 
 		}
