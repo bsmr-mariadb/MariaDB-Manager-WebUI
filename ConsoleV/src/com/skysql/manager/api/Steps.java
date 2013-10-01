@@ -19,9 +19,7 @@
 package com.skysql.manager.api;
 
 import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
@@ -32,34 +30,11 @@ import com.google.gson.JsonParseException;
 import com.skysql.manager.ui.ErrorDialog;
 
 public class Steps {
-	private static String INVALID_ICON = "invalid";
 
-	private static final Map<String, String> stepIcons;
-	static {
-		stepIcons = new HashMap<String, String>();
-		stepIcons.put("start", "starting");
-		stepIcons.put("stop", "stopping");
-		stepIcons.put("isolate", "isolating");
-		stepIcons.put("recover", "recovering");
-		stepIcons.put("promote", "promoting");
-		stepIcons.put("synchronize", "synchronizing");
-		stepIcons.put("backup", "backingup");
-		stepIcons.put("restore", "restoring");
-	}
+	//backup, configure, install-agent, install-packages, isolate, probe, promote, recover, register, restart, restore, setup-ssh, start, stop, synchronize;
 
 	private static Steps steps;
 	private static LinkedHashMap<String, String> stepsList;
-
-	public static String getIcon(String step) {
-		String icon = stepIcons.get(step);
-
-		if (icon == null) {
-			System.err.println("Unknown step found in API response: " + step);
-			icon = INVALID_ICON;
-		}
-
-		return icon;
-	}
 
 	public static String getDescription(String step) {
 		GetSteps();

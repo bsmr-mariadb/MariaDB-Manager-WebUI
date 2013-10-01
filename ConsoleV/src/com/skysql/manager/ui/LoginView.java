@@ -44,6 +44,9 @@ import com.vaadin.ui.VerticalLayout;
 public class LoginView extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
+	private static final String NOT_AVAILABLE = "n/a";
+	private static final String GUI_VERSION = "1.0.42 Beta";
+
 	private UpdaterThread updaterThread;
 
 	private TextField userName = new TextField();
@@ -78,7 +81,7 @@ public class LoginView extends VerticalLayout {
 
 	};
 
-	public LoginView(String name, String version) {
+	public LoginView(String name, String apiVersion) {
 
 		setSizeFull();
 		setMargin(true);
@@ -155,12 +158,10 @@ public class LoginView extends VerticalLayout {
 		loginFormLayout.addComponent(login);
 		loginFormLayout.setComponentAlignment(login, Alignment.BOTTOM_CENTER);
 
-		if (version != null) {
-			Label versionLabel = new Label("API Version " + version + "<br/>GUI Version 1.0.39 Beta", ContentMode.HTML);
-			versionLabel.setSizeUndefined();
-			addComponent(versionLabel);
-			setComponentAlignment(versionLabel, Alignment.BOTTOM_LEFT);
-		}
+		Label versionLabel = new Label("API Version " + (apiVersion != null ? apiVersion : NOT_AVAILABLE) + "<br/>GUI Version " + GUI_VERSION, ContentMode.HTML);
+		versionLabel.setSizeUndefined();
+		addComponent(versionLabel);
+		setComponentAlignment(versionLabel, Alignment.BOTTOM_LEFT);
 
 		preload();
 

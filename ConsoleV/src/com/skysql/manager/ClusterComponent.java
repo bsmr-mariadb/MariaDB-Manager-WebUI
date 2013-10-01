@@ -36,6 +36,10 @@ public class ClusterComponent {
 	protected String capacity;
 	protected ComponentButton button;
 	protected MonitorLatest monitorLatest;
+	protected String dbUsername;
+	protected String dbPassword;
+	protected String repUsername;
+	protected String repPassword;
 
 	public String getID() {
 		return ID;
@@ -115,6 +119,38 @@ public class ClusterComponent {
 
 	public void setMonitorLatest(MonitorLatest monitorLatest) {
 		this.monitorLatest = monitorLatest;
+	}
+
+	public String getDBUsername() {
+		return dbUsername;
+	}
+
+	public void setDBUsername(String username) {
+		this.dbUsername = username;
+	}
+
+	public String getDBPassword() {
+		return dbPassword;
+	}
+
+	public void setDBPassword(String password) {
+		this.dbPassword = password;
+	}
+
+	public String getRepUsername() {
+		return repUsername;
+	}
+
+	public void setRepUsername(String username) {
+		this.repUsername = username;
+	}
+
+	public String getRepPassword() {
+		return repPassword;
+	}
+
+	public void setRepPassword(String password) {
+		this.repPassword = password;
 	}
 
 }

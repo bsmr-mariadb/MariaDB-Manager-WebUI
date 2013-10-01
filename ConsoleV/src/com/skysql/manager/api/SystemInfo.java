@@ -192,20 +192,28 @@ class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 		}
 
 		for (int i = 0; i < length; i++) {
+
+			SystemRecord systemRecord = new SystemRecord(SystemInfo.SYSTEM_ROOT);
+
 			JsonObject systemObject = (array != null) ? array.get(i).getAsJsonObject() : json.getAsJsonObject().get("system").getAsJsonObject();
 			JsonElement element;
-			String ID = (element = systemObject.get("systemid")).isJsonNull() ? null : element.getAsString();
-			String type = (element = systemObject.get("systemtype")).isJsonNull() ? null : element.getAsString();
-			String name = (element = systemObject.get("name")).isJsonNull() ? null : element.getAsString();
-			String state = (element = systemObject.get("state")).isJsonNull() ? null : element.getAsString();
-			String startDate = (element = systemObject.get("started")).isJsonNull() ? null : element.getAsString();
-			String lastAccess = (element = systemObject.get("lastaccess")).isJsonNull() ? null : element.getAsString();
-			String lastBackup = (element = systemObject.get("lastbackup")).isJsonNull() ? null : element.getAsString();
+			systemRecord.setID((element = systemObject.get("systemid")).isJsonNull() ? null : element.getAsString());
+			systemRecord.setSystemType((element = systemObject.get("systemtype")).isJsonNull() ? null : element.getAsString());
+			systemRecord.setName((element = systemObject.get("name")).isJsonNull() ? null : element.getAsString());
+			systemRecord.setState((element = systemObject.get("state")).isJsonNull() ? null : element.getAsString());
+			systemRecord.setStartDate((element = systemObject.get("started")).isJsonNull() ? null : element.getAsString());
+			systemRecord.setLastAccess((element = systemObject.get("lastaccess")).isJsonNull() ? null : element.getAsString());
+			systemRecord.setLastBackup((element = systemObject.get("lastbackup")).isJsonNull() ? null : element.getAsString());
+			systemRecord.setDBUsername((element = systemObject.get("dbusername")).isJsonNull() ? null : element.getAsString());
+			systemRecord.setDBPassword((element = systemObject.get("dbpassword")).isJsonNull() ? null : element.getAsString());
+			systemRecord.setRepUsername((element = systemObject.get("repusername")).isJsonNull() ? null : element.getAsString());
+			systemRecord.setRepPassword((element = systemObject.get("reppassword")).isJsonNull() ? null : element.getAsString());
 
 			MonitorLatest monitorLatest = null;
 			if ((element = systemObject.get("monitorlatest")) != null && !element.isJsonNull()) {
 				monitorLatest = APIrestful.getGson().fromJson(element.toString(), MonitorLatest.class);
 			}
+			systemRecord.setMonitorLatest(monitorLatest);
 
 			String[] nodes = null;
 			if ((element = systemObject.get("nodes")) != null && !element.isJsonNull()) {
@@ -217,6 +225,7 @@ class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 					nodes[nodesIndex] = nodesJson.get(nodesIndex).getAsString();
 				}
 			}
+			systemRecord.setNodes(nodes);
 
 			LinkedHashMap<String, String> properties = new LinkedHashMap<String, String>();
 			if ((element = systemObject.get("properties")) != null && !element.isJsonNull()) {
@@ -256,10 +265,9 @@ class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 				}
 
 			}
+			systemRecord.setProperties(properties);
 
-			SystemRecord systemRecord = new SystemRecord(SystemInfo.SYSTEM_ROOT, ID, type, name, state, startDate, lastAccess, nodes, lastBackup, properties,
-					monitorLatest);
-			systemsMap.put(ID, systemRecord);
+			systemsMap.put(systemRecord.getID(), systemRecord);
 		}
 
 		if (array != null) {

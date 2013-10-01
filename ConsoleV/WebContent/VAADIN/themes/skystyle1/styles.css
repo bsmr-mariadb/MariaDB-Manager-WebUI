@@ -115,7 +115,7 @@ hr {
 .deleteSystem {
 	position: absolute;
     top: 5px;
-    left:65px;
+    left:53px;
 }
 
 .editChart {
@@ -267,15 +267,30 @@ hr {
 .v-verticallayout-connected,
 .v-verticallayout-unconnected,
 .v-verticallayout-unprovisioned,
-.v-verticallayout-unmanaged,
+.v-verticallayout-incorrectly-joined,
 .v-verticallayout-provisioned,
 .v-verticallayout-down {
     background: transparent url(img/components/DB-blue.png) no-repeat;
 }
 
-/*{ 
-	background: transparent url(img/components/DB-cornflour.png) no-repeat;
-}*/
+.v-verticallayout-node {
+	 background: transparent url(img/components/DB-green_00.png) no-repeat;
+}
+.v-verticallayout-node-20 {
+	 background: transparent url(img/components/DB-green_20.png) no-repeat;
+}
+.v-verticallayout-node-40 {
+	 background: transparent url(img/components/DB-green_40.png) no-repeat;
+}
+.v-verticallayout-node-60 {
+	 background: transparent url(img/components/DB-green_60.png) no-repeat;
+}
+.v-verticallayout-node-80 {
+	 background: transparent url(img/components/DB-green_80.png) no-repeat;
+}
+.v-verticallayout-node-100 {
+	 background: transparent url(img/components/DB-green_100.png) no-repeat;
+}
 
 .v-verticallayout-open,
 .v-verticallayout-primary,
@@ -283,7 +298,7 @@ hr {
 .v-verticallayout-joined,
 .v-verticallayout-synced,
 .v-verticallayout-donor {
-    background: transparent url(img/components/DB-green_40.png) no-repeat;
+    background: transparent url(img/components/DB-green_100.png) no-repeat;
 }
 
 .v-verticallayout-isolated {
@@ -294,11 +309,16 @@ hr {
 }
 
 .v-verticallayout-invalid {
-    background: transparent url(img/components/DB-questionmark.png) no-repeat;
+    background: transparent url(img/components/DB-question-mark.png) no-repeat;
 }
 
 .v-verticallayout-system {
     background: transparent url(img/components/cluster.png) no-repeat;
+}
+
+.formInfoLayout {
+	position: relative;
+    left: -110px;
 }
 
 .node {

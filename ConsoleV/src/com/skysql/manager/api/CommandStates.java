@@ -39,7 +39,7 @@ import com.skysql.manager.ui.ErrorDialog;
 public class CommandStates {
 
 	public enum States {
-		running, paused, stopped, done, error;
+		running, paused, stopped, done, error, cancelled, missing;
 	}
 
 	private static CommandStates commandStates;

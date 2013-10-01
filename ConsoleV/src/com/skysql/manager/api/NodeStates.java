@@ -46,7 +46,6 @@ public class NodeStates {
 		awsIcons.put("unconnected", "unconnected");
 		awsIcons.put("unprovisioned", "unprovisioned");
 		awsIcons.put("incompatible", "incompatible");
-		awsIcons.put("unmanaged", "unmanaged");
 		awsIcons.put("provisioned", "provisioned");
 		awsIcons.put("master", "master");
 		awsIcons.put("slave", "slave");
@@ -64,7 +63,6 @@ public class NodeStates {
 		galeraIcons.put("unconnected", "unconnected");
 		galeraIcons.put("unprovisioned", "unprovisioned");
 		galeraIcons.put("incompatible", "incompatible");
-		galeraIcons.put("unmanaged", "unmanaged");
 		galeraIcons.put("provisioned", "provisioned");
 		galeraIcons.put("down", "down");
 		galeraIcons.put("open", "open");
@@ -74,6 +72,7 @@ public class NodeStates {
 		galeraIcons.put("synced", "synced");
 		galeraIcons.put("donor", "donor");
 		galeraIcons.put("isolated", "isolated");
+		galeraIcons.put("incorrectly-joined", "incorrectly-joined");
 	}
 
 	public static final Map<String, Map<String, String>> states;

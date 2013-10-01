@@ -40,9 +40,9 @@ import com.vaadin.ui.Window;
 public class ComponentButton extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	public static final float COMPONENT_HEIGHT = 68;
-	public static final float NODE_WIDTH = 48;
-	public static final float SYSTEM_WIDTH = 74;
+	public static final float COMPONENT_HEIGHT = 70;
+	public static final float NODE_WIDTH = 50;
+	public static final float SYSTEM_WIDTH = 69;
 
 	private static final String ICON_MASTER = "master";
 	private static final String ICON_SLAVE = "slave";
@@ -228,7 +228,7 @@ public class ComponentButton extends VerticalLayout {
 			}
 
 			editButton = new Embedded(null, new ThemeResource("img/edit.png"));
-			editButton.addStyleName("editNode");
+			editButton.addStyleName("edit" + componentType);
 			editButton.setDescription("Edit " + componentType);
 			editButton.setData(this);
 			addComponent(editButton);
@@ -241,14 +241,7 @@ public class ComponentButton extends VerticalLayout {
 			});
 
 			deleteButton = new Embedded(null, new ThemeResource("img/delete.png"));
-			switch (componentInfo.getType()) {
-			case system:
-				deleteButton.addStyleName("deleteSystem");
-				break;
-			case node:
-				deleteButton.addStyleName("deleteNode");
-				break;
-			}
+			deleteButton.addStyleName("delete" + componentType);
 			deleteButton.setDescription("Delete " + componentType);
 			deleteButton.setData(this);
 			addComponent(deleteButton);

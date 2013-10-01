@@ -66,7 +66,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 	private DDCssLayout chartsArray;
 	private String chartTime, chartInterval = "1800";
 	private String systemLabelsStrings[] = { "State", "Availability", "Connections", "Traffic", "Last Backup", "Start Date", "Last Access" };
-	private String nodeLabelsStrings[] = { "State", "Availability", "Connections", "Traffic", "Commands Running", "Public IP", "Private IP", "Instance ID", };
+	private String nodeLabelsStrings[] = { "State", "Availability", "Connections", "Traffic", "Command Running", "Public IP", "Private IP", "Instance ID", };
 	private Label systemLabels[], nodeLabels[];
 	private ChartControls chartControls;
 	private ChartsLayout chartsArrayLayout;
@@ -416,7 +416,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 					(value = monitorLatest.get(MonitorNames.availability.toString())) != null ? value + "%" : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.connections.toString())) != null ? value : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.traffic.toString())) != null ? value + " KB" : NOT_AVAILABLE,
-					(taskRecord != null && (value = taskRecord.getCommand()) != null) ? value : NOT_AVAILABLE,
+					(taskRecord != null && taskRecord.getState().equals("running") && (value = taskRecord.getCommand()) != null) ? value : NOT_AVAILABLE,
 					(value = nodeInfo.getPublicIP()) != null ? value : NOT_AVAILABLE, (value = nodeInfo.getPrivateIP()) != null ? value : NOT_AVAILABLE,
 					(value = nodeInfo.getInstanceID()) != null ? value : NOT_AVAILABLE };
 			values = nodeValues;

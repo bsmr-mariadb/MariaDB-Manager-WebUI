@@ -18,45 +18,29 @@
 
 package com.skysql.manager.ui;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.concurrent.ScheduledFuture;
 
-import com.skysql.manager.BackupRecord;
+import com.skysql.manager.Commands;
 import com.skysql.manager.ExecutorFactory;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.TaskRecord;
-import com.skysql.manager.api.BackupStates;
-import com.skysql.manager.api.Backups;
 import com.skysql.manager.api.NodeInfo;
-import com.skysql.manager.api.SystemInfo;
-import com.skysql.manager.api.TaskInfo;
 import com.skysql.manager.api.TaskRun;
 import com.skysql.manager.api.UserObject;
+import com.skysql.manager.ui.components.ParametersLayout;
 import com.skysql.manager.ui.components.ScriptingControlsLayout;
 import com.skysql.manager.ui.components.ScriptingControlsLayout.Controls;
 import com.skysql.manager.ui.components.ScriptingProgressLayout;
-import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.server.ExternalResource;
-import com.vaadin.server.ThemeResource;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Alignment;
-import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
 import com.vaadin.ui.ListSelect;
-import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.VerticalLayout;
 
 public final class RunningTask {
 
 	private static final int SHORT_REFRESH_DELAY = 3;
-	private static final String NOT_AVAILABLE = "n/a";
-	private static final String CMD_BACKUP = "backup";
-	private static final String CMD_RESTORE = "restore";
 	private VerticalLayout containerLayout;
 	private ScriptingControlsLayout scriptingControlsLayout;
 	private ScriptingProgressLayout scriptingProgressLayout;
@@ -67,14 +51,8 @@ public final class RunningTask {
 	private TaskRecord taskRecord;
 	private boolean observerMode;
 	private boolean paramsReady;
-	private GridLayout backupInfoGrid;
-	private Link backupLogLink;
 	private ListSelect commandSelect;
-	private OptionGroup backupLevel;
-	private HorizontalLayout prevBackupsLayout;
-	private HorizontalLayout parameterLayout = new HorizontalLayout();
-	private ListSelect selectPrevBackup;
-	private String firstItem;
+	private HorizontalLayout parametersLayout;
 	private ValueChangeListener listener;
 	private OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
 	private String lastTaskID;
@@ -105,120 +83,25 @@ public final class RunningTask {
 		containerLayout.addComponent(scriptingLayout);
 		containerLayout.setComponentAlignment(scriptingLayout, Alignment.MIDDLE_LEFT);
 
-		if (command.equals(CMD_BACKUP) || command.equals(CMD_RESTORE)) {
-
-			// add PARAMETER layout
-			parameterLayout.setSizeFull();
-			parameterLayout.setSpacing(true);
-			parameterLayout.setMargin(true);
-			scriptingLayout.addComponent(parameterLayout);
-			scriptingLayout.setComponentAlignment(parameterLayout, Alignment.MIDDLE_LEFT);
-
-			// COLUMN 1. PARAMETERS
-			if (command.equalsIgnoreCase(CMD_BACKUP)) {
-				backupLevel = new OptionGroup("Backup Level");
-				backupLevel.setImmediate(true);
-				backupLevel.addItem("Full");
-				backupLevel.addItem("Incremental");
-				parameterLayout.addComponent(backupLevel);
-				parameterLayout.setComponentAlignment(backupLevel, Alignment.MIDDLE_LEFT);
-				backupLevel.addValueChangeListener(new ValueChangeListener() {
-					private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-					public void valueChange(ValueChangeEvent event) {
-						String level = (String) event.getProperty().getValue();
-						selectParameter(level);
-						if (level.equalsIgnoreCase("Incremental")) {
-							parameterLayout.addComponent(prevBackupsLayout);
-							selectPrevBackup.select(firstItem);
-
-						} else {
-							if (parameterLayout.getComponentIndex(prevBackupsLayout) != -1) {
-								parameterLayout.removeComponent(prevBackupsLayout);
-							}
-						}
-					}
-				});
-
-				backupLevel.setValue("Full");
-
-			}
-
-			prevBackupsLayout = new HorizontalLayout();
-
-			selectPrevBackup = new ListSelect("Backups");
-			selectPrevBackup.setImmediate(true);
-			final Backups backups = new Backups(nodeInfo.getParentID(), null);
-			final LinkedHashMap<String, BackupRecord> backupsList = backups.getBackupsForNode(nodeInfo.getID());
-			if (backupsList != null && backupsList.size() > 0) {
-				Collection<BackupRecord> set = backupsList.values();
-				Iterator<BackupRecord> iter = set.iterator();
-				while (iter.hasNext()) {
-					BackupRecord backupRecord = iter.next();
-					String started = backupRecord.getStarted();
-					selectPrevBackup.addItem(started);
-					if (firstItem == null) {
-						firstItem = started;
-					}
-				}
-				selectPrevBackup.setNullSelectionAllowed(false);
-				selectPrevBackup.setRows(8); // Show a few items and a scrollbar if there are more
-				prevBackupsLayout.addComponent(selectPrevBackup);
-
-				final VerticalLayout backupInfoLayout = new VerticalLayout();
-				backupInfoLayout.setMargin(true);
-				prevBackupsLayout.addComponent(backupInfoLayout);
-
-				selectPrevBackup.addValueChangeListener(new ValueChangeListener() {
-					private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-					public void valueChange(ValueChangeEvent event) {
-						String date = (String) event.getProperty().getValue();
-						Collection<BackupRecord> set = backupsList.values();
-						Iterator<BackupRecord> iter = set.iterator();
-						while (iter.hasNext()) {
-							BackupRecord backupRecord = iter.next();
-							String started = backupRecord.getStarted();
-							if (date.equalsIgnoreCase(started)) {
-								displayBackupInfo(backupInfoLayout, backupRecord);
-								if (backupLevel != null) {
-									selectParameter("Incremental " + backupRecord.getID());
-								} else {
-									selectParameter(backupRecord.getID());
-								}
-								break;
-							}
-						}
-
-					}
-				});
-
-				// final DisplayBackupRecord displayRecord = new
-				// DisplayBackupRecord(parameterLayout);
-
-				if (command.equalsIgnoreCase(CMD_BACKUP)) {
-
-				} else if (command.equalsIgnoreCase(CMD_RESTORE)) {
-					parameterLayout.addComponent(prevBackupsLayout);
-					selectPrevBackup.select(firstItem);
-
-				}
-
+		// COLUMN 1. PARAMETERS
+		Commands.Command commandEnum = Commands.Command.valueOf(command);
+		switch (commandEnum) {
+		case backup:
+		case connect:
+		case restore:
+			if (observerMode) {
+				//				parametersLayout = new HorizontalLayout();
+				//				parametersLayout.addComponent(new Label("Parameters: " + taskRecord.getParams()));
+				//				scriptingLayout.addComponent(parametersLayout);
+				//				scriptingLayout.setComponentAlignment(parametersLayout, Alignment.MIDDLE_LEFT);
 			} else {
-				// no previous backups
-				if (command.equalsIgnoreCase(CMD_BACKUP)) {
-					backupLevel.setEnabled(false);
-
-				} else if (command.equalsIgnoreCase(CMD_RESTORE)) {
-
-					Label placeholderLabel = new Label("No Backups are available for Restore");
-					placeholderLabel.addStyleName("instructions");
-					placeholderLabel.setSizeUndefined();
-					containerLayout.replaceComponent(scriptingLayout, placeholderLabel);
-					containerLayout.setComponentAlignment(placeholderLabel, Alignment.MIDDLE_CENTER);
-				}
+				parametersLayout = new ParametersLayout(this, nodeInfo, commandEnum);
+				scriptingLayout.addComponent(parametersLayout);
+				scriptingLayout.setComponentAlignment(parametersLayout, Alignment.MIDDLE_LEFT);
 			}
-
+			break;
+		default:
+			break;
 		}
 
 		// COLUMN 2. CONTROLS
@@ -227,7 +110,7 @@ public final class RunningTask {
 		scriptingLayout.addComponent(scriptingControlsLayout);
 		scriptingLayout.setComponentAlignment(scriptingControlsLayout, Alignment.MIDDLE_LEFT);
 
-		// this needs to be done properly
+		// TODO: this needs to be done properly
 		if (!observerMode) {
 			scriptingControlsLayout.enableControls(true, Controls.run);
 		}
@@ -242,58 +125,19 @@ public final class RunningTask {
 		if (observerMode) {
 			activateTimer();
 		}
+
 	}
 
 	public VerticalLayout getLayout() {
 		return containerLayout;
 	}
 
-	public String getCommand() {
-		return command;
+	public HorizontalLayout getScriptingLayout() {
+		return scriptingLayout;
 	}
 
-	private String backupLabels[] = { "Node", "Level", "State", "Size", "Restored" };
-
-	final public void displayBackupInfo(VerticalLayout layout, BackupRecord record) {
-		String value;
-		String values[] = { (value = record.getID()) != null ? value : NOT_AVAILABLE, (value = record.getLevel()) != null ? value : NOT_AVAILABLE,
-				((value = record.getState()) != null) && (value = BackupStates.getDescriptions().get(value)) != null ? value : "Invalid",
-				(value = record.getSize()) != null ? value : NOT_AVAILABLE, (value = record.getRestored()) != null ? value : NOT_AVAILABLE };
-
-		GridLayout newBackupInfoGrid = new GridLayout(2, backupLabels.length);
-		newBackupInfoGrid.setSpacing(true);
-
-		for (int i = 0; i < backupLabels.length; i++) {
-			newBackupInfoGrid.addComponent(new Label(backupLabels[i]), 0, i);
-			newBackupInfoGrid.addComponent(new Label(values[i]), 1, i);
-		}
-
-		if (backupInfoGrid == null) {
-			layout.addComponent(newBackupInfoGrid);
-			backupInfoGrid = newBackupInfoGrid;
-		} else {
-			layout.replaceComponent(backupInfoGrid, newBackupInfoGrid);
-			backupInfoGrid = newBackupInfoGrid;
-		}
-
-		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
-		LinkedHashMap<String, String> sysProperties = systemInfo.getCurrentSystem().getProperties();
-		String EIP = sysProperties.get(SystemInfo.PROPERTY_EIP);
-		if (EIP != null) {
-			String url = "http://" + EIP + "/consoleAPI/" + record.getLog();
-			Link newBackupLogLink = new Link("Backup Log", new ExternalResource(url));
-			newBackupLogLink.setTargetName("_blank");
-			newBackupLogLink.setDescription("Open backup log in a new window");
-			newBackupLogLink.setIcon(new ThemeResource("img/externalLink.png"));
-			newBackupLogLink.addStyleName("icon-after-caption");
-			if (backupLogLink == null) {
-				layout.addComponent(newBackupLogLink);
-				backupLogLink = newBackupLogLink;
-			} else {
-				layout.replaceComponent(backupLogLink, newBackupLogLink);
-				backupLogLink = newBackupLogLink;
-			}
-		}
+	public String getCommand() {
+		return command;
 	}
 
 	public void selectParameter(String parameter) {
@@ -330,8 +174,9 @@ public final class RunningTask {
 	void start() {
 		// disable further command selection immediately
 		commandSelect.setEnabled(false);
-		parameterLayout.setEnabled(false);
-
+		if (parametersLayout != null) {
+			parametersLayout.setEnabled(false);
+		}
 		scriptingProgressLayout.start();
 
 		UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
@@ -343,7 +188,9 @@ public final class RunningTask {
 		if (taskRun.getTaskRecord() == null) {
 			commandSelect.select(null);
 			commandSelect.setEnabled(true);
-			parameterLayout.setEnabled(true);
+			if (parametersLayout != null) {
+				parametersLayout.setEnabled(true);
+			}
 			scriptingProgressLayout.setResult("Failed to launch: " + taskRun.getError());
 			overviewPanel.refresh();
 			return;
@@ -426,9 +273,9 @@ public final class RunningTask {
 			ManagerUI.log("timer - task:" + nodeInfo.getTask() + " - " + fCount);
 
 			NodeInfo newNodeInfo = new NodeInfo(nodeInfo.getParentID(), nodeInfo.getSystemType(), nodeInfo.getID());
-			//TaskRecord taskRecord = newNodeInfo.getTask();
-			TaskInfo taskInfo = new TaskInfo(lastTaskID, null, null);
-			TaskRecord taskRecord = taskInfo.getTasksList().get(0);
+			TaskRecord taskRecord = newNodeInfo.getTask();
+			//TaskInfo taskInfo = new TaskInfo(lastTaskID, null, null);
+			//TaskRecord taskRecord = taskInfo.getTasksList().get(0);
 			if (taskRecord != null && taskRecord.getID().equals(nodeInfo.getTask().getID())) {
 				scriptingProgressLayout.refresh(taskRecord);
 			} else {

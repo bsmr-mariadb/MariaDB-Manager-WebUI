@@ -44,7 +44,7 @@ public class SystemRecord extends ClusterComponent {
 		return startDate;
 	}
 
-	protected void setStartDate(String startDate) {
+	public void setStartDate(String startDate) {
 		this.startDate = startDate;
 	}
 
@@ -68,7 +68,7 @@ public class SystemRecord extends ClusterComponent {
 		return properties;
 	}
 
-	protected void setProperties(LinkedHashMap<String, String> properties) {
+	public void setProperties(LinkedHashMap<String, String> properties) {
 		this.properties = properties;
 	}
 
@@ -83,22 +83,6 @@ public class SystemRecord extends ClusterComponent {
 	public SystemRecord(String parentID) {
 		this.type = ClusterComponent.CCType.system;
 		this.parentID = parentID;
-	}
-
-	public SystemRecord(String parentID, String ID, String systemType, String name, String state, String startDate, String lastAccess, String[] nodes,
-			String lastBackup, LinkedHashMap<String, String> properties, MonitorLatest monitorLatest) {
-		this.type = ClusterComponent.CCType.system;
-		this.parentID = parentID;
-		this.ID = ID;
-		this.systemType = systemType;
-		this.name = name;
-		this.state = state;
-		this.startDate = startDate;
-		this.lastAccess = lastAccess;
-		this.nodes = nodes;
-		this.lastBackup = lastBackup;
-		this.properties = properties;
-		this.monitorLatest = monitorLatest;
 	}
 
 	public String ToolTip() {

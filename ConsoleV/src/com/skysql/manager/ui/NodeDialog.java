@@ -20,6 +20,8 @@ package com.skysql.manager.ui;
 
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemInfo;
+import com.skysql.manager.api.TaskRun;
+import com.skysql.manager.api.UserObject;
 import com.skysql.manager.ui.components.ComponentButton;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Alignment;
@@ -46,7 +48,7 @@ public class NodeDialog implements Window.CloseListener {
 		this.button = button;
 
 		String windowTitle = (nodeInfo != null) ? "Edit Node: " + nodeInfo.getName() : "Add Node";
-		dialogWindow = new ModalWindow(windowTitle, "350px");
+		dialogWindow = new ModalWindow(windowTitle, (nodeInfo != null) ? "350px" : "400px");
 		dialogWindow.addCloseListener(this);
 		UI.getCurrent().addWindow(dialogWindow);
 
@@ -119,6 +121,16 @@ public class NodeDialog implements Window.CloseListener {
 							overviewPanel.refresh();
 						}
 						windowClose(null);
+
+						if (nodeForm.runConnect) {
+							UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
+							String userID = userObject.getUserID();
+							String looseExecution = userObject.getProperty(UserObject.PROPERTY_COMMAND_EXECUTION);
+							String state = (looseExecution != null && Boolean.valueOf(looseExecution)) ? null : nodeInfo.getState();
+							String params = "rootpassword=" + nodeForm.connectPassword.getValue() + "&sshkey=" + nodeForm.connectKey.getValue();
+							TaskRun taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, "connect", params, null);
+
+						}
 					}
 				}
 

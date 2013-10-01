@@ -18,11 +18,9 @@
 
 package com.skysql.manager.ui.components;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import com.skysql.manager.DateConversion;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.CommandStates;
@@ -124,15 +122,14 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 			setTitle(command);
 		}
 
-		String[] stepsIDs = steps.split(",");
-		primitives = new String[stepsIDs.length];
-		taskImages = new Embedded[stepsIDs.length];
+		String[] stepIDs = steps.split(",");
+		primitives = new String[stepIDs.length];
+		taskImages = new Embedded[stepIDs.length];
 
 		// add steps icons
 		progressIconsLayout.removeAllComponents();
-		for (int index = 0; index < stepsIDs.length; index++) {
-			String stepID = stepsIDs[index];
-			String iconName = Steps.getIcon(stepID);
+		for (int index = 0; index < stepIDs.length; index++) {
+			String stepID = stepIDs[index].trim();
 			String description = Steps.getDescription(stepID);
 
 			VerticalLayout stepLayout = new VerticalLayout();
@@ -145,7 +142,7 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 			image.setImmediate(true);
 			image.setDescription(description);
 			stepLayout.addComponent(image);
-			primitives[index] = iconName;
+			primitives[index] = stepID;
 			taskImages[index] = image;
 
 		}
@@ -157,7 +154,7 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 	public void refresh(TaskRecord taskRecord) {
 		this.taskRecord = taskRecord;
 
-		ManagerUI.log("ScheduledLayout refresh()");
+		ManagerUI.log("ScriptingProgressLayout refresh()");
 		updaterThread = new UpdaterThread(updaterThread);
 		updaterThread.start();
 
@@ -174,21 +171,21 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 		@Override
 		public void run() {
 			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
-				ManagerUI.log("ScheduledLayout - Old thread is alive: " + oldUpdaterThread);
+				ManagerUI.log("ScriptingProgressLayout - Old thread is alive: " + oldUpdaterThread);
 				oldUpdaterThread.flagged = true;
 				oldUpdaterThread.interrupt();
 				try {
-					ManagerUI.log("ScheduledLayout - Before Join");
+					ManagerUI.log("ScriptingProgressLayout - Before Join");
 					oldUpdaterThread.join();
-					ManagerUI.log("ScheduledLayout - After Join");
+					ManagerUI.log("ScriptingProgressLayout - After Join");
 				} catch (InterruptedException iex) {
-					ManagerUI.log("ScheduledLayout - Interrupted Exception");
+					ManagerUI.log("ScriptingProgressLayout - Interrupted Exception");
 					return;
 				}
 
 			}
 
-			ManagerUI.log("ScheduledLayout - UpdaterThread.this: " + this);
+			ManagerUI.log("ScriptingProgressLayout - UpdaterThread.this: " + this);
 			asynchRefresh(this);
 		}
 	}
@@ -202,7 +199,7 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 			public void run() {
 				// Here the UI is locked and can be updated
 
-				ManagerUI.log("ScheduledLayout access run(): ");
+				ManagerUI.log("ScriptingProgressLayout access run(): ");
 
 				String stateString;
 				if ((stateString = taskRecord.getState()) == null) {
@@ -222,40 +219,45 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 					lastProgressIndex++;
 				}
 
-				if (state.equals(CommandStates.States.running) && index != lastIndex) {
-					setResult("Running...");
-					taskImages[index].setSource(new ThemeResource("img/scripting/active.png"));
-					setProgress(taskImages[index].getDescription());
-					lastIndex = index;
-				} else if (state.equals(CommandStates.States.done)) {
-					runningTime = System.currentTimeMillis() - startTime;
-
-					taskImages[lastIndex].setSource(new ThemeResource("img/scripting/past.png/"));
-					String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime), TimeUnit.MILLISECONDS.toSeconds(runningTime)
-							- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
-					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-					Date date = new Date();
+				switch (state) {
+				case running:
+					if (index != lastIndex) {
+						setResult("Running");
+						taskImages[index].setSource(new ThemeResource("img/scripting/active.png"));
+						setProgress(taskImages[index].getDescription());
+						lastIndex = index;
+					}
+					break;
+				case done:
+					taskImages[index].setSource(new ThemeResource("img/scripting/past.png/"));
 					setProgress("Done");
-					setResult("Completed successfully<br/><br/>on " + dateFormat.format(date) + "<br/><br/>in " + time);
-
+					setResult("Completed successfully<br/><br/>on " + DateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>in " + getRunningTime());
 					runningTask.close();
-
-				} else if (state.equals(CommandStates.States.error)) {
+					break;
+				case error:
+				case missing:
 					taskImages[taskImages.length - 1].setSource(new ThemeResource("img/scripting/error.png"));
-					setProgress("Error!");
-					String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime), TimeUnit.MILLISECONDS.toSeconds(runningTime)
-							- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
-					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-					Date date = new Date();
-					// TODO: where do we get the error?
-					setResult("Command failed<br/><br/>on " + dateFormat.format(date) + "<br/><br/>after " + time + "<br/><br/>with error: n/a");
-
+					setProgress("Error");
+					setResult("Command failed<br/><br/>on " + DateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>after " + getRunningTime()
+							+ "<br/><br/>with error: " + taskRecord.getError());
 					runningTask.close();
-
+					break;
+				case cancelled:
+				case stopped:
+					setProgress("Cancelled");
+					setResult("Command cancelled<br/><br/>on " + DateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>after " + getRunningTime());
+					runningTask.close();
+					break;
 				}
-
 			}
 		});
 
+	}
+
+	private String getRunningTime() {
+		runningTime = System.currentTimeMillis() - startTime;
+		String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime), TimeUnit.MILLISECONDS.toSeconds(runningTime)
+				- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
+		return time;
 	}
 }

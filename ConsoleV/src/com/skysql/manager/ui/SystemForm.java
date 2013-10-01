@@ -33,7 +33,10 @@ public class SystemForm extends VerticalLayout {
 
 	final TextField name = new TextField("Name");
 	final NativeSelect systemType = new NativeSelect("Type");
-
+	final TextField dbUsername = new TextField("Database Username");
+	final TextField dbPassword = new TextField("Database Password");
+	final TextField repUsername = new TextField("Replication Username");
+	final TextField repPassword = new TextField("Replication Password");
 	final Form form = new Form();
 	private SystemRecord system;
 
@@ -62,6 +65,28 @@ public class SystemForm extends VerticalLayout {
 		systemType.setNullSelectionAllowed(false);
 		form.addField("systemType", systemType);
 
+		if ((value = system.getDBUsername()) != null) {
+			dbUsername.setValue(value);
+		}
+		form.addField("dbusername", dbUsername);
+
+		dbPassword.setNullSettingAllowed(true);
+		if ((value = system.getDBPassword()) != null) {
+			dbPassword.setValue(value);
+		}
+		form.addField("dbpassword", dbPassword);
+
+		if ((value = system.getRepUsername()) != null) {
+			repUsername.setValue(value);
+		}
+		form.addField("repusername", repUsername);
+
+		repPassword.setNullSettingAllowed(true);
+		if ((value = system.getRepPassword()) != null) {
+			repPassword.setValue(value);
+		}
+		form.addField("reppassword", repPassword);
+
 	}
 
 	public boolean validateSystem() {
@@ -72,6 +97,10 @@ public class SystemForm extends VerticalLayout {
 
 			system.setName(name.getValue());
 			system.setSystemType((String) systemType.getValue());
+			system.setDBUsername(dbUsername.getValue());
+			system.setDBPassword(dbPassword.getValue());
+			system.setRepUsername(repUsername.getValue());
+			system.setRepPassword(repPassword.getValue());
 
 			return true;
 

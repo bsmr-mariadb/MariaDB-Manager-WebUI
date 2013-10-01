@@ -41,4 +41,14 @@ public class DateConversion {
 		}
 	}
 
+	public static String adjust(Date myDate) {
+		if (myDate == null) {
+			return null;
+		} else {
+			SimpleDateFormat sdfOutput = new SimpleDateFormat(format);
+			String adjusted = sdfOutput.format(myDate);
+			return adjusted;
+		}
+	}
+
 }
