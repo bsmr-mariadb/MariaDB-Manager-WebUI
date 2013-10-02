@@ -109,6 +109,7 @@ public class Monitors {
 
 		} catch (JSONException e) {
 			new ErrorDialog(e, "Error encoding API request");
+			throw new RuntimeException("Error encoding API request");
 		}
 
 		WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);

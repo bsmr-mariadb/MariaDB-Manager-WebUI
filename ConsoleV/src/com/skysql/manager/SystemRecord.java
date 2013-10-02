@@ -115,8 +115,10 @@ public class SystemRecord extends ClusterComponent {
 
 		} catch (JSONException e) {
 			new ErrorDialog(e, "Error encoding API request");
+			throw new RuntimeException("Error encoding API request");
 		} catch (UnsupportedEncodingException e) {
 			new ErrorDialog(e, "Error encoding API request");
+			throw new RuntimeException("Error encoding API request");
 		}
 
 		if (success) {

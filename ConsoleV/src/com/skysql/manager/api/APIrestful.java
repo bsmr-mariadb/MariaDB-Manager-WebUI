@@ -282,7 +282,6 @@ public class APIrestful {
 		} catch (MalformedJsonException e) {
 			new ErrorDialog(e, "API did not return JSON for: " + api.errorString());
 			throw new RuntimeException("MalformedJson inputStream");
-
 		} catch (IOException e) {
 			try {
 				errorCode = httpConnection.getResponseCode();

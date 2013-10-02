@@ -27,6 +27,7 @@ import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.TaskRun;
 import com.skysql.manager.api.UserObject;
+import com.skysql.manager.ui.components.ComponentButton;
 import com.skysql.manager.ui.components.ParametersLayout;
 import com.skysql.manager.ui.components.ScriptingControlsLayout;
 import com.skysql.manager.ui.components.ScriptingControlsLayout.Controls;
@@ -55,7 +56,7 @@ public final class RunningTask {
 	private HorizontalLayout parametersLayout;
 	private ValueChangeListener listener;
 	private OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
-	private String lastTaskID;
+	private TaskRun taskRun;
 
 	RunningTask(String command, NodeInfo nodeInfo, ListSelect commandSelect) {
 		this.command = command;
@@ -111,7 +112,9 @@ public final class RunningTask {
 		scriptingLayout.setComponentAlignment(scriptingControlsLayout, Alignment.MIDDLE_LEFT);
 
 		// TODO: this needs to be done properly
-		if (!observerMode) {
+		if (observerMode) {
+			scriptingControlsLayout.enableControls(true, Controls.stop);
+		} else {
 			scriptingControlsLayout.enableControls(true, Controls.run);
 		}
 
@@ -145,8 +148,6 @@ public final class RunningTask {
 
 		if (!paramsReady) {
 			paramsReady = true;
-
-			//scriptingControlsLayout.enableControls(true, Controls.run);
 		}
 	}
 
@@ -184,7 +185,7 @@ public final class RunningTask {
 		String looseExecution = userObject.getProperty(UserObject.PROPERTY_COMMAND_EXECUTION);
 		String state = (looseExecution != null && Boolean.valueOf(looseExecution)) ? null : nodeInfo.getState();
 
-		TaskRun taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, command, params, state);
+		taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, command, params, state);
 		if (taskRun.getTaskRecord() == null) {
 			commandSelect.select(null);
 			commandSelect.setEnabled(true);
@@ -205,7 +206,8 @@ public final class RunningTask {
 
 		nodeInfo.setTask(taskRun.getTaskRecord());
 		taskRecord = taskRun.getTaskRecord();
-		lastTaskID = taskRun.getTaskRecord().getID();
+
+		scriptingControlsLayout.enableControls(true, Controls.stop);
 
 		activateTimer();
 
@@ -215,6 +217,10 @@ public final class RunningTask {
 	}
 
 	void stop() {
+		TaskRun.delete(taskRecord.getID());
+		Runnable runTimerTask = new RunTimerTask();
+		runTimerTask.run();
+		close();
 	}
 
 	void pause() {
@@ -235,6 +241,8 @@ public final class RunningTask {
 		command = null;
 		commandSelect.select(null);
 		commandSelect.setEnabled(true);
+
+		scriptingControlsLayout.enableControls(false, Controls.stop);
 
 		if (listener != null) {
 			listener.valueChange(null);
@@ -274,8 +282,6 @@ public final class RunningTask {
 
 			NodeInfo newNodeInfo = new NodeInfo(nodeInfo.getParentID(), nodeInfo.getSystemType(), nodeInfo.getID());
 			TaskRecord taskRecord = newNodeInfo.getTask();
-			//TaskInfo taskInfo = new TaskInfo(lastTaskID, null, null);
-			//TaskRecord taskRecord = taskInfo.getTasksList().get(0);
 			if (taskRecord != null && taskRecord.getID().equals(nodeInfo.getTask().getID())) {
 				scriptingProgressLayout.refresh(taskRecord);
 			} else {
@@ -283,7 +289,9 @@ public final class RunningTask {
 				close();
 			}
 
-			overviewPanel.updateSelectedButton(newNodeInfo.getState(), taskRecord);
+			// ComponentButton button = nodeInfo.getButton();
+			ComponentButton button = overviewPanel.getNodeButton(nodeInfo.getID());
+			overviewPanel.updateButton(button, newNodeInfo.getState(), taskRecord, newNodeInfo.getCapacity());
 
 		}
 	}

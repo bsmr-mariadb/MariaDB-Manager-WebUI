@@ -164,9 +164,9 @@ public class OverviewPanel extends Panel {
 
 	}
 
-	public void updateSelectedButton(String state, TaskRecord taskRecord) {
-		selectedButton.setIcon("node", state, null);
-		selectedButton.setCommandLabel(taskRecord);
+	public void updateButton(ComponentButton button, String state, TaskRecord taskRecord, String capacity) {
+		button.setIcon("node", state, capacity);
+		button.setCommandLabel(taskRecord);
 	}
 
 	public void setEnabled(boolean enabled) {
@@ -176,6 +176,10 @@ public class OverviewPanel extends Panel {
 
 	public ArrayList<NodeInfo> getNodes() {
 		return nodesLayout.getNodes();
+	}
+
+	public ComponentButton getNodeButton(String nodeID) {
+		return nodesLayout.getButton(nodeID);
 	}
 
 	public void clickComponentButton(final int buttonIndex) {

@@ -35,13 +35,13 @@ hr {
 
 .commandOverlay {
 	background: #e5eaf1;
-	padding: 3px;
+	padding-left: 5px;
+	padding-right: 5px;
 	border-width: 2px;
 	border-style: solid;
 	border-color: black;
 	position: absolute;
-   	left: -2px;
- 
+   	left: -5px;
 }
 
 .v-nativebutton-backButton {
@@ -92,6 +92,12 @@ hr {
 .panelHeaderLayout-editable {
 	font-size: 15px;
 	background: #ffdb58;
+}
+
+.componentInfo {
+	position: relative;
+    top: 5px;
+    left: -6px;
 }
 
 .editNode {
@@ -266,45 +272,51 @@ hr {
 .v-verticallayout-created,
 .v-verticallayout-connected,
 .v-verticallayout-unconnected,
-.v-verticallayout-unprovisioned,
-.v-verticallayout-incorrectly-joined,
-.v-verticallayout-provisioned,
-.v-verticallayout-down {
+.v-verticallayout-unprovisioned {
     background: transparent url(img/components/DB-blue.png) no-repeat;
 }
 
-.v-verticallayout-node {
-	 background: transparent url(img/components/DB-green_00.png) no-repeat;
-}
-.v-verticallayout-node-20 {
-	 background: transparent url(img/components/DB-green_20.png) no-repeat;
-}
-.v-verticallayout-node-40 {
-	 background: transparent url(img/components/DB-green_40.png) no-repeat;
-}
-.v-verticallayout-node-60 {
-	 background: transparent url(img/components/DB-green_60.png) no-repeat;
-}
-.v-verticallayout-node-80 {
-	 background: transparent url(img/components/DB-green_80.png) no-repeat;
-}
-.v-verticallayout-node-100 {
-	 background: transparent url(img/components/DB-green_100.png) no-repeat;
-}
-
-.v-verticallayout-open,
-.v-verticallayout-primary,
-.v-verticallayout-joiner,
 .v-verticallayout-joined,
 .v-verticallayout-synced,
 .v-verticallayout-donor {
-    background: transparent url(img/components/DB-green_100.png) no-repeat;
+	 background: transparent url(img/components/DB-green_00.png) no-repeat;
+}
+.v-verticallayout-joined-20,
+.v-verticallayout-synced-20,
+.v-verticallayout-donor-20 {
+	 background: transparent url(img/components/DB-green_20.png) no-repeat;
+}
+.v-verticallayout-joined-40,
+.v-verticallayout-synced-40,
+.v-verticallayout-donor-40 {
+	 background: transparent url(img/components/DB-green_40.png) no-repeat;
+}
+.v-verticallayout-joined-60,
+.v-verticallayout-synced-60,
+.v-verticallayout-donor-60 {
+	 background: transparent url(img/components/DB-green_60.png) no-repeat;
+}
+.v-verticallayout-joined-80,
+.v-verticallayout-synced-80,
+.v-verticallayout-donor-80 {
+	 background: transparent url(img/components/DB-green_80.png) no-repeat;
+}
+.v-verticallayout-joined-100,
+.v-verticallayout-synced-100,
+.v-verticallayout-donor-100 {
+	 background: transparent url(img/components/DB-green_100.png) no-repeat;
 }
 
-.v-verticallayout-isolated {
+.v-verticallayout-provisioned,
+.v-verticallayout-isolated,
+.v-verticallayout-open,
+.v-verticallayout-primary,
+.v-verticallayout-joiner {
     background: transparent url(img/components/DB-mustard.png) no-repeat;
 }
-.v-verticallayout-incompatible {
+.v-verticallayout-incompatible,
+.v-verticallayout-down,
+.v-verticallayout-incorrectly-joined {
     background: transparent url(img/components/DB-red.png) no-repeat;
 }
 

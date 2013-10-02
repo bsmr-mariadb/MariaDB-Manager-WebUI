@@ -86,21 +86,21 @@ public class BackupSetsLayout extends HorizontalLayout {
 		@Override
 		public void run() {
 			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
-				ManagerUI.log("BackupsLayout - Old thread is alive: " + oldUpdaterThread);
+				ManagerUI.log(this.getClass().getName() + " - Old thread is alive: " + oldUpdaterThread);
 				oldUpdaterThread.flagged = true;
 				oldUpdaterThread.interrupt();
 				try {
-					ManagerUI.log("BackupsLayout - Before Join");
+					ManagerUI.log(this.getClass().getName() + " - Before Join");
 					oldUpdaterThread.join();
-					ManagerUI.log("BackupsLayout - After Join");
+					ManagerUI.log(this.getClass().getName() + " - After Join");
 				} catch (InterruptedException iex) {
-					ManagerUI.log("BackupsLayout - Interrupted Exception");
+					ManagerUI.log(this.getClass().getName() + " - Interrupted Exception");
 					return;
 				}
 
 			}
 
-			ManagerUI.log("BackupsLayout - UpdaterThread.this: " + this);
+			ManagerUI.log(this.getClass().getName() + " - UpdaterThread.this: " + this);
 			asynchRefresh(this);
 		}
 	}
@@ -130,7 +130,7 @@ public class BackupSetsLayout extends HorizontalLayout {
 			public void run() {
 				// Here the UI is locked and can be updated
 
-				ManagerUI.log("PanelBackup access run(): ");
+				ManagerUI.log(this.getClass().getName() + " access run(): ");
 
 				if (backupsList != null) {
 					int size = backupsList.size();

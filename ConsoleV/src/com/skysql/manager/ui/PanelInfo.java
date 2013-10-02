@@ -65,8 +65,10 @@ public class PanelInfo extends HorizontalSplitPanel {
 	private VerticalLayout infoLayout, chartsLayout;
 	private DDCssLayout chartsArray;
 	private String chartTime, chartInterval = "1800";
-	private String systemLabelsStrings[] = { "State", "Availability", "Connections", "Traffic", "Last Backup", "Start Date", "Last Access" };
-	private String nodeLabelsStrings[] = { "State", "Availability", "Connections", "Traffic", "Command Running", "Public IP", "Private IP", "Instance ID", };
+	private String systemLabelsStrings[] = { "State", "System Type", "Availability", "Capacity", "Connections", "Traffic", "Last Backup", "Start Date",
+			"Last Access" };
+	private String nodeLabelsStrings[] = { "State", "Command Running", "Availability", "Capacity", "Connections", "Traffic", "Hostname", "Public IP",
+			"Private IP", "Instance ID" };
 	private Label systemLabels[], nodeLabels[];
 	private ChartControls chartControls;
 	private ChartsLayout chartsArrayLayout;
@@ -398,7 +400,9 @@ public class PanelInfo extends HorizontalSplitPanel {
 			currentLabels = systemLabels;
 			monitorLatest = systemRecord.getMonitorLatest().getData();
 			String systemValues[] = { (value = systemRecord.getState()) != null ? value : NOT_AVAILABLE,
+					(value = systemRecord.getSystemType()) != null ? value : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.availability.toString())) != null ? value + "%" : NOT_AVAILABLE,
+					(value = monitorLatest.get(MonitorNames.capacity.toString())) != null ? value + "%" : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.connections.toString())) != null ? value : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.traffic.toString())) != null ? value + " KB" : NOT_AVAILABLE,
 					(value = systemRecord.getLastBackup()) != null ? DateConversion.adjust(value) : NOT_AVAILABLE,
@@ -412,13 +416,15 @@ public class PanelInfo extends HorizontalSplitPanel {
 			currentLabels = nodeLabels;
 			monitorLatest = nodeInfo.getMonitorLatest().getData();
 			TaskRecord taskRecord = nodeInfo.getTask();
+			//  "State", "Command Running", "Availability", "Capacity", "Connections", "Traffic", "Hostname", "Public IP", "Private IP", "Instance ID"
 			String nodeValues[] = { (value = nodeInfo.getState()) != null ? value : NOT_AVAILABLE,
+					(taskRecord != null && taskRecord.getState().equals("running") && (value = taskRecord.getCommand()) != null) ? value : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.availability.toString())) != null ? value + "%" : NOT_AVAILABLE,
+					(value = monitorLatest.get(MonitorNames.capacity.toString())) != null ? value + "%" : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.connections.toString())) != null ? value : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.traffic.toString())) != null ? value + " KB" : NOT_AVAILABLE,
-					(taskRecord != null && taskRecord.getState().equals("running") && (value = taskRecord.getCommand()) != null) ? value : NOT_AVAILABLE,
-					(value = nodeInfo.getPublicIP()) != null ? value : NOT_AVAILABLE, (value = nodeInfo.getPrivateIP()) != null ? value : NOT_AVAILABLE,
-					(value = nodeInfo.getInstanceID()) != null ? value : NOT_AVAILABLE };
+					(value = nodeInfo.getHostname()) != null ? value : NOT_AVAILABLE, (value = nodeInfo.getPublicIP()) != null ? value : NOT_AVAILABLE,
+					(value = nodeInfo.getPrivateIP()) != null ? value : NOT_AVAILABLE, (value = nodeInfo.getInstanceID()) != null ? value : NOT_AVAILABLE };
 			values = nodeValues;
 			break;
 

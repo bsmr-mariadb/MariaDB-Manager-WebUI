@@ -65,6 +65,7 @@ public class TaskRun {
 
 		} catch (UnsupportedEncodingException e) {
 			new ErrorDialog(e, "Error encoding API request");
+			throw new RuntimeException("Error encoding API request");
 		}
 
 		if (success) {
@@ -85,4 +86,17 @@ public class TaskRun {
 			error = api.getErrors();
 		}
 	}
+
+	public static boolean delete(String ID) {
+
+		APIrestful api = new APIrestful();
+		if (api.delete("task/" + ID)) {
+			WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
+			if (writeResponse != null && writeResponse.getDeleteCount() > 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 }

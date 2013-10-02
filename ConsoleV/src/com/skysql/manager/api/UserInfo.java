@@ -106,6 +106,7 @@ public class UserInfo {
 			success = api.put("user/" + userID, jsonParam.toString());
 		} catch (JSONException e) {
 			new ErrorDialog(e, "Error encoding API request");
+			throw new RuntimeException("Error encoding API request");
 		}
 
 		// TODO: check this code!  Shouldn't it be like Monitors? 

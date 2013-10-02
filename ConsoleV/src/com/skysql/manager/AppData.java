@@ -85,6 +85,7 @@ public class AppData {
 
 		} catch (Exception e) {
 			new ErrorDialog(e, "Error setting up application");
+			throw new RuntimeException("Error setting up application");
 		}
 
 	}

@@ -104,6 +104,7 @@ public class SystemInfo {
 			}
 		} catch (JSONException e) {
 			new ErrorDialog(e, "Error encoding API request");
+			throw new RuntimeException("Error encoding API request");
 		}
 
 		return false;

@@ -18,11 +18,13 @@
 
 package com.skysql.manager.ui.components;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.CommandStates;
-import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.NodeStates;
 import com.skysql.manager.ui.ComponentDialog;
 import com.vaadin.event.MouseEvents;
@@ -41,11 +43,9 @@ public class ComponentButton extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	public static final float COMPONENT_HEIGHT = 70;
-	public static final float NODE_WIDTH = 50;
-	public static final float SYSTEM_WIDTH = 69;
-
-	private static final String ICON_MASTER = "master";
-	private static final String ICON_SLAVE = "slave";
+	private static final float NODE_WIDTH = 50;
+	private static final float SYSTEM_WIDTH = 69;
+	private static final List<String> capacityStates = Arrays.asList("master", "slave", "joined", "synced", "donor");
 
 	private boolean isSelected = false, isEditable = false;
 	private Embedded editButton, deleteButton;
@@ -53,6 +53,7 @@ public class ComponentButton extends VerticalLayout {
 	private Label nameLabel, commandLabel;
 	private ClusterComponent componentInfo;
 	private ComponentButton thisButton;
+	private Embedded info;
 
 	public ComponentButton(ClusterComponent componentInfo) {
 		thisButton = this;
@@ -63,12 +64,12 @@ public class ComponentButton extends VerticalLayout {
 		componentInfo.setButton(this);
 		setData(componentInfo);
 
-		setHeight(COMPONENT_HEIGHT + 8, Unit.PIXELS);
+		setHeight(COMPONENT_HEIGHT + 4, Unit.PIXELS);
 		float componentWidth = (componentInfo.getType() == ClusterComponent.CCType.system) ? SYSTEM_WIDTH : NODE_WIDTH;
 		setWidth(componentWidth + 8, Unit.PIXELS);
 
 		imageLayout = new VerticalLayout();
-		imageLayout.setHeight(COMPONENT_HEIGHT + 8, Unit.PIXELS);
+		imageLayout.setHeight(COMPONENT_HEIGHT + 4, Unit.PIXELS);
 		imageLayout.setWidth(componentWidth, Unit.PIXELS);
 		//imageLayout.setMargin(new MarginInfo(true, true, false, true));
 		imageLayout.setImmediate(true);
@@ -92,17 +93,27 @@ public class ComponentButton extends VerticalLayout {
 			//imageLayout.addStyleName(componentInfo.getType().toString());
 
 			if (componentInfo.getType() == ClusterComponent.CCType.node) {
-				NodeInfo nodeInfo = (NodeInfo) componentInfo;
-				TaskRecord taskRecord = nodeInfo.getTask();
 				commandLabel = new Label();
 				commandLabel.setSizeUndefined();
 				imageLayout.addComponent(commandLabel);
 				imageLayout.setComponentAlignment(commandLabel, Alignment.TOP_CENTER);
-				imageLayout.setExpandRatio(commandLabel, 1.0f);
-				//setCommandLabel(taskRecord);
+				//imageLayout.setExpandRatio(commandLabel, 1.0f);
+				//				NodeInfo nodeInfo = (NodeInfo) componentInfo;
+				//				TaskRecord taskRecord = nodeInfo.getTask();
+				//				setCommandLabel(taskRecord);
 			}
 
+			Label padding = new Label("");
+			imageLayout.addComponent(padding);
+			imageLayout.setComponentAlignment(padding, Alignment.MIDDLE_CENTER);
+
+			info = new Embedded(null, new ThemeResource("img/info.png"));
+			info.addStyleName("componentInfo");
+			imageLayout.addComponent(info);
+			imageLayout.setComponentAlignment(info, Alignment.MIDDLE_LEFT);
+
 			nameLabel = new Label(componentInfo.getName());
+			nameLabel.setStyleName("componentName");
 			nameLabel.setSizeUndefined();
 			imageLayout.addComponent(nameLabel);
 			imageLayout.setComponentAlignment(nameLabel, Alignment.BOTTOM_CENTER);
@@ -114,26 +125,24 @@ public class ComponentButton extends VerticalLayout {
 
 	}
 
-	//	public String getName() {
-	//		return nameLabel.getValue();
-	//	}
-
 	public void setName(String name) {
 		nameLabel.setValue(name);
 	}
-
-	//	public String getCommand() {
-	//		return commandLabel.getValue();
-	//	}
 
 	public void setCommandLabel(TaskRecord taskRecord) {
 		if (taskRecord != null) {
 			switch (CommandStates.States.valueOf(taskRecord.getState())) {
 			case running:
-			case paused:
 				setCommand(taskRecord.getCommand());
 				break;
+			case paused:
+				setCommand("paused: " + taskRecord.getCommand());
+				break;
 			case done:
+				setCommand(null);
+				break;
+			case cancelled:
+				//setError("cancelled");
 				setCommand(null);
 				break;
 			case error:
@@ -160,7 +169,7 @@ public class ComponentButton extends VerticalLayout {
 	}
 
 	public void setDescription(String description) {
-		imageLayout.setDescription(description);
+		info.setDescription(description);
 	}
 
 	public void setSelected(boolean isSelected) {
@@ -178,19 +187,19 @@ public class ComponentButton extends VerticalLayout {
 		return isSelected;
 	}
 
-	public void setIcon(String type, String status, String capacity) {
+	public void setIcon(String type, String state, String capacity) {
 		if (type.equals("node")) {
-			String icon = NodeStates.getNodeIcon(componentInfo.getSystemType(), status);
-			if (capacity != null && (icon.equals(ICON_MASTER) || icon.equals(ICON_SLAVE))) {
+			String icon = NodeStates.getNodeIcon(componentInfo.getSystemType(), state);
+			if (capacity != null && capacityStates.contains(state)) {
 
 				double capacity_num = Double.parseDouble(capacity);
-				if (capacity_num > 0 && capacity_num < 20)
+				if (capacity_num > 0 && capacity_num <= 20)
 					icon += "-20";
-				else if (capacity_num < 40)
+				else if (capacity_num <= 40)
 					icon += "-40";
-				else if (capacity_num < 60)
+				else if (capacity_num <= 60)
 					icon += "-60";
-				else if (capacity_num < 80)
+				else if (capacity_num <= 80)
 					icon += "-80";
 				else if (capacity_num <= 100)
 					icon += "-100";
@@ -200,13 +209,6 @@ public class ComponentButton extends VerticalLayout {
 			imageLayout.addStyleName(type);
 			setSelected(isSelected);
 		}
-
-	}
-
-	public void displayCommand(String command) {
-		//		if (isEditable) {
-		//			return;
-		//		}
 
 	}
 

@@ -88,21 +88,21 @@ public class BackupScheduledLayout extends HorizontalLayout {
 		@Override
 		public void run() {
 			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
-				ManagerUI.log("ScheduledLayout - Old thread is alive: " + oldUpdaterThread);
+				ManagerUI.log(this.getClass().getName() + " - Old thread is alive: " + oldUpdaterThread);
 				oldUpdaterThread.flagged = true;
 				oldUpdaterThread.interrupt();
 				try {
-					ManagerUI.log("ScheduledLayout - Before Join");
+					ManagerUI.log(this.getClass().getName() + " - Before Join");
 					oldUpdaterThread.join();
-					ManagerUI.log("ScheduledLayout - After Join");
+					ManagerUI.log(this.getClass().getName() + " - After Join");
 				} catch (InterruptedException iex) {
-					ManagerUI.log("ScheduledLayout - Interrupted Exception");
+					ManagerUI.log(this.getClass().getName() + " - Interrupted Exception");
 					return;
 				}
 
 			}
 
-			ManagerUI.log("ScheduledLayout - UpdaterThread.this: " + this);
+			ManagerUI.log(this.getClass().getName() + " - UpdaterThread.this: " + this);
 			asynchRefresh(this);
 		}
 	}
@@ -127,7 +127,7 @@ public class BackupScheduledLayout extends HorizontalLayout {
 			public void run() {
 				// Here the UI is locked and can be updated
 
-				ManagerUI.log("ScheduledLayout access run(): ");
+				ManagerUI.log(this.getClass().getName() + " access run(): ");
 
 				if (scheduledList != null) {
 					int size = scheduledList.size();

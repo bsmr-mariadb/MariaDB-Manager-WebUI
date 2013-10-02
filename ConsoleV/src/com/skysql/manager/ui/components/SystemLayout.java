@@ -43,6 +43,7 @@ public class SystemLayout extends VerticalLayout {
 
 	private boolean isEditable;
 	private final HorizontalLayout systemSlot;
+	private final NativeButton backButton;
 	private ComponentButton systemButton;
 	private String systemID;
 
@@ -78,7 +79,7 @@ public class SystemLayout extends VerticalLayout {
 		systemHeader.setHeight("23px");
 		addComponent(systemHeader);
 
-		final NativeButton backButton = new NativeButton();
+		backButton = new NativeButton();
 		backButton.setStyleName("backButton");
 		backButton.setDescription("Back to Systems");
 		systemHeader.addComponent(backButton);
@@ -121,6 +122,8 @@ public class SystemLayout extends VerticalLayout {
 	public void setEditable(boolean editable) {
 		isEditable = editable;
 
+		backButton.setEnabled(!editable);
+
 		if (systemButton != null) {
 			systemButton.setEditable(editable);
 		}
@@ -153,7 +156,7 @@ public class SystemLayout extends VerticalLayout {
 		}
 		try {
 
-			if (systemRecord == null) {
+			if (systemRecord == null || systemRecord.getID() == null || systemRecord.getID().equals(SystemInfo.SYSTEM_ROOT)) {
 				setVisible(false);
 				systemID = null;
 				return;

@@ -104,7 +104,7 @@ class CommandStatesDeserializer implements JsonDeserializer<CommandStates> {
 					}
 				} catch (IllegalArgumentException e) {
 					new ErrorDialog(e, "Unknown Command State (" + state + ") found in API response");
-					//throw new RuntimeException("Unknown Command State (" + state + ") found in API response");
+					throw new RuntimeException("Unknown Command State (" + state + ") found in API response");
 				}
 			}
 			commandStates.setDescriptions(descriptions);

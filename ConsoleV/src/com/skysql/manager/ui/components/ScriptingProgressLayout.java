@@ -171,35 +171,35 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 		@Override
 		public void run() {
 			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
-				ManagerUI.log("ScriptingProgressLayout - Old thread is alive: " + oldUpdaterThread);
+				ManagerUI.log(this.getClass().getName() + " - Old thread is alive: " + oldUpdaterThread);
 				oldUpdaterThread.flagged = true;
 				oldUpdaterThread.interrupt();
 				try {
-					ManagerUI.log("ScriptingProgressLayout - Before Join");
+					ManagerUI.log(this.getClass().getName() + " - Before Join");
 					oldUpdaterThread.join();
-					ManagerUI.log("ScriptingProgressLayout - After Join");
+					ManagerUI.log(this.getClass().getName() + " - After Join");
 				} catch (InterruptedException iex) {
-					ManagerUI.log("ScriptingProgressLayout - Interrupted Exception");
+					ManagerUI.log(this.getClass().getName() + " - Interrupted Exception");
 					return;
 				}
 
 			}
 
-			ManagerUI.log("ScriptingProgressLayout - UpdaterThread.this: " + this);
+			ManagerUI.log(this.getClass().getName() + " - " + this);
 			asynchRefresh(this);
 		}
 	}
 
 	private void asynchRefresh(final UpdaterThread updaterThread) {
 
-		ManagerUI managerUI = getSession().getAttribute(ManagerUI.class);
+		ManagerUI managerUI = VaadinSession.getCurrent().getAttribute(ManagerUI.class);
 
 		managerUI.access(new Runnable() {
 			@Override
 			public void run() {
 				// Here the UI is locked and can be updated
 
-				ManagerUI.log("ScriptingProgressLayout access run(): ");
+				ManagerUI.log(this.getClass().getName() + " access run(): ");
 
 				String stateString;
 				if ((stateString = taskRecord.getState()) == null) {
@@ -219,6 +219,7 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 					lastProgressIndex++;
 				}
 
+				String result = CommandStates.getDescriptions().get(state.name());
 				switch (state) {
 				case running:
 					if (index != lastIndex) {
@@ -230,25 +231,25 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 					break;
 				case done:
 					taskImages[index].setSource(new ThemeResource("img/scripting/past.png/"));
-					setProgress("Done");
-					setResult("Completed successfully<br/><br/>on " + DateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>in " + getRunningTime());
+					result += "<br/><br/>on " + DateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>in " + getRunningTime();
 					runningTask.close();
 					break;
 				case error:
 				case missing:
 					taskImages[taskImages.length - 1].setSource(new ThemeResource("img/scripting/error.png"));
-					setProgress("Error");
-					setResult("Command failed<br/><br/>on " + DateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>after " + getRunningTime()
-							+ "<br/><br/>with error: " + taskRecord.getError());
+					result += "<br/><br/>on " + DateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>after " + getRunningTime() + "<br/><br/>with error: "
+							+ taskRecord.getError();
 					runningTask.close();
 					break;
 				case cancelled:
 				case stopped:
-					setProgress("Cancelled");
-					setResult("Command cancelled<br/><br/>on " + DateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>after " + getRunningTime());
+					result += "<br/><br/>on " + DateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>after " + getRunningTime();
 					runningTask.close();
 					break;
+				default:
+					break;
 				}
+				setResult(result);
 			}
 		});
 

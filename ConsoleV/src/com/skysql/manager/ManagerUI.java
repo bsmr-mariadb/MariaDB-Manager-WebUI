@@ -99,7 +99,7 @@ public class ManagerUI extends UI {
 
 		} catch (RuntimeException e) {
 			System.err.println("RunTime error: " + e.getLocalizedMessage());
-
+			close();
 		}
 
 	}
@@ -244,7 +244,7 @@ public class ManagerUI extends UI {
 			} catch (Exception e) {
 				new ErrorDialog(e, null);
 			} finally {
-
+				close();
 			}
 
 		}

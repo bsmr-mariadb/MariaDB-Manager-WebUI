@@ -179,28 +179,28 @@ public class ChartsLayout extends DDCssLayout {
 		@Override
 		public void run() {
 			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
-				ManagerUI.log("ChartsLayout - Old thread is alive: " + oldUpdaterThread);
+				ManagerUI.log(this.getClass().getName() + " - Old thread is alive: " + oldUpdaterThread);
 				oldUpdaterThread.flagged = true;
 				oldUpdaterThread.interrupt();
 				try {
-					ManagerUI.log("ChartsLayout - Before Join");
+					ManagerUI.log(this.getClass().getName() + " - Before Join");
 					oldUpdaterThread.join();
-					ManagerUI.log("ChartsLayout - After Join");
+					ManagerUI.log(this.getClass().getName() + " - After Join");
 				} catch (InterruptedException iex) {
-					ManagerUI.log("ChartsLayout - Interrupted Exception");
+					ManagerUI.log(this.getClass().getName() + " - Interrupted Exception");
 					return;
 				}
 
 			}
 
-			ManagerUI.log("ChartsLayout - UpdaterThread.this: " + this);
+			ManagerUI.log(this.getClass().getName() + " - UpdaterThread.this: " + this);
 			asynchRefresh(this);
 		}
 	}
 
 	private void asynchRefresh(UpdaterThread updaterThread) {
 
-		ManagerUI.log("ChartsLayout - asynchRefresh updaterThread: " + updaterThread);
+		ManagerUI.log(this.getClass().getName() + " asynchRefresh updaterThread: " + updaterThread);
 
 		String systemID, nodeID;
 
@@ -241,7 +241,7 @@ public class ChartsLayout extends DDCssLayout {
 				for (String monitorID : userChart.getMonitorIDs()) {
 
 					if (updaterThread.flagged) {
-						ManagerUI.log("ChartsLayout - flagged is set before API call");
+						ManagerUI.log(this.getClass().getName() + " - flagged is set before API call");
 						return;
 					}
 

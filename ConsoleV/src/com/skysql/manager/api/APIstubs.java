@@ -25,6 +25,7 @@ import com.google.gson.GsonBuilder;
 import com.skysql.manager.AppData.Debug;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.ui.DebugPanel;
+import com.skysql.manager.ui.ErrorDialog;
 import com.vaadin.server.VaadinSession;
 
 public class APIstubs extends APIrestful {
@@ -123,7 +124,8 @@ public class APIstubs extends APIrestful {
 			return true;
 
 		} catch (Exception e) {
-			return false;
+			new ErrorDialog(e, "API stubs");
+			throw new RuntimeException("Error in API stubs");
 		}
 	}
 }

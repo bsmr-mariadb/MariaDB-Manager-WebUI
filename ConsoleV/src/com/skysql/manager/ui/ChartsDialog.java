@@ -115,7 +115,6 @@ public class ChartsDialog {
 
 				} catch (Exception e) {
 					e.printStackTrace();
-					return;
 				}
 
 				dialogWindow.close();

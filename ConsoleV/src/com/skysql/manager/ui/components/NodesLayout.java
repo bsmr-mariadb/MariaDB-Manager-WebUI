@@ -24,7 +24,9 @@ import java.util.Arrays;
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.ClusterComponent.CCType;
 import com.skysql.manager.ManagerUI;
+import com.skysql.manager.MonitorLatest;
 import com.skysql.manager.SystemRecord;
+import com.skysql.manager.api.Monitors.MonitorNames;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.ui.ComponentDialog;
@@ -97,6 +99,17 @@ public class NodesLayout extends HorizontalLayout {
 		} else {
 			return null;
 		}
+	}
+
+	public ComponentButton getButton(String id) {
+		for (ComponentButton button : buttons) {
+			ClusterComponent componentInfo = (ClusterComponent) button.getData();
+			if (componentInfo.getID().equals(id)) {
+				return button;
+			}
+		}
+
+		return null;
 	}
 
 	public ArrayList<NodeInfo> getNodes() {
@@ -284,21 +297,14 @@ public class NodesLayout extends HorizontalLayout {
 			case node:
 				NodeInfo nodeInfo = (NodeInfo) currentComponent;
 				newComponent = new NodeInfo(nodeInfo.getParentID(), nodeInfo.getSystemType(), nodeInfo.getID());
+				MonitorLatest monitorLatest = newComponent.getMonitorLatest();
+				String value = monitorLatest.getData().get(MonitorNames.capacity.name());
+				newComponent.setCapacity(value);
 				break;
 
 			default:
 				continue;
 			}
-
-			// fetch current capacity from monitor
-			/***  disabled until we figure out availability of MONITOR_CAPACITY
-			MonitorRecord capacityMonitor = Monitors.getMonitor(Monitors.MONITOR_CAPACITY);
-			if (capacityMonitor != null) {
-				MonitorDataLatest monitorData = new MonitorDataLatest(capacityMonitor, newInfo.getSystemID(), newInfo.getID());
-				Number dataPoint = monitorData.getLatestValue();
-				newInfo.setCapacity((dataPoint != null) ? String.valueOf(dataPoint) : null);
-			}
-			***/
 
 			if (updaterThread.flagged) {
 				ManagerUI.log("NodesLayout - flagged is set before run() ");
