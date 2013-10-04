@@ -356,7 +356,10 @@ hr {
 }
 
 .selected {
-	background-color: gold;
+	background-color: #C0C0C0;
+	border-color: #C0C0C0;
+	border-radius: 10px;
+	border-width: 10px;
 }
 
 .network {
