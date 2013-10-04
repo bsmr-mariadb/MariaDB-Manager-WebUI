@@ -45,7 +45,7 @@ public class LoginView extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private static final String NOT_AVAILABLE = "n/a";
-	private static final String GUI_VERSION = "1.0.47 Beta";
+	private static final String GUI_VERSION = "1.0.48 Beta";
 
 	private UpdaterThread updaterThread;
 
