@@ -164,6 +164,7 @@ public class ChartsLayout extends DDCssLayout {
 		ManagerUI.log("ChartsLayout refresh()");
 		updaterThread = new UpdaterThread(updaterThread);
 		updaterThread.start();
+		ManagerUI.log("ChartsLayout after refresh()");
 
 	}
 
@@ -197,109 +198,105 @@ public class ChartsLayout extends DDCssLayout {
 		}
 	}
 
-	private void asynchRefresh(final UpdaterThread updaterThread) {
+	private void asynchRefresh(UpdaterThread updaterThread) {
 
 		ManagerUI.log(this.getClass().getName() + " asynchRefresh updaterThread: " + updaterThread);
+
+		String systemID, nodeID;
 
 		VaadinSession session = getSession();
 		if (session == null) {
 			session = VaadinSession.getCurrent();
 		}
-		if (session == null) {
-			System.err.println("session is null");
+		ManagerUI managerUI = session.getAttribute(ManagerUI.class);
+		ClusterComponent componentInfo = session.getAttribute(ClusterComponent.class);
+
+		switch (componentInfo.getType()) {
+		case system:
+			systemID = componentInfo.getID();
+			nodeID = SystemInfo.SYSTEM_NODEID;
+			break;
+
+		case node:
+			systemID = componentInfo.getParentID();
+			nodeID = componentInfo.getID();
+			break;
+
+		default:
 			return;
 		}
 
-		ManagerUI managerUI = session.getAttribute(ManagerUI.class);
-		final ClusterComponent componentInfo = session.getAttribute(ClusterComponent.class);
+		Iterator<Component> iter = iterator();
+		while (iter.hasNext()) {
 
-		managerUI.access(new Runnable() {
-			@Override
-			public void run() {
-				// Here the UI is locked and can be updated
+			Component component = iter.next();
+			if (component instanceof ChartButton) {
+				ChartButton chartButton = (ChartButton) component;
+				final UserChart userChart = (UserChart) chartButton.getData();
+				final Chart chart = chartButton.getChart();
+				boolean needsRedraw = false;
+				String[] timeStamps = null;
+				final Configuration configuration = chart.getConfiguration();
 
-				ManagerUI.log("ChartsLayout access run() ");
+				for (String monitorID : userChart.getMonitorIDs()) {
 
-				String systemID, nodeID;
-				switch (componentInfo.getType()) {
-				case system:
-					systemID = componentInfo.getID();
-					nodeID = SystemInfo.SYSTEM_NODEID;
-					break;
+					if (updaterThread.flagged) {
+						ManagerUI.log(this.getClass().getName() + " - flagged is set before API call");
+						return;
+					}
 
-				case node:
-					systemID = componentInfo.getParentID();
-					nodeID = componentInfo.getID();
-					break;
+					ManagerUI.log("ChartsLayout - redraw loop MonitorID: " + monitorID);
+					final MonitorRecord monitor = Monitors.getMonitor(monitorID);
+					if (monitor == null) {
+						// monitor was removed from the system: skip
+						ManagerUI.log("monitor was removed from the system");
+						continue;
+					}
 
-				default:
-					return;
-				}
+					MonitorData monitorData = (MonitorData) userChart.getMonitorData(monitor.getID());
+					if (monitorData == null) {
+						String method;
+						if (UserChart.LINECHART.equals(userChart.getType())) {
+							method = MonitorData.METHOD_AVG;
+						} else if (UserChart.AREACHART.equals(userChart.getType())) {
+							method = MonitorData.METHOD_MINMAX;
+						} else {
+							continue; // unknown chart type, skip
+						}
+						monitorData = new MonitorData(monitor, systemID, nodeID, time, interval, userChart.getPoints(), method);
+						needsRedraw = true;
+					} else if (monitorData.update(systemID, nodeID, time, interval, userChart.getPoints()) == true) {
+						// data in chart needs to be updated
+						needsRedraw = true;
+					} else {
+						continue; // no update needed
+					}
 
-				Iterator<Component> iter = iterator();
-				while (iter.hasNext()) {
-
-					Component component = iter.next();
-					if (component instanceof ChartButton) {
-						ChartButton chartButton = (ChartButton) component;
-						final UserChart userChart = (UserChart) chartButton.getData();
-						final Chart chart = chartButton.getChart();
-						boolean needsRedraw = false;
-						String[] timeStamps = null;
-						final Configuration configuration = chart.getConfiguration();
-
-						for (String monitorID : userChart.getMonitorIDs()) {
-
-							if (updaterThread.flagged) {
-								ManagerUI.log(this.getClass().getName() + " - flagged is set before API call");
-								return;
+					if (timeStamps == null) {
+						ArrayList<Long> unixTimes = monitorData.getTimeStamps();
+						if (unixTimes != null) {
+							timeStamps = new String[unixTimes.size()];
+							int timeSpacer = unixTimes.size() / 15;
+							for (int x = 0; x < unixTimes.size(); x++) {
+								timeStamps[x] = (x % timeSpacer != 0) ? "\u00A0" : stampToString(unixTimes.get(x)).substring(11, 16);
 							}
+						}
+					}
 
-							ManagerUI.log("ChartsLayout - redraw loop MonitorID: " + monitorID);
-							final MonitorRecord monitor = Monitors.getMonitor(monitorID);
-							if (monitor == null) {
-								// monitor was removed from the system: skip
-								ManagerUI.log("monitor was removed from the system");
-								continue;
-							}
+					if (updaterThread.flagged) {
+						ManagerUI.log("ChartsLayout - flagged is set before UI redraw");
+						return;
+					}
 
-							MonitorData monitorData = (MonitorData) userChart.getMonitorData(monitor.getID());
-							if (monitorData == null) {
-								String method;
-								if (UserChart.LINECHART.equals(userChart.getType())) {
-									method = MonitorData.METHOD_AVG;
-								} else if (UserChart.AREACHART.equals(userChart.getType())) {
-									method = MonitorData.METHOD_MINMAX;
-								} else {
-									continue; // unknown chart type, skip
-								}
-								monitorData = new MonitorData(monitor, systemID, nodeID, time, interval, userChart.getPoints(), method);
-								needsRedraw = true;
-							} else if (monitorData.update(systemID, nodeID, time, interval, userChart.getPoints()) == true) {
-								// data in chart needs to be updated
-								needsRedraw = true;
-							} else {
-								continue; // no update needed
-							}
+					final MonitorData finalMonitorData = monitorData;
+					final String finalMonitorID = monitorID;
 
-							if (timeStamps == null) {
-								ArrayList<Long> unixTimes = monitorData.getTimeStamps();
-								if (unixTimes != null) {
-									timeStamps = new String[unixTimes.size()];
-									int timeSpacer = unixTimes.size() / 15;
-									for (int x = 0; x < unixTimes.size(); x++) {
-										timeStamps[x] = (x % timeSpacer != 0) ? "\u00A0" : stampToString(unixTimes.get(x)).substring(11, 16);
-									}
-								}
-							}
+					managerUI.access(new Runnable() {
+						@Override
+						public void run() {
+							// Here the UI is locked and can be updated
 
-							if (updaterThread.flagged) {
-								ManagerUI.log("ChartsLayout - flagged is set before UI redraw");
-								return;
-							}
-
-							final MonitorData finalMonitorData = monitorData;
-							final String finalMonitorID = monitorID;
+							ManagerUI.log("ChartsLayout access run() monitorID: " + finalMonitorID);
 
 							if (UserChart.LINECHART.equals(userChart.getType())) {
 
@@ -362,11 +359,19 @@ public class ChartsLayout extends DDCssLayout {
 
 							}
 
-						} // for
+						}
+					});
 
-						final boolean finalNeedsRedraw = needsRedraw;
-						final String[] finalTimeStamps = timeStamps;
-						final ChartButton finalChartButton = chartButton;
+				} // for
+
+				final boolean finalNeedsRedraw = needsRedraw;
+				final String[] finalTimeStamps = timeStamps;
+				final ChartButton finalChartButton = chartButton;
+
+				managerUI.access(new Runnable() {
+					@Override
+					public void run() {
+						// Here the UI is locked and can be updated
 
 						ManagerUI.log("ChartsLayout access run() xaxis");
 
@@ -387,10 +392,11 @@ public class ChartsLayout extends DDCssLayout {
 						}
 
 					}
+				});
 
-				}
 			}
-		});
+
+		}
 
 	}
 

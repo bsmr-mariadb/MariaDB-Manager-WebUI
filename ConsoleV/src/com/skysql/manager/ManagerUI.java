@@ -244,7 +244,10 @@ public class ManagerUI extends UI {
 			} catch (Exception e) {
 				new ErrorDialog(e, null);
 			} finally {
-				close();
+// Mark Riddoch - 4th Oct 2013
+// Comment out floowing call to close as this causes the user interface to almost
+// constantly become grey out, making it practically unusable
+//				close();
 			}
 
 		}
