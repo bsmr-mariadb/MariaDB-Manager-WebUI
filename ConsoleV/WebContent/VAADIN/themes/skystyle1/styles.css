@@ -337,12 +337,14 @@ hr {
 	position: absolute;
     top: 4px;
     left: 4px;
+    padding: 5px 5px 5px 5px;
 }
 
 .system {
 	position: absolute;
     top: 4px;
     left: 4px;
+    padding: 5px 5px 5px 5px;
 }
 
 .node .v-label {
@@ -356,8 +358,8 @@ hr {
 }
 
 .selected {
-	background-color: #C0C0C0;
-	border-color: #C0C0C0;
+	background-color: #F5F5F5;
+	border-color: #F5F5F5;
 	border-radius: 10px;
 	border-width: 10px;
 }
