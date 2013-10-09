@@ -6,6 +6,7 @@
 %define install_path	/usr/local/tomcat7/webapps/
 
 BuildRoot:		%{buildroot}
+BuildArch:              noarch
 Summary: 		MariaDB Manager
 License: 		GPL
 Name: 			%{name}
@@ -27,6 +28,8 @@ MariaDB Manager
 
 %post
 chown tomcat:tomcat %{install_path}MariaDBManager.war
+iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
+service iptables save
 
 %install
 mkdir -p $RPM_BUILD_ROOT%{install_path}
