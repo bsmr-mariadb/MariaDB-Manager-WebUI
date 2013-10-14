@@ -27,6 +27,7 @@ import org.vaadin.jouni.animator.shared.AnimType;
 
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.DateConversion;
+import com.skysql.manager.MonitorLatest;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.ChartProperties;
@@ -331,7 +332,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 	}
 
 	public void refresh() {
-		final ClusterComponent componentInfo = getSession().getAttribute(ClusterComponent.class);
+		ClusterComponent componentInfo = getSession().getAttribute(ClusterComponent.class);
 		if (componentInfo == null) {
 			return;
 		}
@@ -391,14 +392,19 @@ public class PanelInfo extends HorizontalSplitPanel {
 
 		nameLabel.setValue(componentInfo.getName());
 
-		String value, values[];
-		Label[] currentLabels;
+		String value, values[] = null;
+		Label[] currentLabels = null;
 		LinkedHashMap<String, String> monitorLatest;
+		MonitorLatest newMonitorLatest;
 		switch (componentInfo.getType()) {
 		case system:
 			SystemRecord systemRecord = (SystemRecord) componentInfo;
 			currentLabels = systemLabels;
-			monitorLatest = systemRecord.getMonitorLatest().getData();
+			newMonitorLatest = systemRecord.getMonitorLatest();
+			if (newMonitorLatest == null) {
+				break;
+			}
+			monitorLatest = newMonitorLatest.getData();
 			String systemValues[] = { (value = systemRecord.getState()) != null ? value : NOT_AVAILABLE,
 					(value = systemRecord.getSystemType()) != null ? value : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.availability.toString())) != null ? value + "%" : NOT_AVAILABLE,
@@ -413,8 +419,15 @@ public class PanelInfo extends HorizontalSplitPanel {
 
 		case node:
 			NodeInfo nodeInfo = (NodeInfo) componentInfo;
+			if (nodeInfo == null) {
+				break;
+			}
 			currentLabels = nodeLabels;
-			monitorLatest = nodeInfo.getMonitorLatest().getData();
+			newMonitorLatest = nodeInfo.getMonitorLatest();
+			if (newMonitorLatest == null) {
+				break;
+			}
+			monitorLatest = newMonitorLatest.getData();
 			TaskRecord taskRecord = nodeInfo.getTask();
 			//  "State", "Command Running", "Availability", "Capacity", "Connections", "Traffic", "Hostname", "Public IP", "Private IP", "Instance ID"
 			String nodeValues[] = { (value = nodeInfo.getState()) != null ? value : NOT_AVAILABLE,
@@ -432,10 +445,12 @@ public class PanelInfo extends HorizontalSplitPanel {
 			return;
 		}
 
-		for (int i = 0; i < values.length && i < currentLabels.length; i++) {
-			value = values[i];
-			if (!((String) currentLabels[i].getValue()).equals(value)) {
-				currentLabels[i].setValue(value);
+		if (values != null && currentLabels != null) {
+			for (int i = 0; i < values.length && i < currentLabels.length; i++) {
+				value = values[i];
+				if (!((String) currentLabels[i].getValue()).equals(value)) {
+					currentLabels[i].setValue(value);
+				}
 			}
 		}
 

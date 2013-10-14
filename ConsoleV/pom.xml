@@ -10,7 +10,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<vaadin.version>7.1.6</vaadin.version>
+		<vaadin.version>7.1.7</vaadin.version>
 		<vaadin.plugin.version>${vaadin.version}</vaadin.plugin.version>
 	</properties>
 	<repositories>
@@ -199,6 +199,7 @@
 							<!-- <modules> <module>com.vaadin.demo.mobilemail.gwt.ColorPickerWidgetSet</module> 
 								</modules> -->
 						</configuration>
+   						<phase>post-clean</phase>
 						<goals>
 							<goal>clean</goal>
 							<goal>resources</goal>
@@ -233,7 +234,7 @@
 											vaadin-maven-plugin
 										</artifactId>
 										<versionRange>
-											[7.1.6,)
+											[7.1.7,)
 										</versionRange>
 										<goals>
 											<goal>resources</goal>

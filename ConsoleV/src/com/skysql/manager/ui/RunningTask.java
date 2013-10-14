@@ -135,6 +135,10 @@ public final class RunningTask {
 		return containerLayout;
 	}
 
+	public VerticalLayout getControlsLayout() {
+		return scriptingControlsLayout;
+	}
+
 	public HorizontalLayout getScriptingLayout() {
 		return scriptingLayout;
 	}

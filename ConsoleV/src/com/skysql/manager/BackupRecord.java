@@ -76,6 +76,10 @@ public class BackupRecord {
 		return parent;
 	}
 
+	public BackupRecord() {
+
+	}
+
 	public BackupRecord(String ID, String state, String started, String updated, String level, String node, String size, String storage, String restored,
 			String log, String parent) {
 		this.ID = ID;

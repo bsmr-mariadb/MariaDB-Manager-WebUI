@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import com.skysql.manager.BackupRecord;
 import com.skysql.manager.Commands;
 import com.skysql.manager.Commands.Command;
+import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.BackupStates;
 import com.skysql.manager.api.Backups;
 import com.skysql.manager.api.NodeInfo;
@@ -35,12 +36,15 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.server.VaadinSession;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.ListSelect;
+import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
@@ -58,10 +62,11 @@ public class ParametersLayout extends HorizontalLayout {
 	private Link backupLogLink;
 	private TextField connectPassword;
 	private TextField connectKey;
-	private String connectParameters;
 	private RunningTask runningTask;
+	private LinkedHashMap<String, BackupRecord> backupsList;
+	private VerticalLayout backupInfoLayout;
 
-	public ParametersLayout(final RunningTask runningTask, NodeInfo nodeInfo, Commands.Command commandEnum) {
+	public ParametersLayout(final RunningTask runningTask, final NodeInfo nodeInfo, Commands.Command commandEnum) {
 		this.runningTask = runningTask;
 
 		addStyleName("parametersLayout");
@@ -98,50 +103,101 @@ public class ParametersLayout extends HorizontalLayout {
 			backupLevel.setValue("Full");
 
 		case restore:
-			prevBackupsLayout = new HorizontalLayout();
+			VerticalLayout restoreLayout = new VerticalLayout();
+			restoreLayout.setSpacing(true);
 
-			selectPrevBackup = new ListSelect("Backups");
+			if (commandEnum == Command.restore) {
+				addComponent(restoreLayout);
+				FormLayout formLayout = new FormLayout();
+				//formLayout.setMargin(new MarginInfo(false, false, true, false));
+				formLayout.setMargin(false);
+				restoreLayout.addComponent(formLayout);
+
+				final NativeSelect selectSystem;
+				selectSystem = new NativeSelect("Backups from");
+				selectSystem.setImmediate(true);
+				selectSystem.setNullSelectionAllowed(false);
+				SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+				for (SystemRecord systemRecord : systemInfo.getSystemsMap().values()) {
+					if (!systemRecord.getID().equals(SystemInfo.SYSTEM_ROOT)) {
+						selectSystem.addItem(systemRecord.getID());
+						selectSystem.setItemCaption(systemRecord.getID(), systemRecord.getName());
+					}
+				}
+				selectSystem.select(systemInfo.getCurrentID());
+				formLayout.addComponent(selectSystem);
+				selectSystem.addValueChangeListener(new ValueChangeListener() {
+					private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+					public void valueChange(ValueChangeEvent event) {
+						String systemID = (String) event.getProperty().getValue();
+						Backups backups = new Backups(systemID, null);
+						backupsList = backups.getBackupsList();
+						selectPrevBackup.removeAllItems();
+						firstItem = null;
+						if (backupsList != null && backupsList.size() > 0) {
+							Collection<BackupRecord> set = backupsList.values();
+							Iterator<BackupRecord> iter = set.iterator();
+							while (iter.hasNext()) {
+								BackupRecord backupRecord = iter.next();
+								String backupID = backupRecord.getID();
+								selectPrevBackup.addItem(backupID);
+								selectPrevBackup.setItemCaption(backupID, backupRecord.getStarted());
+								if (firstItem == null) {
+									firstItem = backupID;
+									selectPrevBackup.select(firstItem);
+								}
+							}
+							runningTask.getControlsLayout().setEnabled(true);
+						} else {
+							displayBackupInfo(backupInfoLayout, new BackupRecord());
+							runningTask.getControlsLayout().setEnabled(false);
+						}
+					}
+				});
+			}
+			prevBackupsLayout = new HorizontalLayout();
+			restoreLayout.addComponent(prevBackupsLayout);
+
+			selectPrevBackup = (commandEnum == Command.backup) ? new ListSelect("Backups") : new ListSelect();
 			selectPrevBackup.setImmediate(true);
+			selectPrevBackup.setNullSelectionAllowed(false);
+			selectPrevBackup.setRows(8); // Show a few items and a scrollbar if there are more
+			selectPrevBackup.setWidth("16em");
 			final Backups backups = new Backups(nodeInfo.getParentID(), null);
-			final LinkedHashMap<String, BackupRecord> backupsList = backups.getBackupsForNode(nodeInfo.getID());
+			backupsList = backups.getBackupsForNode(nodeInfo.getID());
 			if (backupsList != null && backupsList.size() > 0) {
 				Collection<BackupRecord> set = backupsList.values();
 				Iterator<BackupRecord> iter = set.iterator();
 				while (iter.hasNext()) {
 					BackupRecord backupRecord = iter.next();
-					String started = backupRecord.getStarted();
-					selectPrevBackup.addItem(started);
+					selectPrevBackup.addItem(backupRecord.getID());
+					selectPrevBackup.setItemCaption(backupRecord.getID(), backupRecord.getStarted());
 					if (firstItem == null) {
-						firstItem = started;
+						firstItem = backupRecord.getID();
 					}
 				}
-				selectPrevBackup.setNullSelectionAllowed(false);
-				selectPrevBackup.setRows(8); // Show a few items and a scrollbar if there are more
 				prevBackupsLayout.addComponent(selectPrevBackup);
 
-				final VerticalLayout backupInfoLayout = new VerticalLayout();
-				backupInfoLayout.setMargin(true);
+				backupInfoLayout = new VerticalLayout();
+				backupInfoLayout.setMargin(new MarginInfo(false, true, false, true));
 				prevBackupsLayout.addComponent(backupInfoLayout);
+				prevBackupsLayout.setComponentAlignment(backupInfoLayout, Alignment.MIDDLE_CENTER);
 
 				selectPrevBackup.addValueChangeListener(new ValueChangeListener() {
 					private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 					public void valueChange(ValueChangeEvent event) {
-						String date = (String) event.getProperty().getValue();
-						Collection<BackupRecord> set = backupsList.values();
-						Iterator<BackupRecord> iter = set.iterator();
-						while (iter.hasNext()) {
-							BackupRecord backupRecord = iter.next();
-							String started = backupRecord.getStarted();
-							if (date.equalsIgnoreCase(started)) {
-								displayBackupInfo(backupInfoLayout, backupRecord);
-								if (backupLevel != null) {
-									runningTask.selectParameter("Incremental " + backupRecord.getID());
-								} else {
-									runningTask.selectParameter(backupRecord.getID());
-								}
-								break;
-							}
+						String backupID = (String) event.getProperty().getValue();
+						if (backupID == null) {
+							return;
+						}
+						BackupRecord backupRecord = backupsList.get(backupID);
+						displayBackupInfo(backupInfoLayout, backupRecord);
+						if (backupLevel != null) {
+							runningTask.selectParameter("Incremental " + backupRecord.getID());
+						} else {
+							runningTask.selectParameter(backupRecord.getID());
 						}
 
 					}
@@ -151,23 +207,16 @@ public class ParametersLayout extends HorizontalLayout {
 				// DisplayBackupRecord(parameterLayout);
 
 				if (commandEnum == Command.restore) {
-					addComponent(prevBackupsLayout);
+					restoreLayout.addComponent(prevBackupsLayout);
 					selectPrevBackup.select(firstItem);
-
 				}
 
 			} else {
 				// no previous backups
 				if (commandEnum == Command.backup) {
 					backupLevel.setEnabled(false);
-
 				} else if (commandEnum == Command.restore) {
-
-					Label placeholderLabel = new Label("No Backups are available for Restore");
-					placeholderLabel.addStyleName("instructions");
-					placeholderLabel.setSizeUndefined();
-					runningTask.getLayout().replaceComponent(runningTask.getScriptingLayout(), placeholderLabel);
-					runningTask.getLayout().setComponentAlignment(placeholderLabel, Alignment.MIDDLE_CENTER);
+					runningTask.getControlsLayout().setEnabled(false);
 				}
 			}
 			break;
@@ -188,6 +237,9 @@ public class ParametersLayout extends HorizontalLayout {
 			connectParamsLayout.addComponent(connectKey);
 			connectParamsLayout.setComponentAlignment(connectKey, Alignment.MIDDLE_LEFT);
 			connectKey.addValueChangeListener(connectParamsListener);
+			break;
+
+		default:
 			break;
 
 		}
@@ -246,5 +298,4 @@ public class ParametersLayout extends HorizontalLayout {
 			}
 		}
 	}
-
 }

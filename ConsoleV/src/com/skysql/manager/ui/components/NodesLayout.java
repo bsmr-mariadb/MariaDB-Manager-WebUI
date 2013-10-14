@@ -193,6 +193,12 @@ public class NodesLayout extends HorizontalLayout {
 	public synchronized void refresh(final OverviewPanel.UpdaterThread updaterThread, final SystemRecord parentSystemRecord) {
 
 		VaadinSession session = getSession();
+		if (session == null) {
+			session = VaadinSession.getCurrent();
+		}
+		if (session == null) {
+			return;
+		}
 		ManagerUI managerUI = session.getAttribute(ManagerUI.class);
 		SystemInfo systemInfo = session.getAttribute(SystemInfo.class);
 		OverviewPanel overviewPanel = session.getAttribute(OverviewPanel.class);

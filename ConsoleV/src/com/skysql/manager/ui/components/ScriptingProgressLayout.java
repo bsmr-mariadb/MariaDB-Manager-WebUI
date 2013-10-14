@@ -24,6 +24,7 @@ import com.skysql.manager.DateConversion;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.CommandStates;
+import com.skysql.manager.api.CommandStates.States;
 import com.skysql.manager.api.Steps;
 import com.skysql.manager.api.UserInfo;
 import com.skysql.manager.ui.RunningTask;
@@ -50,6 +51,7 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 	private TaskRecord taskRecord;
 	private long startTime, runningTime;
 	private RunningTask runningTask;
+	private int totalSteps;
 
 	public ScriptingProgressLayout(final RunningTask runningTask, boolean observerMode) {
 		this.runningTask = runningTask;
@@ -123,12 +125,13 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 		}
 
 		String[] stepIDs = steps.split(",");
-		primitives = new String[stepIDs.length];
-		taskImages = new Embedded[stepIDs.length];
+		totalSteps = stepIDs.length;
+		primitives = new String[totalSteps];
+		taskImages = new Embedded[totalSteps];
 
 		// add steps icons
 		progressIconsLayout.removeAllComponents();
-		for (int index = 0; index < stepIDs.length; index++) {
+		for (int index = 0; index < totalSteps; index++) {
 			String stepID = stepIDs[index].trim();
 			String description = Steps.getDescription(stepID);
 
@@ -212,7 +215,7 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 				if ((indexString = taskRecord.getIndex()) == null) {
 					return; // we're waiting for something to happen
 				}
-				int index = Integer.parseInt(indexString) - 1;
+				int index = (state == States.done) ? totalSteps - 1 : Integer.parseInt(indexString) - 1;
 
 				while (lastProgressIndex < index) {
 					taskImages[lastProgressIndex].setSource(new ThemeResource("img/scripting/past.png"));
@@ -223,7 +226,6 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 				switch (state) {
 				case running:
 					if (index != lastIndex) {
-						setResult("Running");
 						taskImages[index].setSource(new ThemeResource("img/scripting/active.png"));
 						setProgress(taskImages[index].getDescription());
 						lastIndex = index;
@@ -243,6 +245,7 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 					break;
 				case cancelled:
 				case stopped:
+					taskImages[taskImages.length - 1].setSource(new ThemeResource("img/scripting/error.png"));
 					result += "<br/><br/>on " + DateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>after " + getRunningTime();
 					runningTask.close();
 					break;

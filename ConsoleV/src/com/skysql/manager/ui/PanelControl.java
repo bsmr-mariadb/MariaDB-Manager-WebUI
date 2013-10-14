@@ -107,7 +107,7 @@ public class PanelControl extends VerticalLayout {
 
 		commandSelect = new ListSelect("Commands");
 		commandSelect.setImmediate(true);
-		commandSelect.setRows(8);
+		commandSelect.setRows(10);
 		commandSelect.setNullSelectionAllowed(false);
 		commandSelect.setWidth("12em");
 		commandSelect.addValueChangeListener(commandListener);
