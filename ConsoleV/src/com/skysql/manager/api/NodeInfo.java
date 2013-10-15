@@ -234,8 +234,7 @@ public class NodeInfo extends ClusterComponent {
 				+ "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Name:</b> " + this.name + "</li>" + "<li><b>Hostname:</b> " + this.hostname + "</li>"
 				+ "<li><b>Public IP:</b> " + this.publicIP + "</li>" + "<li><b>Private IP:</b> " + this.privateIP + "</li>" + "<li><b>Instance ID:</b> "
 				+ this.instanceID + "<li><b>DB Username:</b> " + this.dbUsername + "<li><b>DB Password:</b> " + this.dbPassword + "</li>"
-				+ "<li><b>Rep Username:</b> " + this.repUsername + "<li><b>Rep Password:</b> " + this.repPassword + "</li>" + "<li><b>Monitors:</b> "
-				+ ((this.monitorLatest == null) ? NOT_AVAILABLE : monitorLatest.getData().toString()) + "</li>" + "<li><b>Available Commands:</b> "
+				+ "<li><b>Rep Username:</b> " + this.repUsername + "<li><b>Rep Password:</b> " + this.repPassword + "</li>" + "<li><b>Available Commands:</b> "
 				+ ((this.commands == null) ? NOT_AVAILABLE : getCommands().getNames().keySet()) + "</li>" + "<li><b>Command running:</b> "
 				+ ((this.task == null || !this.task.getState().equals("running")) ? NOT_AVAILABLE : this.task.getCommand()) + "</li>" + "</ul>";
 
