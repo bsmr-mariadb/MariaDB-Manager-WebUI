@@ -199,7 +199,6 @@
 							<!-- <modules> <module>com.vaadin.demo.mobilemail.gwt.ColorPickerWidgetSet</module> 
 								</modules> -->
 						</configuration>
-   						<phase>post-clean</phase>
 						<goals>
 							<goal>clean</goal>
 							<goal>resources</goal>
