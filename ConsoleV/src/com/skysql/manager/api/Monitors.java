@@ -31,12 +31,21 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.MonitorRecord;
+import com.skysql.manager.api.Monitors.PermittedMonitorType;
 import com.skysql.manager.ui.ErrorDialog;
 
 public class Monitors {
 
 	public enum MonitorNames {
 		connections, traffic, availability, nodestate, capacity, hoststate;
+	}
+
+	public enum PermittedMonitorType {
+		SQL, GLOBAL, JS;
+	}
+
+	public enum EditableMonitorType {
+		SQL;
 	}
 
 	private static LinkedHashMap<String, LinkedHashMap<String, MonitorRecord>> monitorsMap;
@@ -241,18 +250,22 @@ class MonitorsDeserializer implements JsonDeserializer<Monitors> {
 			String name = (element = jsonObject.get("name")).isJsonNull() ? null : element.getAsString();
 			String description = (element = jsonObject.get("description")).isJsonNull() ? null : element.getAsString();
 			String unit = (element = jsonObject.get("unit")).isJsonNull() ? null : element.getAsString();
-			String type = (element = jsonObject.get("monitortype")).isJsonNull() ? null : element.getAsString();
+			String monitorType = (element = jsonObject.get("monitortype")).isJsonNull() ? null : element.getAsString();
 			boolean delta = (element = jsonObject.get("delta")).isJsonNull() ? false : element.getAsBoolean();
 			boolean average = (element = jsonObject.get("systemaverage")).isJsonNull() ? false : element.getAsBoolean();
 			String chartType = (element = jsonObject.get("charttype")).isJsonNull() ? null : element.getAsString();
 			String intervalString = (element = jsonObject.get("interval")).isJsonNull() ? null : element.getAsString();
 			int interval = (intervalString != null && !intervalString.isEmpty()) ? Integer.valueOf(intervalString) : 0;
 			String sql = (element = jsonObject.get("sql")).isJsonNull() ? null : element.getAsString();
-			if (type.equals("SQL") && chartType != null) {
-				// take only SQL monitors with chartType != null
-				MonitorRecord monitorRecord = new MonitorRecord(systemType, id, name, description, unit, type, delta, average, chartType, interval, sql);
-				monitorsMap.get(systemType).put(id, monitorRecord);
+			for (PermittedMonitorType permitted : PermittedMonitorType.values()) {
+				if (permitted.name().equals(monitorType) && chartType != null) {
+					MonitorRecord monitorRecord = new MonitorRecord(systemType, id, name, description, unit, monitorType, delta, average, chartType, interval,
+							sql);
+					monitorsMap.get(systemType).put(id, monitorRecord);
+					break;
+				}
 			}
+
 		}
 
 	}

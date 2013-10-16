@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.UserChart;
 import com.skysql.manager.api.Monitors;
+import com.skysql.manager.api.Monitors.EditableMonitorType;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.RunSQL;
 import com.skysql.manager.api.SettingsValues;
@@ -102,6 +103,16 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 			public void valueChange(ValueChangeEvent event) {
 				String monitorID = (String) event.getProperty().getValue();
 				displayMonitorRecord(monitorID);
+				MonitorRecord monitor = monitorsAll.get(monitorID);
+				String monitorType = monitor.getType();
+				editMonitor.setEnabled(false);
+				for (Monitors.EditableMonitorType editable : EditableMonitorType.values()) {
+					if (editable.name().equals(monitorType)) {
+						editMonitor.setEnabled(true);
+						break;
+					}
+				}
+
 			}
 		});
 
@@ -115,8 +126,13 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 					// Get the child component which was double-clicked
 					ListSelect select = (ListSelect) child;
 					String monitorID = (String) select.getValue();
-					if (monitorID != null) {
-						editMonitor(monitorsAll.get(monitorID));
+					MonitorRecord monitor = monitorsAll.get(monitorID);
+					String monitorType = monitor.getType();
+					for (Monitors.EditableMonitorType editable : EditableMonitorType.values()) {
+						if (editable.name().equals(monitorType)) {
+							editMonitor(monitor);
+							break;
+						}
 					}
 				}
 			}
@@ -145,7 +161,7 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 		monitorLayout.addComponent(chartType);
 		interval.setCaption("Interval:");
 		monitorLayout.addComponent(interval);
-		sql.setCaption("SQL:");
+		sql.setCaption("Statement:");
 		monitorLayout.addComponent(sql);
 
 		HorizontalLayout selectButtons = new HorizontalLayout();
