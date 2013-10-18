@@ -18,7 +18,10 @@ Group: 			Development/Tools
 Requires:		tomcat7
 
 %description
-MariaDB Manager
+MariaDB Manager is a tool to manage and monitor a set of MariaDB
+servers using the Galera multi-master replication form Codership.
+This package provides a web based user interface to the MariaDB
+Manager management and monitoring API.
 
 %prep
 
