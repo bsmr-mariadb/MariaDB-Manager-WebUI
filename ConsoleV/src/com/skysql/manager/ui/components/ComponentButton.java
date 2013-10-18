@@ -289,7 +289,7 @@ public class ComponentButton extends VerticalLayout {
 		textLayout.setSizeFull();
 		wrapper.addComponent(textLayout);
 		wrapper.setExpandRatio(textLayout, 1.0f);
-		Label label = new Label("WARNING: if you delete this component, all its related data will be deleted as well.");
+		Label label = new Label("Delete this component?");
 		label.addStyleName("warning");
 		textLayout.addComponent(label);
 		textLayout.setComponentAlignment(label, Alignment.MIDDLE_CENTER);

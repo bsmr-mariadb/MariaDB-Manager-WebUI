@@ -209,6 +209,7 @@ class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 			systemRecord.setDBPassword((element = systemObject.get("dbpassword")).isJsonNull() ? null : element.getAsString());
 			systemRecord.setRepUsername((element = systemObject.get("repusername")).isJsonNull() ? null : element.getAsString());
 			systemRecord.setRepPassword((element = systemObject.get("reppassword")).isJsonNull() ? null : element.getAsString());
+			systemRecord.setLastMonitored(((element = systemObject.get("lastmonitored")).isJsonNull()) ? null : element.getAsString());
 
 			MonitorLatest monitorLatest = null;
 			if ((element = systemObject.get("monitorlatest")) != null && !element.isJsonNull()) {

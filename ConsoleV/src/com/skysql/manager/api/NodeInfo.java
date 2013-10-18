@@ -216,6 +216,7 @@ public class NodeInfo extends ClusterComponent {
 				this.dbPassword = nodeInfo.dbPassword;
 				this.repUsername = nodeInfo.repUsername;
 				this.repPassword = nodeInfo.repPassword;
+				this.lastMonitored = nodeInfo.lastMonitored;
 			} catch (NullPointerException e) {
 				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
 				throw new RuntimeException("API response");
@@ -266,6 +267,7 @@ class NodeInfoDeserializer implements JsonDeserializer<NodeInfo> {
 			nodeInfo.setDBPassword(((element = jsonObject.get("dbpassword")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setRepUsername(((element = jsonObject.get("repusername")) == null || element.isJsonNull()) ? null : element.getAsString());
 			nodeInfo.setRepPassword(((element = jsonObject.get("reppassword")) == null || element.isJsonNull()) ? null : element.getAsString());
+			nodeInfo.setLastMonitored(((element = jsonObject.get("lastmonitored")) == null || element.isJsonNull()) ? null : element.getAsString());
 
 			if ((element = jsonObject.get("commands")) != null && !element.isJsonNull()) {
 				Commands commands = APIrestful.getGson().fromJson("{\"commands\":" + element.toString() + "}", Commands.class);

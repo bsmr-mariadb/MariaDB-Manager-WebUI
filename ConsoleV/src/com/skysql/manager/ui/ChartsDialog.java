@@ -20,12 +20,14 @@ package com.skysql.manager.ui;
 
 import java.util.ArrayList;
 
+import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.UserChart;
 import com.skysql.manager.api.Monitors;
 import com.skysql.manager.ui.components.ChartButton;
 import com.skysql.manager.ui.components.ChartsLayout;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -133,7 +135,9 @@ public class ChartsDialog {
 
 	public UserChart newUserChart() {
 
-		MonitorRecord monitor = (MonitorRecord) Monitors.getMonitorsList(null).values().toArray()[0];
+		ClusterComponent clusterComponent = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
+
+		MonitorRecord monitor = (MonitorRecord) Monitors.getMonitorsList(clusterComponent.getSystemType()).values().toArray()[0];
 		ArrayList<String> monitorsForChart = new ArrayList<String>();
 		monitorsForChart.add(monitor.getID());
 		UserChart userChart = new UserChart(monitor.getName(), monitor.getDescription(), monitor.getUnit(), monitor.getChartType(), UserChart.COUNT_15,

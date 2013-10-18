@@ -46,7 +46,7 @@ public class APIstubs extends APIrestful {
 		if (gson == null) {
 			GsonBuilder gsonBuilder = new GsonBuilder();
 			gsonBuilder.registerTypeAdapter(APIrestful.class, new APIrestfulDeserializer());
-			gsonBuilder.registerTypeAdapter(Scheduled.class, new ScheduledDeserializer());
+			//gsonBuilder.registerTypeAdapter(Schedule.class, new ScheduleDeserializer());
 
 			gson = gsonBuilder.create();
 		}
@@ -98,6 +98,7 @@ public class APIstubs extends APIrestful {
 
 			switch (type) {
 			case GET:
+				/***
 				if (uri.endsWith("scheduled")) {
 					result = "{\"scheduled\":[{\"id\":\"2013-09-17 02:00:00\",\"state\":\"scheduled\",\"ical\":\"Full\",\"nodeid\":\"1\",\"taskid\":\"2\"},"
 							+ "{\"id\":\"2013-09-18 03:00:00\",\"state\":\"scheduled\",\"ical\":\"Incremental\",\"nodeid\":\"1\",\"taskid\":\"2\"},"
@@ -106,6 +107,7 @@ public class APIstubs extends APIrestful {
 							+ "{\"id\":\"2013-09-21 03:00:00\",\"state\":\"scheduled\",\"ical\":\"Incremental\",\"nodeid\":\"1\",\"taskid\":\"2\"},"
 							+ "{\"id\":\"2013-09-22 03:00:00\",\"state\":\"scheduled\",\"ical\":\"Incremental\",\"nodeid\":\"1\",\"taskid\":\"2\"}" + "]}";
 				}
+				***/
 				break;
 
 			case PUT:

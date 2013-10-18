@@ -66,10 +66,10 @@ public class PanelInfo extends HorizontalSplitPanel {
 	private VerticalLayout infoLayout, chartsLayout;
 	private DDCssLayout chartsArray;
 	private String chartTime, chartInterval = "1800";
-	private String systemLabelsStrings[] = { "State", "System Type", "Availability", "Capacity", "Connections", "Traffic", "Last Backup", "Start Date",
-			"Last Access" };
-	private String nodeLabelsStrings[] = { "State", "Command Running", "Availability", "Capacity", "Connections", "Traffic", "Hostname", "Public IP",
-			"Private IP", "Instance ID" };
+	private String systemLabelsStrings[] = { "State", "System Type", "Last Monitored", "Availability", "Capacity", "Connections", "Traffic", "Last Backup",
+			"Start Date", "Last Access" };
+	private String nodeLabelsStrings[] = { "State", "Command Running", "Last Monitored", "Availability", "Capacity", "Connections", "Traffic", "Hostname",
+			"Public IP", "Private IP", "Instance ID" };
 	private Label systemLabels[], nodeLabels[];
 	private ChartControls chartControls;
 	private ChartsLayout chartsArrayLayout;
@@ -407,6 +407,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 			monitorLatest = newMonitorLatest.getData();
 			String systemValues[] = { (value = systemRecord.getState()) != null ? value : NOT_AVAILABLE,
 					(value = systemRecord.getSystemType()) != null ? value : NOT_AVAILABLE,
+					(value = systemRecord.getLastMonitored()) != null ? DateConversion.adjust(value) : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.availability.toString())) != null ? value + "%" : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.capacity.toString())) != null ? value + "%" : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.connections.toString())) != null ? value : NOT_AVAILABLE,
@@ -432,6 +433,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 			//  "State", "Command Running", "Availability", "Capacity", "Connections", "Traffic", "Hostname", "Public IP", "Private IP", "Instance ID"
 			String nodeValues[] = { (value = nodeInfo.getState()) != null ? value : NOT_AVAILABLE,
 					(taskRecord != null && taskRecord.getState().equals("running") && (value = taskRecord.getCommand()) != null) ? value : NOT_AVAILABLE,
+					(value = nodeInfo.getLastMonitored()) != null ? DateConversion.adjust(value) : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.availability.toString())) != null ? value + "%" : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.capacity.toString())) != null ? value + "%" : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.connections.toString())) != null ? value : NOT_AVAILABLE,

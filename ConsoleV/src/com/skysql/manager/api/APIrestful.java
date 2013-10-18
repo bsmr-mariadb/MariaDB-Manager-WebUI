@@ -106,6 +106,7 @@ public class APIrestful {
 			gsonBuilder.registerTypeAdapter(MonitorLatest.class, new ObjectDeserializer());
 			gsonBuilder.registerTypeAdapter(NodeInfo.class, new NodeInfoDeserializer());
 			gsonBuilder.registerTypeAdapter(NodeStates.class, new NodeStatesDeserializer());
+			gsonBuilder.registerTypeAdapter(Schedule.class, new ScheduleDeserializer());
 			gsonBuilder.registerTypeAdapter(SettingsValues.class, new SettingsValuesDeserializer());
 			gsonBuilder.registerTypeAdapter(Steps.class, new StepsDeserializer());
 			gsonBuilder.registerTypeAdapter(SystemInfo.class, new SystemInfoDeserializer());

@@ -40,6 +40,7 @@ public class ClusterComponent {
 	protected String dbPassword;
 	protected String repUsername;
 	protected String repPassword;
+	protected String lastMonitored;
 
 	public String getID() {
 		return ID;
@@ -125,32 +126,40 @@ public class ClusterComponent {
 		return dbUsername;
 	}
 
-	public void setDBUsername(String username) {
-		this.dbUsername = username;
+	public void setDBUsername(String dbUsername) {
+		this.dbUsername = dbUsername;
 	}
 
 	public String getDBPassword() {
 		return dbPassword;
 	}
 
-	public void setDBPassword(String password) {
-		this.dbPassword = password;
+	public void setDBPassword(String dbPassword) {
+		this.dbPassword = dbPassword;
 	}
 
 	public String getRepUsername() {
 		return repUsername;
 	}
 
-	public void setRepUsername(String username) {
-		this.repUsername = username;
+	public void setRepUsername(String repUsername) {
+		this.repUsername = repUsername;
 	}
 
 	public String getRepPassword() {
 		return repPassword;
 	}
 
-	public void setRepPassword(String password) {
-		this.repPassword = password;
+	public void setRepPassword(String repPassword) {
+		this.repPassword = repPassword;
+	}
+
+	public String getLastMonitored() {
+		return lastMonitored;
+	}
+
+	public void setLastMonitored(String lastMonitored) {
+		this.lastMonitored = lastMonitored;
 	}
 
 }

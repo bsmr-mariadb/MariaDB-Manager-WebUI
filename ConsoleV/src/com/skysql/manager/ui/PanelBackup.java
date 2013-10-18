@@ -36,10 +36,10 @@ public class PanelBackup extends VerticalLayout {
 		setSizeFull();
 		addStyleName("backupTab");
 
-		backupStrategiesLayout = new BackupStrategiesLayout();
-		addComponent(backupStrategiesLayout);
-		//backupScheduledLayout = new BackupScheduledLayout();
-		//addComponent(backupScheduledLayout);
+		//		backupStrategiesLayout = new BackupStrategiesLayout();
+		//		addComponent(backupStrategiesLayout);
+		backupScheduledLayout = new BackupScheduledLayout();
+		addComponent(backupScheduledLayout);
 		backupSetsLayout = new BackupSetsLayout();
 		addComponent(backupSetsLayout);
 		setExpandRatio(backupSetsLayout, 1.0f);
@@ -49,8 +49,8 @@ public class PanelBackup extends VerticalLayout {
 	public void refresh() {
 
 		ManagerUI.log("PanelBackup refresh()");
-		backupStrategiesLayout.refresh();
-		//backupScheduledLayout.refresh();
+		//		backupStrategiesLayout.refresh();
+		backupScheduledLayout.refresh();
 		backupSetsLayout.refresh();
 	}
 
