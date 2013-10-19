@@ -1,5 +1,5 @@
 %define _topdir	 	%(echo $PWD)/
-%define name		MariaDBManager
+%define name		MariaDB-Manager-WebUI
 %define release		##RELEASE_TAG##
 %define version 	##VERSION_TAG##
 %define buildroot 	%{_topdir}/%{name}-%{version}-%{release}-root
@@ -7,7 +7,7 @@
 
 BuildRoot:		%{buildroot}
 BuildArch:              noarch
-Summary: 		MariaDB Manager
+Summary: 		MariaDB Manager Web UI
 License: 		GPL
 Name: 			%{name}
 Version: 		%{version}
