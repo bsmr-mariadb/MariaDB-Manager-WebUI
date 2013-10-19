@@ -33,17 +33,6 @@ hr {
 
 }
 
-.commandOverlay {
-	background: #e5eaf1;
-	padding-left: 5px;
-	padding-right: 5px;
-	border-width: 2px;
-	border-style: solid;
-	border-color: black;
-	position: absolute;
-   	left: -5px;
-}
-
 .v-nativebutton-backButton {
 	border: none;
 	background: transparent url(img/back.png) no-repeat;
@@ -97,19 +86,24 @@ hr {
 .componentInfo {
 	position: relative;
     top: 5px;
-    left: -6px;
+    left: -10px;
 }
 
+.componentAlert {
+	position: relative;
+    top: 5px;
+    left: -6px;
+}
 .editNode {
 	position: absolute;
     top: 5px;
-    left: -6px;
+    left: -2px;
 }
 
 .deleteNode {
 	position: absolute;
     top: 5px;
-    left: 40px;
+    left: 36px;
 }
 
 .editSystem {

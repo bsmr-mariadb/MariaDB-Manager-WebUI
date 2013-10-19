@@ -27,10 +27,12 @@ import java.util.Date;
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.DateTime;
+import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.ProdId;
+import net.fortuna.ical4j.model.property.RRule;
 import net.fortuna.ical4j.model.property.Version;
 
 public class iCalSupport {
@@ -61,11 +63,10 @@ public class iCalSupport {
 		Description desc = new Description(description);
 		event.getProperties().add(desc);
 
-		/***
 		Recur recur = new Recur(Recur.WEEKLY, null);
 		RRule rule = new RRule(recur);
 		event.getProperties().add(rule);
-		***/
+
 		//event.calculateRecurrenceSet(period);
 
 		// Create a calendar
@@ -77,18 +78,21 @@ public class iCalSupport {
 
 	}
 
-	public static void readiEvent(String iCalString) {
+	public static VEvent readiEvent(String eventString) {
 
 		try {
-			StringReader sin = new StringReader(iCalString);
+			String wholeCal = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//SkySQL//MariaDB Manager 1.0//EN\r\n" + eventString + "\r\nEND:VCALENDAR";
+			StringReader sin = new StringReader(wholeCal);
 			CalendarBuilder builder = new CalendarBuilder();
 			Calendar calendar = builder.build(sin);
 
-			net.fortuna.ical4j.model.Component event = calendar.getComponent("VEVENT");
+			return (VEvent) calendar.getComponent("VEVENT");
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+		return null;
 	}
 
 	public static void addUid(VEvent event, String uid) {

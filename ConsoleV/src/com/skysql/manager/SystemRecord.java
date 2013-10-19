@@ -105,11 +105,19 @@ public class SystemRecord extends ClusterComponent {
 				JSONObject jsonParam = new JSONObject();
 				jsonParam.put("name", getName());
 				jsonParam.put("systemtype", getSystemType());
+				jsonParam.put("dbusername", this.dbUsername);
+				jsonParam.put("dbpassword", this.dbPassword != null ? this.dbPassword : JSONObject.NULL);
+				jsonParam.put("repusername", this.repUsername);
+				jsonParam.put("reppassword", this.repPassword != null ? this.repPassword : JSONObject.NULL);
 				success = api.put("system/" + getID(), jsonParam.toString());
 			} else {
 				StringBuffer regParam = new StringBuffer();
 				regParam.append("name=" + URLEncoder.encode(getName(), "UTF-8"));
 				regParam.append("&systemtype=" + URLEncoder.encode(getSystemType(), "UTF-8"));
+				regParam.append("&dbusername=" + URLEncoder.encode(this.dbUsername, "UTF-8"));
+				regParam.append("&dbpassword=" + URLEncoder.encode(this.dbPassword, "UTF-8"));
+				regParam.append("&repusername=" + URLEncoder.encode(this.repUsername, "UTF-8"));
+				regParam.append("&reppassword=" + URLEncoder.encode(this.repPassword, "UTF-8"));
 				success = api.post("system", regParam.toString());
 			}
 

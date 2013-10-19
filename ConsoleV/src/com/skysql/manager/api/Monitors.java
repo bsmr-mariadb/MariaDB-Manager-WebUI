@@ -258,7 +258,7 @@ class MonitorsDeserializer implements JsonDeserializer<Monitors> {
 			int interval = (intervalString != null && !intervalString.isEmpty()) ? Integer.valueOf(intervalString) : 0;
 			String sql = (element = jsonObject.get("sql")).isJsonNull() ? null : element.getAsString();
 			for (PermittedMonitorType permitted : PermittedMonitorType.values()) {
-				if (permitted.name().equals(monitorType) && chartType != null) {
+				if (permitted.name().equals(monitorType)) {
 					MonitorRecord monitorRecord = new MonitorRecord(systemType, id, name, description, unit, monitorType, delta, average, chartType, interval,
 							sql);
 					monitorsMap.get(systemType).put(id, monitorRecord);

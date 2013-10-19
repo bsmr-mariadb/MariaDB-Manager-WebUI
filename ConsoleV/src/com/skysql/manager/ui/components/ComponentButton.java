@@ -53,7 +53,10 @@ public class ComponentButton extends VerticalLayout {
 	private Label nameLabel, commandLabel;
 	private ClusterComponent componentInfo;
 	private ComponentButton thisButton;
-	private Embedded info;
+	private Embedded info, alert;
+	private ThemeResource cancelledResource = new ThemeResource("img/cancelled.png");
+	private ThemeResource errorResource = new ThemeResource("img/alert.png");
+	private ThemeResource runningResource = new ThemeResource("img/running.png");
 
 	public ComponentButton(ClusterComponent componentInfo) {
 		thisButton = this;
@@ -92,25 +95,33 @@ public class ComponentButton extends VerticalLayout {
 			imageLayout.addStyleName(icon);
 			//imageLayout.addStyleName(componentInfo.getType().toString());
 
-			if (componentInfo.getType() == ClusterComponent.CCType.node) {
-				commandLabel = new Label();
-				commandLabel.setSizeUndefined();
-				imageLayout.addComponent(commandLabel);
-				imageLayout.setComponentAlignment(commandLabel, Alignment.TOP_CENTER);
-				//imageLayout.setExpandRatio(commandLabel, 1.0f);
-				//				NodeInfo nodeInfo = (NodeInfo) componentInfo;
-				//				TaskRecord taskRecord = nodeInfo.getTask();
-				//				setCommandLabel(taskRecord);
-			}
+			commandLabel = new Label();
+			commandLabel.setSizeUndefined();
+			imageLayout.addComponent(commandLabel);
+			imageLayout.setComponentAlignment(commandLabel, Alignment.TOP_LEFT);
+			//imageLayout.setExpandRatio(commandLabel, 1.0f);
+			//				NodeInfo nodeInfo = (NodeInfo) componentInfo;
+			//				TaskRecord taskRecord = nodeInfo.getTask();
+			//				setCommandLabel(taskRecord);
 
 			Label padding = new Label("");
 			imageLayout.addComponent(padding);
 			imageLayout.setComponentAlignment(padding, Alignment.MIDDLE_CENTER);
 
+			HorizontalLayout iconsStrip = new HorizontalLayout();
+			iconsStrip.addStyleName("componentInfo");
+			iconsStrip.setWidth(componentInfo.getType() == ClusterComponent.CCType.node ? "60px" : "76px");
+			imageLayout.addComponent(iconsStrip);
+			imageLayout.setComponentAlignment(iconsStrip, Alignment.MIDDLE_CENTER);
+
 			info = new Embedded(null, new ThemeResource("img/info.png"));
-			info.addStyleName("componentInfo");
-			imageLayout.addComponent(info);
-			imageLayout.setComponentAlignment(info, Alignment.MIDDLE_LEFT);
+			iconsStrip.addComponent(info);
+			iconsStrip.setComponentAlignment(info, Alignment.MIDDLE_LEFT);
+
+			alert = new Embedded();
+			alert.setVisible(false);
+			iconsStrip.addComponent(alert);
+			iconsStrip.setComponentAlignment(alert, Alignment.MIDDLE_RIGHT);
 
 			nameLabel = new Label(componentInfo.getName());
 			nameLabel.setStyleName("componentName");
@@ -133,20 +144,22 @@ public class ComponentButton extends VerticalLayout {
 		if (taskRecord != null) {
 			switch (CommandStates.States.valueOf(taskRecord.getState())) {
 			case running:
-				setCommand(taskRecord.getCommand());
+				setAlert("<h3>Running command \"" + taskRecord.getCommand() + "\"", runningResource);
 				break;
-			case paused:
-				setCommand("paused: " + taskRecord.getCommand());
-				break;
+			//			case paused:
+			//				setAlert("<h3>Command \"" + taskRecord.getCommand() + "\" was paused.", pausedResource);
+			//				break;
 			case done:
-				setCommand(null);
+				setAlert(null, null);
 				break;
 			case cancelled:
-				//setError("cancelled");
-				setCommand(null);
+				setAlert("<h3>Last command \"" + taskRecord.getCommand() + "\" was cancelled.</h3>", cancelledResource);
+				break;
+			case missing:
+				setAlert("<h3>Last command \"" + taskRecord.getCommand() + "\" was missing.</h3>", errorResource);
 				break;
 			case error:
-				setError(taskRecord.getError());
+				setAlert("<h3>Last command \"" + taskRecord.getCommand() + "\" failed:</h3>" + taskRecord.getError(), errorResource);
 				break;
 			default:
 				break;
@@ -154,18 +167,10 @@ public class ComponentButton extends VerticalLayout {
 		}
 	}
 
-	private void setCommand(String command) {
-		if (command != null) {
-			commandLabel.setStyleName("commandOverlay");
-		} else {
-			commandLabel.setStyleName(null);
-		}
-		commandLabel.setValue((command != null) ? command : "");
-	}
-
-	private void setError(String error) {
-		commandLabel.setStyleName("errorOverlay");
-		commandLabel.setValue(error);
+	private void setAlert(String msg, ThemeResource resource) {
+		alert.setDescription(msg);
+		alert.setSource(resource);
+		alert.setVisible(msg != null);
 	}
 
 	public void setDescription(String description) {

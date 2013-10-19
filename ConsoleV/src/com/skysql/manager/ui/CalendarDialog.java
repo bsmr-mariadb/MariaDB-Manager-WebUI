@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.TimeZone;
 
 import net.fortuna.ical4j.model.DateTime;
+import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.util.UidGenerator;
@@ -184,16 +185,20 @@ public class CalendarDialog implements Window.CloseListener {
 			ScheduleRecord scheduleRecord = entry.getValue();
 
 			String iCalString = scheduleRecord.getICal();
+			iCalSupport.readiEvent(iCalString);
+
 			String delims = "[\r\n]+";
 			String[] tokens = iCalString.split(delims);
 
 			String caption = tokens[4].substring(8);
 			String description = tokens[5].substring(12);
+			String repeat = "";
+			Date until = null;
 
 			try {
 				DateTime start = new DateTime(tokens[2].substring(8));
 				DateTime end = new DateTime(tokens[3].substring(6));
-				event = getNewEvent(caption, description, start, end, scheduleRecord.getNodeID());
+				event = getNewEvent(caption, description, start, end, repeat, until, scheduleRecord.getNodeID());
 				event.setData(scheduleRecord.getID());
 				dataSource.addEvent(event);
 			} catch (ParseException e) {
@@ -336,10 +341,7 @@ public class CalendarDialog implements Window.CloseListener {
 
 			public void buttonClick(ClickEvent event) {
 				Date start = getToday();
-				java.util.Calendar cal = java.util.Calendar.getInstance();
-				cal.setTime(start);
-				cal.add(java.util.Calendar.HOUR_OF_DAY, 1);
-				showEventPopup(getNewEvent("Backup", "New backup event", start, cal.getTime()), true);
+				showEventPopup(getNewEvent("Backup", "New backup event", start), true);
 			}
 		});
 	}
@@ -639,7 +641,7 @@ public class CalendarDialog implements Window.CloseListener {
 			//end = Calendar.getEndOfDay(calendar, end);
 		}
 
-		showEventPopup(getNewEvent("Backup", "New backup event", start, end), true);
+		showEventPopup(getNewEvent("Backup", "New backup event", start), true);
 	}
 
 	private void showEventPopup(CalendarEvent event, boolean newEvent) {
@@ -752,10 +754,10 @@ public class CalendarDialog implements Window.CloseListener {
 					return createStyleNameSelect();
 
 				} else if (propertyId.equals("start")) {
-					return createDateField("Start date");
+					return createDateField("Start");
 
 				} else if (propertyId.equals("end")) {
-					endDateField = createDateField("End date");
+					endDateField = createDateField("End");
 					endDateField.setVisible(false);
 					return endDateField;
 				} else if (propertyId.equals("allDay")) {
@@ -783,7 +785,7 @@ public class CalendarDialog implements Window.CloseListener {
 						private static final long serialVersionUID = 1L;
 
 						public void valueChange(ValueChangeEvent event) {
-							boolean isRepeat = !((String) event.getProperty().getValue()).equals("none");
+							boolean isRepeat = !((String) event.getProperty().getValue()).equals("NONE");
 							if (endDateField != null) {
 								endDateField.setVisible(isRepeat);
 								endDateField.markAsDirty();
@@ -845,17 +847,22 @@ public class CalendarDialog implements Window.CloseListener {
 
 			private NativeSelect createRepeatSelect() {
 				NativeSelect s = new NativeSelect("Repeat");
+				s.setImmediate(true);
 				s.setNullSelectionAllowed(false);
 				s.addContainerProperty("r", String.class, "");
 				s.setItemCaptionPropertyId("r");
-				Item i = s.addItem(Repeat.none.name());
+				Item i = s.addItem("NONE");
 				i.getItemProperty("r").setValue("None");
-				i = s.addItem(Repeat.day.name());
+				i = s.addItem(Recur.HOURLY);
+				i.getItemProperty("r").setValue("Every Hour");
+				i = s.addItem(Recur.DAILY);
 				i.getItemProperty("r").setValue("Every Day");
-				i = s.addItem(Repeat.week.name());
+				i = s.addItem(Recur.WEEKLY);
 				i.getItemProperty("r").setValue("Every Week");
-				i = s.addItem(Repeat.month.name());
+				i = s.addItem(Recur.MONTHLY);
 				i.getItemProperty("r").setValue("Every Month");
+				i = s.addItem(Recur.YEARLY);
+				i.getItemProperty("r").setValue("Every Year");
 				return s;
 			}
 
@@ -875,7 +882,7 @@ public class CalendarDialog implements Window.CloseListener {
 
 		});
 
-		scheduleEventForm.setVisibleItemProperties(new Object[] { "start", "caption", "description", "node" });
+		scheduleEventForm.setVisibleItemProperties(new Object[] { "start", "end", "caption", "description", "node" });
 	}
 
 	private void setFormDateResolution(Resolution resolution) {
@@ -1005,17 +1012,24 @@ public class CalendarDialog implements Window.CloseListener {
 		captionLabel.setValue(month + " " + calendar.get(GregorianCalendar.YEAR));
 	}
 
-	private CalendarCustomEvent getNewEvent(String caption, String description, Date start, Date end) {
-		return getNewEvent(caption, description, start, end, nodes.get(0).getID());
+	private CalendarCustomEvent getNewEvent(String caption, String description, Date start) {
+		return getNewEvent(caption, description, start, null, "NULL", null, nodes.get(0).getID());
 	}
 
-	private CalendarCustomEvent getNewEvent(String caption, String description, Date start, Date end, String node) {
+	private CalendarCustomEvent getNewEvent(String caption, String description, Date start, String repeat, Date until) {
+		return getNewEvent(caption, description, start, null, repeat, until, nodes.get(0).getID());
+	}
+
+	private CalendarCustomEvent getNewEvent(String caption, String description, Date start, Date end, String repeat, Date until, String node) {
 		CalendarCustomEvent event = new CalendarCustomEvent();
 		event.setCaption(caption);
 		event.setDescription(description);
 		event.setStart(start);
-		event.setEnd(end);
-		//event.setRepeat(Repeat.none.name());
+		java.util.Calendar cal = java.util.Calendar.getInstance();
+		cal.setTime(start);
+		cal.add(java.util.Calendar.HOUR_OF_DAY, 1);
+		event.setEnd(cal.getTime());
+		event.setRepeat(repeat);
 		event.setNode(node);
 		//event.setStyleName("color1");
 

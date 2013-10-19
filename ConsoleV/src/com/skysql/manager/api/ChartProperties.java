@@ -74,6 +74,9 @@ public class ChartProperties implements Serializable {
 			for (String type : SystemTypes.getList().keySet()) {
 				ArrayList<ChartMappings> chartMappings = new ArrayList<ChartMappings>();
 				for (MonitorRecord monitor : Monitors.getMonitorsList(type).values()) {
+					if (monitor.getChartType() == null) {
+						continue;
+					}
 					ArrayList<String> monitorsForChart = new ArrayList<String>();
 					monitorsForChart.add(monitor.getID());
 					UserChart userChart = new UserChart(monitor.getName(), monitor.getDescription(), monitor.getUnit(), monitor.getChartType(), 15,
