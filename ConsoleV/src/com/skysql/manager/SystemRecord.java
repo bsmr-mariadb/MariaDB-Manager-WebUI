@@ -131,10 +131,10 @@ public class SystemRecord extends ClusterComponent {
 
 		if (success) {
 			WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
-			if (writeResponse != null && !writeResponse.getInsertKey().isEmpty()) {
+			if (writeResponse != null && getID() == null && !writeResponse.getInsertKey().isEmpty()) {
 				setID(writeResponse.getInsertKey());
 				return true;
-			} else if (writeResponse != null && writeResponse.getUpdateCount() > 0) {
+			} else if (writeResponse != null && getID() != null && writeResponse.getUpdateCount() > 0) {
 				return true;
 			}
 		}

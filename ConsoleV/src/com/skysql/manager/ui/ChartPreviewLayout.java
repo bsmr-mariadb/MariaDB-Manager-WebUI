@@ -172,7 +172,14 @@ public class ChartPreviewLayout extends VerticalLayout {
 		chartUnit.setValue(unit != null ? unit : "");
 		userChart.setUnit(unit);
 
-		chartSelectType.setValue(type);
+		chartSelectType.setValue(UserChart.DEFAULT_CHARTTYPE.name());
+		try {
+			if (type != null && UserChart.ChartType.valueOf(type) != null) {
+				chartSelectType.setValue(type);
+			}
+		} catch (IllegalArgumentException e) {
+			System.err.println("unknow ChartType: " + type);
+		}
 
 		selectCount.setValue(points);
 

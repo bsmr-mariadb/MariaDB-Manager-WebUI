@@ -278,11 +278,8 @@ public class UsersSettings extends HorizontalLayout implements Window.CloseListe
 		windowLayout.addComponent(buttonsBar);
 
 		// attach the validators
-		Validator userNameValidator = new UserNameValidator();
-		newUsername.addValidator(userNameValidator);
-
-		Validator password2Validator = new Password2Validator(newPassword);
-		newPassword2.addValidator(password2Validator);
+		newUsername.addValidator(new UserNameValidator());
+		newPassword2.addValidator(new Password2Validator(newPassword));
 
 	}
 
@@ -378,7 +375,7 @@ public class UsersSettings extends HorizontalLayout implements Window.CloseListe
 		form.setDescription("Change Password for user " + userInfo.completeNamesByID(selectedUserID));
 
 		newPassword = new PasswordField("New Password");
-		newPassword2 = new PasswordField("Verify Password");
+		newPassword2 = new PasswordField("Confirm Password");
 		form.addField("newPassword", newPassword);
 		form.addField("newPassword2", newPassword2);
 		newPassword.focus();

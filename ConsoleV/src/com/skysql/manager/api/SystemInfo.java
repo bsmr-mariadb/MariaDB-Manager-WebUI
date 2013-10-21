@@ -151,26 +151,6 @@ public class SystemInfo {
 }
 
 // {"system":{"systemid":"1","systemtype":"aws","name":"sistema1","started":"Wed, 31 Jul 2013 18:48:41 +0000","lastaccess":"Wed, 31 Jul 2013 18:48:41 +0000","state":"running","nodes":["1"],"lastbackup":null,"properties":{},"monitorlatest":{"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null}},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
-/***
-{"systems":[{
-	"systemid":"1",
-	"systemtype":"aws",
-	"name":"aws1",
-	"started":"Thu, 19 Sep 2013 13:34:34 +0000",
-	"lastaccess":"Thu, 19 Sep 2013 13:34:34 +0000",
-	"updated":"Thu, 19 Sep 2013 16:37:52 +0000",
-	"state":"running",
-	"dbusername":"",
-	"dbpassword":"",
-	"repusername":"",
-	"reppassword":"",
-	"nodes":["1","2"],
-	"lastbackup":null,
-	"properties":{},
-	"monitorlatest":{"connections":"10","traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null}
-	}
-],"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
-***/
 
 class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 	public SystemInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {

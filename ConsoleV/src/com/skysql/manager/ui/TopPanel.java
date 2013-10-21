@@ -54,13 +54,13 @@ public class TopPanel extends HorizontalLayout {
 		// User icon and name
 		VerticalLayout userLayout = new VerticalLayout();
 		userSettingsLayout.addComponent(userLayout);
+		userSettingsLayout.setComponentAlignment(userLayout, Alignment.BOTTOM_CENTER);
 
 		UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
 		String name = userObject.getName();
 		userName = new Label("Welcome, " + name);
 		userName.setSizeUndefined();
 		userLayout.addComponent(userName);
-		userLayout.setComponentAlignment(userName, Alignment.MIDDLE_CENTER);
 
 		// buttons
 		HorizontalLayout buttonsLayout = new HorizontalLayout();

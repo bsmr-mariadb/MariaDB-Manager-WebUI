@@ -21,7 +21,6 @@ package com.skysql.manager;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-
 public class UserChart extends ChartMappings {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -34,6 +33,12 @@ public class UserChart extends ChartMappings {
 		Integer[] array = { COUNT_15, COUNT_30, COUNT_45, COUNT_60 };
 		return array;
 	}
+
+	public enum ChartType {
+		LineChart, AreaChart;
+	}
+
+	public static final ChartType DEFAULT_CHARTTYPE = ChartType.LineChart;
 
 	public static final String LINECHART = "LineChart";
 	public static final String AREACHART = "AreaChart";

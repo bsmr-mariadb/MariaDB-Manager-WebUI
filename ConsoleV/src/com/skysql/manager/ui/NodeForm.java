@@ -19,9 +19,12 @@
 package com.skysql.manager.ui;
 
 import com.skysql.manager.api.NodeInfo;
+import com.skysql.manager.api.SystemTypes;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.EmptyValueException;
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Embedded;
@@ -29,6 +32,7 @@ import com.vaadin.ui.Form;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
@@ -44,14 +48,20 @@ public class NodeForm extends VerticalLayout {
 	final TextField publicIP = new TextField("Public IP");
 	final TextField privateIP = new TextField("Private IP");
 	final TextField dbUsername = new TextField("Database Username");
-	final TextField dbPassword = new TextField("Database Password");
+	final PasswordField dbPassword = new PasswordField("Database Password");
+	final PasswordField dbPassword2 = new PasswordField("Confirm Password");
 	final TextField repUsername = new TextField("Replication Username");
-	final TextField repPassword = new TextField("Replication Password");
-	final TextField connectPassword = new TextField("Root Password");
+	final PasswordField repPassword = new PasswordField("Replication Password");
+	final PasswordField repPassword2 = new PasswordField("Confirm Password");
+	final PasswordField connectPassword = new PasswordField("Root Password");
+	final PasswordField connectPassword2 = new PasswordField("Confirm Password");
 	final TextField connectKey = new TextField("SSH Key");
+	final Validator connectValidator = new PasswordOrKeyValidator(connectPassword);
+
 	final Form form = new Form();
 	private NodeInfo node;
 	public boolean runConnect = false;
+	public boolean isGalera = false;
 
 	NodeForm(final NodeInfo node, String description) {
 		this.node = node;
@@ -63,6 +73,8 @@ public class NodeForm extends VerticalLayout {
 		form.setImmediate(false);
 		form.setFooter(null);
 		form.setDescription(description);
+
+		isGalera = node.getSystemType().equals(SystemTypes.Type.galera.name());
 
 		String value;
 		if ((value = node.getName()) != null) {
@@ -93,27 +105,61 @@ public class NodeForm extends VerticalLayout {
 		privateIP.setRequired(true);
 		privateIP.setRequiredError("Private IP is a required field");
 
-		if ((value = node.getDBUsername()) != null) {
-			dbUsername.setValue(value);
-		}
-		form.addField("dbusername", dbUsername);
+		if (!isGalera) {
+			if ((value = node.getDBUsername()) != null) {
+				dbUsername.setValue(value);
+			}
+			form.addField("dbusername", dbUsername);
+			dbUsername.setRequired(true);
+			dbUsername.setImmediate(false);
+			dbUsername.setRequiredError("Database Username is a required field");
+			dbUsername.addValidator(new UserNotRootValidator(dbUsername.getCaption()));
 
-		dbPassword.setNullSettingAllowed(true);
-		if ((value = node.getDBPassword()) != null) {
-			dbPassword.setValue(value);
-		}
-		form.addField("dbpassword", dbPassword);
+			if ((value = node.getDBPassword()) != null) {
+				dbPassword.setValue(value);
+			}
+			form.addField("dbpassword", dbPassword);
+			dbPassword.setRequired(true);
+			dbPassword.setImmediate(false);
+			dbPassword.setRequiredError("Database Password is a required field");
 
-		if ((value = node.getRepUsername()) != null) {
-			repUsername.setValue(value);
+			if ((value = node.getDBPassword()) != null) {
+				dbPassword2.setValue(value);
+			}
+			form.addField("dbpassword2", dbPassword2);
+			dbPassword2.setRequired(true);
+			dbPassword2.setImmediate(true);
+			dbPassword2.setRequiredError("Confirm Password is a required field");
+			dbPassword2.addValidator(new Password2Validator(dbPassword));
 		}
-		form.addField("repusername", repUsername);
 
-		repPassword.setNullSettingAllowed(true);
-		if ((value = node.getRepPassword()) != null) {
-			repPassword.setValue(value);
+		if (!isGalera) {
+			if ((value = node.getRepUsername()) != null) {
+				repUsername.setValue(value);
+			}
+			form.addField("repusername", repUsername);
+			repUsername.setRequired(true);
+			repUsername.setImmediate(false);
+			repUsername.setRequiredError("Replication Username is a required field");
+			repUsername.addValidator(new UserNotRootValidator(repUsername.getCaption()));
+
+			if ((value = node.getRepPassword()) != null) {
+				repPassword.setValue(value);
+			}
+			form.addField("reppassword", repPassword);
+			repPassword.setRequired(true);
+			repPassword.setImmediate(false);
+			repPassword.setRequiredError("Replication Password is a required field");
+
+			if ((value = node.getRepPassword()) != null) {
+				repPassword2.setValue(value);
+			}
+			form.addField("reppassword2", repPassword2);
+			repPassword2.setRequired(true);
+			repPassword2.setImmediate(true);
+			repPassword2.setRequiredError("Confirm Password is a required field");
+			repPassword2.addValidator(new Password2Validator(repPassword));
 		}
-		form.addField("reppassword", repPassword);
 
 		if (node.getID() == null) {
 			Layout layout = form.getLayout();
@@ -141,19 +187,31 @@ public class NodeForm extends VerticalLayout {
 				public void valueChange(ValueChangeEvent event) {
 					runConnect = (Boolean) event.getProperty().getValue();
 					connectPassword.setEnabled(runConnect);
+					connectPassword2.setEnabled(runConnect);
 					connectKey.setEnabled(runConnect);
+					if (!runConnect) {
+						connectKey.removeValidator(connectValidator);
+					}
 				}
 			});
 			optionLayout.addComponent(option);
 			option.select(true);
 
-			connectPassword.setNullSettingAllowed(true);
 			form.addField("connectPassword", connectPassword);
+			connectPassword.setImmediate(false);
 
-			repPassword.setNullSettingAllowed(true);
+			form.addField("connectPassword2", connectPassword2);
+			connectPassword2.setImmediate(true);
+			connectPassword2.addValidator(new Password2Validator(connectPassword));
+
 			form.addField("connectKey", connectKey);
+			connectKey.setImmediate(true);
 		}
 
+	}
+
+	public void setDescription(String description) {
+		form.setDescription(description);
 	}
 
 	public boolean validateNode() {
@@ -167,17 +225,24 @@ public class NodeForm extends VerticalLayout {
 			node.setInstanceID(instanceID.getValue());
 			node.setPublicIP(publicIP.getValue());
 			node.setPrivateIP(privateIP.getValue());
-			node.setDBUsername(dbUsername.getValue());
-			node.setDBPassword(dbPassword.getValue());
-			node.setRepUsername(repUsername.getValue());
-			node.setRepPassword(repPassword.getValue());
+			if (!isGalera) {
+				node.setDBUsername(dbUsername.getValue());
+				node.setDBPassword(dbPassword.getValue());
+				node.setRepUsername(repUsername.getValue());
+				node.setRepPassword(repPassword.getValue());
+
+			}
 			if (runConnect) {
-				// TODO: get and validate password and/or key logic, or do nothing
+				// get and validate password and/or key logic, or do nothing
+				connectKey.addValidator(connectValidator);
+				connectKey.validate();
 			}
 
 			return true;
 
 		} catch (EmptyValueException e) {
+			return false;
+		} catch (InvalidValueException e) {
 			return false;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -186,7 +251,86 @@ public class NodeForm extends VerticalLayout {
 
 	}
 
-	public void setDescription(String description) {
-		form.setDescription(description);
+	class Password2Validator implements Validator {
+		private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+		private PasswordField otherPassword;
+
+		public Password2Validator(PasswordField otherPassword) {
+			super();
+			this.otherPassword = otherPassword;
+		}
+
+		public boolean isValid(Object value) {
+			if (value == null || !(value instanceof String)) {
+				return false;
+			} else {
+				boolean equal = ((String) value).equals((String) otherPassword.getValue());
+				return equal;
+			}
+		}
+
+		// Upon failure, the validate() method throws an exception
+		public void validate(Object value) throws InvalidValueException {
+			if (!isValid(value)) {
+				throw new InvalidValueException(otherPassword.getCaption() + " mismatch.");
+			}
+		}
 	}
+
+	class PasswordOrKeyValidator implements Validator {
+		private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+		private PasswordField passwordField;
+
+		public PasswordOrKeyValidator(PasswordField passwordField) {
+			super();
+			this.passwordField = passwordField;
+		}
+
+		public boolean isValid(Object value) {
+			if (value == null || !(value instanceof String)) {
+				return false;
+			} else {
+				boolean isKey = !String.valueOf(value).isEmpty();
+				boolean isPassword = !String.valueOf(passwordField.getValue()).isEmpty();
+				return isKey || isPassword;
+			}
+		}
+
+		// Upon failure, the validate() method throws an exception
+		public void validate(Object value) throws InvalidValueException {
+			if (!isValid(value)) {
+				throw new InvalidValueException("Either Root Password or SSH Key must be provided.");
+			}
+		}
+	}
+
+	class UserNotRootValidator implements Validator {
+		private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+		private String label;
+
+		public UserNotRootValidator(String label) {
+			super();
+			this.label = label;
+		}
+
+		public boolean isValid(Object value) {
+			if (value == null || !(value instanceof String)) {
+				return false;
+			} else {
+				boolean isRoot = "root".equalsIgnoreCase((String) value);
+				return !isRoot;
+			}
+		}
+
+		// Upon failure, the validate() method throws an exception
+		public void validate(Object value) throws InvalidValueException {
+			if (!isValid(value)) {
+				throw new InvalidValueException(label + " cannot be root.");
+			}
+		}
+	}
+
 }

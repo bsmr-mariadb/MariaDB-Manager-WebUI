@@ -120,17 +120,25 @@ public class NodeInfo extends ClusterComponent {
 		boolean success = false;
 
 		try {
-			if (this.ID != null) {
+			if (ID != null) {
 				JSONObject jsonParam = new JSONObject();
 				jsonParam.put("name", this.name);
 				jsonParam.put("hostname", this.hostname);
 				jsonParam.put("instanceid", this.instanceID);
 				jsonParam.put("publicip", this.publicIP);
 				jsonParam.put("privateip", this.privateIP);
-				jsonParam.put("dbusername", this.dbUsername);
-				jsonParam.put("dbpassword", this.dbPassword != null ? this.dbPassword : JSONObject.NULL);
-				jsonParam.put("repusername", this.repUsername);
-				jsonParam.put("reppassword", this.repPassword != null ? this.repPassword : JSONObject.NULL);
+				if (this.dbUsername != null) {
+					jsonParam.put("dbusername", this.dbUsername);
+				}
+				if (this.dbPassword != null) {
+					jsonParam.put("dbpassword", this.dbPassword != null ? this.dbPassword : JSONObject.NULL);
+				}
+				if (this.repUsername != null) {
+					jsonParam.put("repusername", this.repUsername);
+				}
+				if (this.repPassword != null) {
+					jsonParam.put("reppassword", this.repPassword != null ? this.repPassword : JSONObject.NULL);
+				}
 				success = api.put("system/" + parentID + "/node/" + ID, jsonParam.toString());
 			} else {
 				StringBuffer regParam = new StringBuffer();
@@ -139,10 +147,18 @@ public class NodeInfo extends ClusterComponent {
 				regParam.append("&instanceid=" + URLEncoder.encode(this.instanceID, "UTF-8"));
 				regParam.append("&publicip=" + URLEncoder.encode(this.publicIP, "UTF-8"));
 				regParam.append("&privateip=" + URLEncoder.encode(this.privateIP, "UTF-8"));
-				regParam.append("&dbusername=" + URLEncoder.encode(this.dbUsername, "UTF-8"));
-				regParam.append("&dbpassword=" + URLEncoder.encode(this.dbPassword, "UTF-8"));
-				regParam.append("&repusername=" + URLEncoder.encode(this.repUsername, "UTF-8"));
-				regParam.append("&reppassword=" + URLEncoder.encode(this.repPassword, "UTF-8"));
+				if (this.dbUsername != null) {
+					regParam.append("&dbusername=" + URLEncoder.encode(this.dbUsername, "UTF-8"));
+				}
+				if (this.dbPassword != null) {
+					regParam.append("&dbpassword=" + URLEncoder.encode(this.dbPassword, "UTF-8"));
+				}
+				if (this.repUsername != null) {
+					regParam.append("&repusername=" + URLEncoder.encode(this.repUsername, "UTF-8"));
+				}
+				if (this.repPassword != null) {
+					regParam.append("&reppassword=" + URLEncoder.encode(this.repPassword, "UTF-8"));
+				}
 				success = api.post("system/" + parentID + "/node", regParam.toString());
 			}
 
@@ -156,10 +172,10 @@ public class NodeInfo extends ClusterComponent {
 
 		if (success) {
 			WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
-			if (writeResponse != null && !writeResponse.getInsertKey().isEmpty()) {
+			if (writeResponse != null && ID == null && !writeResponse.getInsertKey().isEmpty()) {
 				ID = writeResponse.getInsertKey();
 				return true;
-			} else if (writeResponse != null && writeResponse.getUpdateCount() > 0) {
+			} else if (writeResponse != null && ID != null && writeResponse.getUpdateCount() > 0) {
 				return true;
 			}
 		}
@@ -234,10 +250,10 @@ public class NodeInfo extends ClusterComponent {
 				+ ((this.state == null) ? NOT_AVAILABLE : this.state + " - " + NodeStates.getDescription(this.systemType, this.state)) + "</li>"
 				+ "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Name:</b> " + this.name + "</li>" + "<li><b>Hostname:</b> " + this.hostname + "</li>"
 				+ "<li><b>Public IP:</b> " + this.publicIP + "</li>" + "<li><b>Private IP:</b> " + this.privateIP + "</li>" + "<li><b>Instance ID:</b> "
-				+ this.instanceID + "<li><b>DB Username:</b> " + this.dbUsername + "<li><b>DB Password:</b> " + this.dbPassword + "</li>"
-				+ "<li><b>Rep Username:</b> " + this.repUsername + "<li><b>Rep Password:</b> " + this.repPassword + "</li>" + "<li><b>Available Commands:</b> "
-				+ ((this.commands == null) ? NOT_AVAILABLE : getCommands().getNames().keySet()) + "</li>" + "<li><b>Command running:</b> "
-				+ ((this.task == null || !this.task.getState().equals("running")) ? NOT_AVAILABLE : this.task.getCommand()) + "</li>" + "</ul>";
+				+ this.instanceID + "<li><b>DB Username:</b> " + this.dbUsername + "<li><b>Rep Username:</b> " + this.repUsername
+				+ "<li><b>Available Commands:</b> " + ((this.commands == null) ? NOT_AVAILABLE : getCommands().getNames().keySet()) + "</li>"
+				+ "<li><b>Command running:</b> " + ((this.task == null || !this.task.getState().equals("running")) ? NOT_AVAILABLE : this.task.getCommand())
+				+ "</li>" + "</ul>";
 
 	}
 
