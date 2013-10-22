@@ -152,6 +152,8 @@ public class ManagerUI extends UI {
 			DateConversion.setAdjust(userObject.getProperty(UserObject.PROPERTY_TIME_ADJUST));
 			DateConversion.setFormat(userObject.getProperty(UserObject.PROPERTY_TIME_FORMAT));
 
+			session.setAttribute("isChartsEditing", false);
+
 			initLayout();
 			initExecutor();
 		}
@@ -209,10 +211,9 @@ public class ManagerUI extends UI {
 
 		// setup scheduler that will keep refreshing the UI until the end of the session
 		log("timer - init");
-		final long fDelayBetweenRuns = 15;
+		final long fDelayBetweenRuns = 20;
 		Runnable runTimerTask = new RunMainTimerTask();
 		mainTimerFuture = ExecutorFactory.addTimer(runTimerTask, fDelayBetweenRuns);
-
 	}
 
 	private final class RunMainTimerTask implements Runnable {

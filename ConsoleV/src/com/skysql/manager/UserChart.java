@@ -40,14 +40,6 @@ public class UserChart extends ChartMappings {
 
 	public static final ChartType DEFAULT_CHARTTYPE = ChartType.LineChart;
 
-	public static final String LINECHART = "LineChart";
-	public static final String AREACHART = "AreaChart";
-
-	public static String[] chartTypes() {
-		String[] array = { LINECHART, AREACHART };
-		return array;
-	}
-
 	private HashMap<String, Object> monitorsData;
 
 	public UserChart(String name, String description, String unit, String type, int points, ArrayList<String> monitorIDs) {

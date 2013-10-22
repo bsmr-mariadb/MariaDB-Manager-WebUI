@@ -337,6 +337,9 @@ public class PanelInfo extends HorizontalSplitPanel {
 			return;
 		}
 
+		// call to make Monitors set "current" systemType set of Monitors... to be changed
+		Monitors.getMonitorsList(componentInfo.getSystemType());
+
 		if (componentInfo != lastComponent) {
 
 			// if we have not attached a component yet...
@@ -350,6 +353,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 					infoLayout.addComponent(nodeGrid);
 					break;
 				}
+
 			} else {
 
 				// switch out System or Node current info, if necessary
@@ -365,9 +369,6 @@ public class PanelInfo extends HorizontalSplitPanel {
 					}
 				}
 			}
-
-			// call to make Monitors set "current" systemType set of Monitors... to be changed
-			Monitors.getMonitorsList(componentInfo.getSystemType());
 
 			// zero out existing display in order to eliminate false user readings if new data is slow to be retrieved
 			if (chartsArrayLayout != null) {

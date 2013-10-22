@@ -85,7 +85,7 @@ public class NodesLayout extends HorizontalLayout {
 					// Get the child component which was clicked
 					ComponentButton button = (ComponentButton) child;
 					OverviewPanel overviewPanel = session.getAttribute(OverviewPanel.class);
-					overviewPanel.clickLayout(button);
+					overviewPanel.clickLayout(button, true);
 				}
 
 			}
@@ -139,7 +139,7 @@ public class NodesLayout extends HorizontalLayout {
 		removeComponent(button);
 		OverviewPanel overviewPanel = getSession().getAttribute(OverviewPanel.class);
 		if (button.isSelected()) {
-			overviewPanel.clickComponentButton(0);
+			overviewPanel.clickComponentButton(0, false);
 		}
 		overviewPanel.refresh();
 	}
@@ -272,7 +272,7 @@ public class NodesLayout extends HorizontalLayout {
 					setComponentAlignment(button, Alignment.MIDDLE_CENTER);
 					button.setEditable(isEditable);
 					if (clusterComponent.getID().equals(currentSelectedID) && clusterComponent.getType().equals(currentSelectedType) && !button.isSelected()) {
-						overviewPanel.clickLayout(button);
+						overviewPanel.clickLayout(button, true);
 					}
 					newButtons.add(button);
 				}
@@ -327,9 +327,11 @@ public class NodesLayout extends HorizontalLayout {
 					String newName = newComponent.getName();
 					if (newName != null && !newName.equals(currentComponent.getName())) {
 						button.setName(newName);
+						currentComponent.setName(newName);
 					}
 
 					String newState = newComponent.getState();
+					currentComponent.setState(newState);
 
 					String newCapacity = newComponent.getCapacity();
 					if ((newState == null)
@@ -338,6 +340,7 @@ public class NodesLayout extends HorizontalLayout {
 
 						button.setIcon(currentComponent.getType().toString(), newState, newCapacity);
 					}
+					currentComponent.setCapacity(newCapacity);
 
 					String toolTip = null;
 					switch (newComponent.getType()) {
@@ -357,10 +360,10 @@ public class NodesLayout extends HorizontalLayout {
 						break;
 					}
 					button.setDescription(toolTip);
-					button.setData(newComponent);
-					if (button.isSelected()) {
-						getSession().setAttribute(ClusterComponent.class, newComponent);
-					}
+					//					button.setData(newComponent);
+					//					if (button.isSelected()) {
+					//						getSession().setAttribute(ClusterComponent.class, newComponent);
+					//					}
 				}
 			});
 

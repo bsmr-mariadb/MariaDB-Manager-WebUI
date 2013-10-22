@@ -66,4 +66,23 @@ public class ExecutorFactory {
 		}
 	}
 
+	public static ScheduledFuture<?> addOneTimer(Runnable timerTask, long fDelay) {
+
+		if (runningTimers == 0) {
+			fScheduler = Executors.newScheduledThreadPool(NUM_THREADS);
+			ManagerUI.log("timer startup");
+		}
+
+		ScheduledFuture<?> newTimerHandle = fScheduler.schedule(timerTask, fDelay, TimeUnit.SECONDS);
+		if (newTimerHandle != null) {
+			runningTimers++;
+			ManagerUI.log("timer added - " + runningTimers);
+		} else {
+			ManagerUI.log("cannot get new timer handle");
+		}
+
+		return newTimerHandle;
+
+	}
+
 }

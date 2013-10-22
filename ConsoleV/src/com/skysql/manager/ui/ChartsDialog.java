@@ -140,8 +140,11 @@ public class ChartsDialog {
 		MonitorRecord monitor = (MonitorRecord) Monitors.getMonitorsList(clusterComponent.getSystemType()).values().toArray()[0];
 		ArrayList<String> monitorsForChart = new ArrayList<String>();
 		monitorsForChart.add(monitor.getID());
-		UserChart userChart = new UserChart(monitor.getName(), monitor.getDescription(), monitor.getUnit(), monitor.getChartType(), UserChart.COUNT_15,
-				monitorsForChart);
+		String chartType = monitor.getChartType();
+		if (chartType == null) {
+			chartType = UserChart.DEFAULT_CHARTTYPE.name();
+		}
+		UserChart userChart = new UserChart(monitor.getName(), monitor.getDescription(), monitor.getUnit(), chartType, UserChart.COUNT_15, monitorsForChart);
 
 		return (userChart);
 

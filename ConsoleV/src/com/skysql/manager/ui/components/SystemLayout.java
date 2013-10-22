@@ -60,7 +60,7 @@ public class SystemLayout extends VerticalLayout {
 
 			} else {
 				OverviewPanel overviewPanel = getSession().getAttribute(OverviewPanel.class);
-				overviewPanel.clickLayout(button);
+				overviewPanel.clickLayout(button, true);
 			}
 
 		}
@@ -95,7 +95,7 @@ public class SystemLayout extends VerticalLayout {
 				systemInfo.setCurrentSystem(parentID);
 				session.setAttribute(SystemInfo.class, systemInfo);
 				ManagerUI.log("new systemID: " + parentID);
-				overviewPanel.clickLayout(button);
+				overviewPanel.clickLayout(button, false);
 				overviewPanel.refresh();
 			}
 
@@ -141,7 +141,7 @@ public class SystemLayout extends VerticalLayout {
 		ManagerUI.log("new systemID: " + parentID);
 		OverviewPanel overviewPanel = session.getAttribute(OverviewPanel.class);
 		if (button.isSelected()) {
-			overviewPanel.clickLayout(null);
+			overviewPanel.clickLayout(null, false);
 		}
 		overviewPanel.refresh();
 

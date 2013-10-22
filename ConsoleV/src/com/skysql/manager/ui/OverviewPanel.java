@@ -182,15 +182,15 @@ public class OverviewPanel extends Panel {
 		return nodesLayout.getButton(nodeID);
 	}
 
-	public void clickComponentButton(final int buttonIndex) {
-		clickLayout(nodesLayout.getButton(buttonIndex));
+	public void clickComponentButton(final int buttonIndex, boolean isManual) {
+		clickLayout(nodesLayout.getButton(buttonIndex), isManual);
 	}
 
-	public void clickSystemButton() {
-		clickLayout(systemLayout.getButton());
+	public void clickSystemButton(boolean isManual) {
+		clickLayout(systemLayout.getButton(), isManual);
 	}
 
-	public void clickLayout(final ComponentButton button_node) {
+	public void clickLayout(final ComponentButton button_node, boolean isManual) {
 		ManagerUI.log("clickLayout: " + button_node);
 
 		if (button_node == selectedButton) {
@@ -209,8 +209,10 @@ public class OverviewPanel extends Panel {
 			getSession().setAttribute(ClusterComponent.class, null);
 		}
 
-		TabbedPanel tabbedPanel = getSession().getAttribute(TabbedPanel.class);
-		tabbedPanel.refresh();
+		if (isManual) {
+			TabbedPanel tabbedPanel = getSession().getAttribute(TabbedPanel.class);
+			tabbedPanel.refresh();
+		}
 
 		selectedButton = button_node;
 
@@ -222,9 +224,9 @@ public class OverviewPanel extends Panel {
 		}
 
 		if (systemRecord.getParentID() == null) {
-			clickComponentButton(0);
+			clickComponentButton(0, false);
 		} else {
-			clickSystemButton();
+			clickSystemButton(false);
 		}
 	}
 

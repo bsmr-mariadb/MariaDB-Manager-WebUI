@@ -200,13 +200,9 @@ public class APIrestful {
 
 		HttpURLConnection httpConnection = null;
 		URL url = null;
-		long startTime;
+		long startTime = System.nanoTime();
 
 		DebugPanel debugPanel = VaadinSession.getCurrent().getAttribute(DebugPanel.class);
-
-		if (Debug.ON) {
-			startTime = System.nanoTime();
-		}
 
 		try {
 			url = new URL(apiURI + "/" + uri + ((type == CallType.GET && value != null) ? value : ""));
@@ -262,10 +258,8 @@ public class APIrestful {
 
 			in.close();
 
-			if (Debug.ON) {
-				long estimatedTime = (System.nanoTime() - startTime) / 1000000;
-				ManagerUI.log("Response Time: " + estimatedTime + "ms, inputStream: " + result, debugPanel);
-			}
+			long estimatedTime = (System.nanoTime() - startTime) / 1000000;
+			ManagerUI.log("Response Time: " + estimatedTime + "ms, inputStream: " + result, debugPanel);
 
 			APIrestful api = getGson().fromJson(result, APIrestful.class);
 
@@ -291,9 +285,12 @@ public class APIrestful {
 				errors = in.readLine();
 				in.close();
 
+				long estimatedTime = (System.nanoTime() - startTime) / 1000000;
 				if (Debug.ON) {
-					long estimatedTime = (System.nanoTime() - startTime) / 1000000;
 					ManagerUI.log("Response Time: " + estimatedTime + "ms, errorStream: " + errors, debugPanel);
+				} else {
+					System.err.println("API " + lastCall);
+					System.err.println("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
 				}
 
 				APIrestful api = getGson().fromJson(errors, APIrestful.class);

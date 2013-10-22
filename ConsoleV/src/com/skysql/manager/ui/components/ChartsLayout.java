@@ -129,6 +129,7 @@ public class ChartsLayout extends DDCssLayout {
 
 	public void setEditable(boolean editable) {
 		isChartsEditing = editable;
+		VaadinSession.getCurrent().setAttribute("isChartsEditing", isChartsEditing);
 
 		Iterator<Component> iter = iterator();
 		while (iter.hasNext()) {
@@ -157,14 +158,24 @@ public class ChartsLayout extends DDCssLayout {
 	private String time, interval;
 
 	public void refresh(String time, String interval) {
-
 		this.time = time;
 		this.interval = interval;
+
+		//		if (isChartsEditing) {
+		//			return;
+		//		}
+		VaadinSession session = getSession();
+		if (session == null) {
+			session = VaadinSession.getCurrent();
+		}
+		boolean isChartsEditing2 = (Boolean) session.getAttribute("isChartsEditing");
+		if (isChartsEditing2) {
+			return;
+		}
 
 		ManagerUI.log("ChartsLayout refresh()");
 		updaterThread = new UpdaterThread(updaterThread);
 		updaterThread.start();
-		ManagerUI.log("ChartsLayout after refresh()");
 
 	}
 
@@ -201,7 +212,11 @@ public class ChartsLayout extends DDCssLayout {
 	private void asynchRefresh(UpdaterThread updaterThread) {
 
 		ManagerUI.log(this.getClass().getName() + " asynchRefresh updaterThread: " + updaterThread);
+		refreshCode(time, interval);
 
+	}
+
+	public void refreshCode(String time, String interval) {
 		String systemID, nodeID;
 
 		VaadinSession session = getSession();
@@ -240,7 +255,7 @@ public class ChartsLayout extends DDCssLayout {
 
 				for (String monitorID : userChart.getMonitorIDs()) {
 
-					if (updaterThread.flagged) {
+					if (updaterThread != null && updaterThread.flagged) {
 						ManagerUI.log(this.getClass().getName() + " - flagged is set before API call");
 						return;
 					}
@@ -256,9 +271,9 @@ public class ChartsLayout extends DDCssLayout {
 					MonitorData monitorData = (MonitorData) userChart.getMonitorData(monitor.getID());
 					if (monitorData == null) {
 						String method;
-						if (UserChart.LINECHART.equals(userChart.getType())) {
+						if (UserChart.ChartType.LineChart.name().equals(userChart.getType())) {
 							method = MonitorData.METHOD_AVG;
-						} else if (UserChart.AREACHART.equals(userChart.getType())) {
+						} else if (UserChart.ChartType.AreaChart.name().equals(userChart.getType())) {
 							method = MonitorData.METHOD_MINMAX;
 						} else {
 							continue; // unknown chart type, skip
@@ -283,7 +298,7 @@ public class ChartsLayout extends DDCssLayout {
 						}
 					}
 
-					if (updaterThread.flagged) {
+					if (updaterThread != null && updaterThread.flagged) {
 						ManagerUI.log("ChartsLayout - flagged is set before UI redraw");
 						return;
 					}
@@ -298,7 +313,7 @@ public class ChartsLayout extends DDCssLayout {
 
 							ManagerUI.log("ChartsLayout access run() monitorID: " + finalMonitorID);
 
-							if (UserChart.LINECHART.equals(userChart.getType())) {
+							if (UserChart.ChartType.LineChart.name().equals(userChart.getType())) {
 
 								ListSeries ls = null, testLS;
 								List<Series> lsList = configuration.getSeries();
@@ -320,7 +335,7 @@ public class ChartsLayout extends DDCssLayout {
 								ArrayList<Number> avgList = finalMonitorData.getAvgPoints();
 								ls.setData(avgList);
 
-							} else if (UserChart.AREACHART.equals(userChart.getType())) {
+							} else if (UserChart.ChartType.AreaChart.name().equals(userChart.getType())) {
 
 								RangeSeries rs = null, testRS;
 								List<Series> lsList = configuration.getSeries();

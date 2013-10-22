@@ -86,9 +86,9 @@ public class ChartButton extends CustomComponent {
 
 		Configuration configuration = new Configuration();
 		ChartType chartType = ChartType.LINE; // default to LINE
-		if (UserChart.LINECHART.equals(userChart.getType())) {
+		if (UserChart.ChartType.LineChart.name().equals(userChart.getType())) {
 			chartType = ChartType.LINE;
-		} else if (UserChart.AREACHART.equals(userChart.getType())) {
+		} else if (UserChart.ChartType.AreaChart.name().equals(userChart.getType())) {
 			chartType = ChartType.AREARANGE;
 		}
 
@@ -165,13 +165,19 @@ public class ChartButton extends CustomComponent {
 
 			setStyleName(getStyleName().replace("draggable", ""));
 
-			layout.removeComponent(draggable);
+			if (layout != null) {
+				if (draggable != null) {
+					layout.removeComponent(draggable);
+				}
+				if (editButton != null) {
+					layout.removeComponent(editButton);
+				}
+				if (deleteButton != null) {
+					layout.removeComponent(deleteButton);
+				}
+			}
 			draggable = null;
-
-			layout.removeComponent(editButton);
 			editButton = null;
-
-			layout.removeComponent(deleteButton);
 			deleteButton = null;
 
 		}

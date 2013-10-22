@@ -78,8 +78,8 @@ public class ChartPreviewLayout extends VerticalLayout {
 
 		chartSelectType = new NativeSelect("Type");
 		chartSelectType.setImmediate(true);
-		for (String type : UserChart.chartTypes()) {
-			chartSelectType.addItem(type);
+		for (UserChart.ChartType type : UserChart.ChartType.values()) {
+			chartSelectType.addItem(type.name());
 		}
 		chartSelectType.setNullSelectionAllowed(false);
 		formLayout.addComponent(chartSelectType);
@@ -194,7 +194,7 @@ public class ChartPreviewLayout extends VerticalLayout {
 		ChartButton newChartButton = new ChartButton(userChart);
 		newChartButton.setChartsLayout(newChartsLayout);
 		newChartsLayout.addComponent(newChartButton);
-		newChartsLayout.refresh(chartTime, chartInterval);
+		newChartsLayout.refreshCode(chartTime, chartInterval);
 		return newChartsLayout;
 	}
 

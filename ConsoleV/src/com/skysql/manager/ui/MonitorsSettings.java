@@ -447,10 +447,10 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 			form.addField("monitorInterval", monitorInterval);
 		}
 
-		for (String chartType : UserChart.chartTypes()) {
-			monitorChartType.addItem(chartType);
+		for (UserChart.ChartType type : UserChart.ChartType.values()) {
+			monitorChartType.addItem(type.name());
 		}
-		monitorChartType.select(monitor.getChartType() == null ? UserChart.chartTypes()[0] : monitor.getChartType());
+		monitorChartType.select(monitor.getChartType() == null ? UserChart.ChartType.values()[0] : monitor.getChartType());
 		monitorChartType.setNullSelectionAllowed(false);
 		form.addField("monitorChartType", monitorChartType);
 
