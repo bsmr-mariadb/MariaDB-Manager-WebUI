@@ -340,7 +340,10 @@ public class PanelInfo extends HorizontalSplitPanel {
 		// call to make Monitors set "current" systemType set of Monitors... to be changed
 		Monitors.getMonitorsList(componentInfo.getSystemType());
 
-		if (componentInfo != lastComponent) {
+		String parentID = componentInfo.getParentID();
+		String ID = componentInfo.getID();
+
+		if (lastComponent == null || (parentID != null && !parentID.equals(lastComponent.getParentID())) || (ID != null && !ID.equals(lastComponent.getID()))) {
 
 			// if we have not attached a component yet...
 			if (lastComponent == null) {

@@ -360,10 +360,10 @@ public class NodesLayout extends HorizontalLayout {
 						break;
 					}
 					button.setDescription(toolTip);
-					//					button.setData(newComponent);
-					//					if (button.isSelected()) {
-					//						getSession().setAttribute(ClusterComponent.class, newComponent);
-					//					}
+					button.setData(newComponent);
+					if (button.isSelected()) {
+						getSession().setAttribute(ClusterComponent.class, newComponent);
+					}
 				}
 			});
 
