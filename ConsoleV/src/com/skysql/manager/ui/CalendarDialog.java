@@ -25,6 +25,7 @@ import com.skysql.manager.ScheduleRecord;
 import com.skysql.manager.iCalSupport;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.Schedule;
+import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.api.UserObject;
 import com.skysql.manager.ui.components.BackupScheduledLayout;
 import com.vaadin.data.Item;
@@ -157,6 +158,23 @@ public class CalendarDialog implements Window.CloseListener {
 	public void initContent() {
 		OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
 		nodes = overviewPanel.getNodes();
+
+		if (nodes == null || nodes.isEmpty()) {
+			SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+			String systemID = systemInfo.getCurrentID();
+			String systemType = systemInfo.getCurrentSystem().getSystemType();
+			if (systemID.equals(SystemInfo.SYSTEM_ROOT)) {
+				ClusterComponent clusterComponent = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
+				systemID = clusterComponent.getID();
+				systemType = clusterComponent.getSystemType();
+			}
+			nodes = new ArrayList<NodeInfo>();
+			for (String nodeID : systemInfo.getSystemRecord(systemID).getNodes()) {
+				NodeInfo nodeInfo = new NodeInfo(systemID, systemType, nodeID);
+				nodes.add(nodeInfo);
+			}
+
+		}
 
 		// Set default Locale for this application
 		setLocale(Locale.getDefault());

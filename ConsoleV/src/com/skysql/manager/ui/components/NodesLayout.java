@@ -254,10 +254,10 @@ public class NodesLayout extends HorizontalLayout {
 						clusterComponent.setID(componentID);
 					}
 
-					if (updaterThread.flagged) {
-						ManagerUI.log("NodesLayout - flagged is set while adding nodes");
-						return;
-					}
+					//					if (updaterThread.flagged) {
+					//						ManagerUI.log("NodesLayout - flagged is set while adding nodes");
+					//						return;
+					//					}
 
 					ComponentButton button = clusterComponent.getButton();
 					if (button == null) {
@@ -283,10 +283,10 @@ public class NodesLayout extends HorizontalLayout {
 
 		}
 
-		if (updaterThread.flagged) {
-			ManagerUI.log("NodesLayout - flagged is set after removeall");
-			return;
-		}
+		//		if (updaterThread.flagged) {
+		//			ManagerUI.log("NodesLayout - flagged is set after removeall");
+		//			return;
+		//		}
 
 		ManagerUI.log("NodesLayout - before for loop - buttons: " + buttons.size());
 
@@ -312,10 +312,10 @@ public class NodesLayout extends HorizontalLayout {
 				continue;
 			}
 
-			if (updaterThread.flagged) {
-				ManagerUI.log("NodesLayout - flagged is set before run() ");
-				return;
-			}
+			//			if (updaterThread.flagged) {
+			//				ManagerUI.log("NodesLayout - flagged is set before run() ");
+			//				return;
+			//			}
 
 			managerUI.access(new Runnable() {
 				@Override
@@ -334,13 +334,8 @@ public class NodesLayout extends HorizontalLayout {
 					currentComponent.setState(newState);
 
 					String newCapacity = newComponent.getCapacity();
-					if ((newState == null)
-							|| (newState != null && (!newState.equals(currentComponent.getState())) || (newCapacity != null && !newCapacity
-									.equals(currentComponent.getCapacity())))) {
-
-						button.setIcon(currentComponent.getType().toString(), newState, newCapacity);
-					}
 					currentComponent.setCapacity(newCapacity);
+					button.setIcon(currentComponent.getType().toString(), newState, newCapacity);
 
 					String toolTip = null;
 					switch (newComponent.getType()) {
