@@ -31,13 +31,17 @@ import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.Description;
+import net.fortuna.ical4j.model.property.ExDate;
 import net.fortuna.ical4j.model.property.ProdId;
 import net.fortuna.ical4j.model.property.RRule;
 import net.fortuna.ical4j.model.property.Version;
 
+import com.skysql.manager.ui.CalendarCustomEvent;
+import com.skysql.manager.ui.CalendarDialog.Until;
+
 public class iCalSupport {
 
-	public static Calendar createiCal() {
+	public static synchronized Calendar createiCal() {
 		net.fortuna.ical4j.model.Calendar iCalendar = new net.fortuna.ical4j.model.Calendar();
 		iCalendar.getProperties().add(new ProdId("-//SkySQL//MariaDB Manager 1.0//EN"));
 		iCalendar.getProperties().add(Version.VERSION_2_0);
@@ -46,7 +50,7 @@ public class iCalSupport {
 		return iCalendar;
 	}
 
-	public static VEvent createiEvent(String name, String description, Date startDate) {
+	public static synchronized VEvent createiEvent(CalendarCustomEvent calEvent) {
 		// Create a TimeZone
 		//		TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
 		//		TimeZone timezone = registry.getTimeZone("America/Denver");
@@ -54,31 +58,79 @@ public class iCalSupport {
 		//		endDate.setTimeZone(timezone);
 
 		// Create the event
+		String name = calEvent.getCaption();
 		String eventName = (name == null ? "" : name);
-		DateTime start = new DateTime(startDate);
+
+		DateTime start = new DateTime(calEvent.getStart());
 		start.setUtc(true);
 		DateTime end = start;
 		VEvent event = new VEvent(start, end, eventName);
 
-		Description desc = new Description(description);
+		Description desc = new Description(calEvent.getDescription());
 		event.getProperties().add(desc);
 
-		Recur recur = new Recur(Recur.WEEKLY, null);
-		RRule rule = new RRule(recur);
-		event.getProperties().add(rule);
+		String repeat = calEvent.getRepeat();
+		if (!repeat.equals(CalendarCustomEvent.RECUR_NONE)) {
+			Recur recur = null;
+			String untilSelect = calEvent.getUntilSelect();
 
-		//event.calculateRecurrenceSet(period);
+			if (untilSelect.equals(Until.never.name())) {
+				recur = new Recur(repeat, null);
+
+			} else if (untilSelect.equals(Until.count.name())) {
+				String count = calEvent.getUntilCount();
+				recur = new Recur(repeat, Integer.valueOf(count));
+
+			} else if (untilSelect.equals(Until.date.name())) {
+				Date until = calEvent.getUntilDate();
+				recur = new Recur(repeat, new DateTime(until.getTime()));
+
+			}
+
+			RRule rule = new RRule(recur);
+			event.getProperties().add(rule);
+		}
 
 		// Create a calendar
 		//net.fortuna.ical4j.model.Calendar icsCalendar = createiCal();
-		// Add the event and print
 		//icsCalendar.getComponents().add(meeting);
 
 		return event;
 
 	}
 
-	public static VEvent readiEvent(String eventString) {
+	public static synchronized void parseRepeat(String repeat, CalendarCustomEvent event) {
+		if (repeat == null) {
+			event.setRepeat(CalendarCustomEvent.RECUR_NONE);
+			event.setUntilSelect(Until.never.name());
+			event.setUntilCount("1");
+			event.setUntilDate(event.getStart());
+		} else {
+			try {
+				RRule rule = new RRule(repeat);
+				Recur recur = rule.getRecur();
+				int count = recur.getCount();
+				String frequency = recur.getFrequency();
+				Date until = recur.getUntil();
+				event.setRepeat(frequency);
+				if (count > 0) {
+					event.setUntilSelect(Until.count.name());
+					event.setUntilCount(String.valueOf(count));
+				} else if (until != null) {
+					event.setUntilSelect(Until.date.name());
+					event.setUntilDate(until);
+				} else {
+					event.setUntilSelect(Until.never.name());
+				}
+
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+
+	public static synchronized VEvent readiEvent(String eventString) {
 
 		try {
 			String wholeCal = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//SkySQL//MariaDB Manager 1.0//EN\r\n" + eventString + "\r\nEND:VCALENDAR";
@@ -95,19 +147,41 @@ public class iCalSupport {
 		return null;
 	}
 
-	public static void addUid(VEvent event, String uid) {
+	public static synchronized void addUid(VEvent event, String uid) {
 		try {
 			event.getProperty("UID").setValue(uid);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
+	public static synchronized void addExcludedDate(VEvent event, Date date) {
+		final ExDate exDate = new ExDate();
+		//exDate.setTimeZone(tz);
+		DateTime start = new DateTime(date);
+		start.setUtc(true);
+		exDate.getDates().add(start);
+		event.getProperties().add(exDate);
+
+	}
+
+	public static synchronized void deleteAllFuture(VEvent vEvent, Date date) {
+		net.fortuna.ical4j.model.Property rruleProperty = vEvent.getProperty("RRULE");
+		String rruleStr = rruleProperty != null ? rruleProperty.getValue() : null;
+		try {
+			RRule rule = new RRule(rruleStr);
+			Recur recur = rule.getRecur();
+			recur.setCount(0);
+			recur.setUntil(new DateTime(new Date(date.getTime() - 1000)));
+			vEvent.getProperties().remove(rruleProperty);
+			vEvent.getProperties().add(rule);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+	}
 }

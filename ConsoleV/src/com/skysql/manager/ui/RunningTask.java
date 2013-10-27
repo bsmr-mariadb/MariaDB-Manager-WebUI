@@ -53,7 +53,7 @@ public final class RunningTask {
 	private boolean observerMode;
 	private boolean paramsReady;
 	private ListSelect commandSelect;
-	private HorizontalLayout parametersLayout;
+	private ParametersLayout parametersLayout;
 	private ValueChangeListener listener;
 	private OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
 	private TaskRun taskRun;
@@ -115,7 +115,9 @@ public final class RunningTask {
 		if (observerMode) {
 			scriptingControlsLayout.enableControls(true, Controls.stop);
 		} else {
-			scriptingControlsLayout.enableControls(true, Controls.run);
+			if (parametersLayout == null || parametersLayout.isParameterReady()) {
+				scriptingControlsLayout.enableControls(true, Controls.run);
+			}
 		}
 
 		// COLUMN 3. PROGRESS & RESULT

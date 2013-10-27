@@ -2,7 +2,6 @@ package com.skysql.manager.ui;
 
 import java.net.SocketException;
 import java.text.DateFormatSymbols;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -14,6 +13,8 @@ import java.util.Map.Entry;
 import java.util.TimeZone;
 
 import net.fortuna.ical4j.model.DateTime;
+import net.fortuna.ical4j.model.Period;
+import net.fortuna.ical4j.model.PeriodList;
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Uid;
@@ -85,6 +86,10 @@ public class CalendarDialog implements Window.CloseListener {
 		none, day, week, month, year, custom;
 	}
 
+	public enum Until {
+		never, count, date;
+	}
+
 	private GregorianCalendar calendar;
 	private Calendar calendarComponent;
 	private Date currentMonthsFirstDate;
@@ -98,7 +103,7 @@ public class CalendarDialog implements Window.CloseListener {
 	private Select localeSelect;
 	private CheckBox hideWeekendsButton;
 	private CheckBox allScheduleButton;
-	private Window scheduleEventPopup;
+	private Window scheduleEventPopup, deleteSchedulePopup;
 	private final Form scheduleEventForm = new Form();
 	private Button deleteEventButton;
 	private Button applyEventButton;
@@ -115,10 +120,14 @@ public class CalendarDialog implements Window.CloseListener {
 	private boolean useSecondResolution;
 
 	private Window dialogWindow;
-	private DateField endDateField;
+	private NativeSelect repeatSelectField;
+	private NativeSelect untilSelectField;
+	private DateField untilDateField;
+	private TextField untilCountField;
 	private ArrayList<NodeInfo> nodes;
 	private Schedule schedule;
 	private BackupScheduledLayout bsLayout;
+	private LinkedHashMap<String, ArrayList> eventsMap;
 
 	public CalendarDialog(Schedule schedule, BackupScheduledLayout bsLayout) {
 		this.schedule = schedule;
@@ -193,39 +202,51 @@ public class CalendarDialog implements Window.CloseListener {
 	private void addInitialEvents() {
 		Date originalDate = calendar.getTime();
 
+		eventsMap = new LinkedHashMap<String, ArrayList>();
+
 		// loop through events from API and add to calendar
 		final LinkedHashMap<String, ScheduleRecord> scheduleList = schedule.getScheduleList();
 		ListIterator<Map.Entry<String, ScheduleRecord>> iter = new ArrayList<Entry<String, ScheduleRecord>>(scheduleList.entrySet()).listIterator();
 
-		CalendarCustomEvent event;
 		while (iter.hasNext()) {
 			Map.Entry<String, ScheduleRecord> entry = iter.next();
 			ScheduleRecord scheduleRecord = entry.getValue();
 
 			String iCalString = scheduleRecord.getICal();
-			iCalSupport.readiEvent(iCalString);
-
-			String delims = "[\r\n]+";
-			String[] tokens = iCalString.split(delims);
-
-			String caption = tokens[4].substring(8);
-			String description = tokens[5].substring(12);
-			String repeat = "";
-			Date until = null;
-
-			try {
-				DateTime start = new DateTime(tokens[2].substring(8));
-				DateTime end = new DateTime(tokens[3].substring(6));
-				event = getNewEvent(caption, description, start, end, repeat, until, scheduleRecord.getNodeID());
-				event.setData(scheduleRecord.getID());
-				dataSource.addEvent(event);
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
+			VEvent vEvent = iCalSupport.readiEvent(iCalString);
+			addEventsToMap(scheduleRecord.getID(), vEvent, scheduleRecord.getNodeID());
 
 		}
 
 		calendar.setTime(originalDate);
+	}
+
+	private void addEventsToMap(String eventID, VEvent vEvent, String nodeID) {
+
+		String summary = vEvent.getSummary().getValue();
+		String description = vEvent.getDescription().getValue();
+		net.fortuna.ical4j.model.Property rruleProperty = vEvent.getProperty("RRULE");
+		String rrule = rruleProperty != null ? rruleProperty.getValue() : null;
+
+		ArrayList<CalendarCustomEvent> eventsList = eventsMap.get(eventID);
+		if (eventsList == null) {
+			eventsList = new ArrayList<CalendarCustomEvent>();
+		}
+		eventsMap.put(eventID, eventsList);
+		Date endDate = calendarComponent.getEndDate();
+		PeriodList periodList = vEvent.calculateRecurrenceSet(new Period(new DateTime(currentMonthsFirstDate), new DateTime(endDate)));
+		for (Object po : periodList) {
+			Period period = (Period) po;
+			ManagerUI.log(period.toString());
+
+			DateTime start = new DateTime(period.getStart());
+			DateTime end = new DateTime(period.getEnd());
+			CalendarCustomEvent event = getNewEvent(summary, description, start, end, rrule, nodeID);
+			event.setData(eventID);
+			dataSource.addEvent(event);
+			eventsList.add(event);
+		}
+
 	}
 
 	private void initLayoutContent() {
@@ -630,6 +651,31 @@ public class CalendarDialog implements Window.CloseListener {
 			nextDay();
 			break;
 		}
+
+		for (String scheduleID : eventsMap.keySet()) {
+			ArrayList<CalendarCustomEvent> eventsList = eventsMap.get(scheduleID);
+			for (CalendarCustomEvent removeEvent : eventsList) {
+				if (dataSource.containsEvent(removeEvent)) {
+					dataSource.removeEvent(removeEvent);
+				}
+			}
+		}
+		eventsMap.clear();
+
+		// loop through events from API and add to calendar
+		final LinkedHashMap<String, ScheduleRecord> scheduleList = schedule.getScheduleList();
+		ListIterator<Map.Entry<String, ScheduleRecord>> iter = new ArrayList<Entry<String, ScheduleRecord>>(scheduleList.entrySet()).listIterator();
+
+		while (iter.hasNext()) {
+			Map.Entry<String, ScheduleRecord> entry = iter.next();
+			ScheduleRecord scheduleRecord = entry.getValue();
+
+			String iCalString = scheduleRecord.getICal();
+			VEvent vEvent = iCalSupport.readiEvent(iCalString);
+			addEventsToMap(scheduleRecord.getID(), vEvent, scheduleRecord.getNodeID());
+
+		}
+
 	}
 
 	private void handlePreviousButtonClick() {
@@ -644,6 +690,31 @@ public class CalendarDialog implements Window.CloseListener {
 			previousDay();
 			break;
 		}
+
+		for (String scheduleID : eventsMap.keySet()) {
+			ArrayList<CalendarCustomEvent> eventsList = eventsMap.get(scheduleID);
+			for (CalendarCustomEvent removeEvent : eventsList) {
+				if (dataSource.containsEvent(removeEvent)) {
+					dataSource.removeEvent(removeEvent);
+				}
+			}
+		}
+		eventsMap.clear();
+
+		// loop through events from API and add to calendar
+		final LinkedHashMap<String, ScheduleRecord> scheduleList = schedule.getScheduleList();
+		ListIterator<Map.Entry<String, ScheduleRecord>> iter = new ArrayList<Entry<String, ScheduleRecord>>(scheduleList.entrySet()).listIterator();
+
+		while (iter.hasNext()) {
+			Map.Entry<String, ScheduleRecord> entry = iter.next();
+			ScheduleRecord scheduleRecord = entry.getValue();
+
+			String iCalString = scheduleRecord.getICal();
+			VEvent vEvent = iCalSupport.readiEvent(iCalString);
+			addEventsToMap(scheduleRecord.getID(), vEvent, scheduleRecord.getNodeID());
+
+		}
+
 	}
 
 	private void handleRangeSelect(RangeSelectEvent event) {
@@ -775,9 +846,8 @@ public class CalendarDialog implements Window.CloseListener {
 					return createDateField("Start");
 
 				} else if (propertyId.equals("end")) {
-					endDateField = createDateField("End");
-					endDateField.setVisible(false);
-					return endDateField;
+					return createDateField("End");
+
 				} else if (propertyId.equals("allDay")) {
 					CheckBox cb = createCheckBox("All-day");
 
@@ -797,20 +867,73 @@ public class CalendarDialog implements Window.CloseListener {
 
 					});
 					return cb;
+
 				} else if (propertyId.equals("repeat")) {
-					NativeSelect rs = createRepeatSelect();
-					rs.addValueChangeListener(new ValueChangeListener() {
+					repeatSelectField = createRepeatSelect();
+					repeatSelectField.addValueChangeListener(new ValueChangeListener() {
 						private static final long serialVersionUID = 1L;
 
 						public void valueChange(ValueChangeEvent event) {
-							boolean isRepeat = !((String) event.getProperty().getValue()).equals("NONE");
-							if (endDateField != null) {
-								endDateField.setVisible(isRepeat);
-								endDateField.markAsDirty();
+							if (untilSelectField != null) {
+								boolean isRepeat = !(event.getProperty().getValue().equals(CalendarCustomEvent.RECUR_NONE));
+								untilSelectField.setVisible(isRepeat);
+								untilSelectField.markAsDirty();
 							}
 						}
 					});
-					return rs;
+					return repeatSelectField;
+
+				} else if (propertyId.equals("untilSelect")) {
+					untilSelectField = createUntilSelect();
+					if (repeatSelectField != null && repeatSelectField.getValue().equals(CalendarCustomEvent.RECUR_NONE)) {
+						untilSelectField.setVisible(false);
+					}
+					untilSelectField.addValueChangeListener(new ValueChangeListener() {
+						private static final long serialVersionUID = 1L;
+
+						public void valueChange(ValueChangeEvent event) {
+							Until until = Until.valueOf((String) event.getProperty().getValue());
+							boolean untilCount = false;
+							boolean untilDate = false;
+							switch (until) {
+							case never:
+								break;
+							case count:
+								untilCount = true;
+								break;
+							case date:
+								untilDate = true;
+								break;
+							}
+
+							if (untilCountField != null) {
+								untilCountField.setVisible(untilCount);
+								untilCountField.markAsDirty();
+							}
+							if (untilDateField != null) {
+								untilDateField.setVisible(untilDate);
+								untilDateField.markAsDirty();
+
+							}
+
+						}
+					});
+					return untilSelectField;
+
+				} else if (propertyId.equals("untilCount")) {
+					untilCountField = createTextField("Times");
+					if (!untilSelectField.getValue().equals(Until.count.name())) {
+						untilCountField.setVisible(false);
+					}
+					return untilCountField;
+
+				} else if (propertyId.equals("untilDate")) {
+					untilDateField = createDateField("On Date");
+					if (!untilSelectField.getValue().equals(Until.date.name())) {
+						untilDateField.setVisible(false);
+					}
+					return untilDateField;
+
 				} else if (propertyId.equals("node")) {
 					NativeSelect ns = createNodeSelect();
 					ns.addValueChangeListener(new ValueChangeListener() {
@@ -818,7 +941,6 @@ public class CalendarDialog implements Window.CloseListener {
 
 						public void valueChange(ValueChangeEvent event) {
 							String nodeID = ((String) event.getProperty().getValue());
-							// TODO: enable Add button only when node is selected
 						}
 					});
 					return ns;
@@ -869,7 +991,7 @@ public class CalendarDialog implements Window.CloseListener {
 				s.setNullSelectionAllowed(false);
 				s.addContainerProperty("r", String.class, "");
 				s.setItemCaptionPropertyId("r");
-				Item i = s.addItem("NONE");
+				Item i = s.addItem(CalendarCustomEvent.RECUR_NONE);
 				i.getItemProperty("r").setValue("None");
 				i = s.addItem(Recur.HOURLY);
 				i.getItemProperty("r").setValue("Every Hour");
@@ -881,6 +1003,21 @@ public class CalendarDialog implements Window.CloseListener {
 				i.getItemProperty("r").setValue("Every Month");
 				i = s.addItem(Recur.YEARLY);
 				i.getItemProperty("r").setValue("Every Year");
+				return s;
+			}
+
+			private NativeSelect createUntilSelect() {
+				NativeSelect s = new NativeSelect("End");
+				s.setImmediate(true);
+				s.setNullSelectionAllowed(false);
+				s.addContainerProperty("u", String.class, "");
+				s.setItemCaptionPropertyId("u");
+				Item i = s.addItem(Until.never.name());
+				i.getItemProperty("u").setValue("Never");
+				i = s.addItem(Until.count.name());
+				i.getItemProperty("u").setValue("After");
+				i = s.addItem(Until.date.name());
+				i.getItemProperty("u").setValue("On Date");
 				return s;
 			}
 
@@ -900,7 +1037,23 @@ public class CalendarDialog implements Window.CloseListener {
 
 		});
 
-		scheduleEventForm.setVisibleItemProperties(new Object[] { "start", "end", "caption", "description", "node" });
+		scheduleEventForm
+				.setVisibleItemProperties(new Object[] { "caption", "description", "node", "start", "repeat", "untilSelect", "untilCount", "untilDate" });
+
+		//		if (repeatSelectField != null && !repeatSelectField.getValue().equals(CalendarCustomEvent.RECUR_NONE)) {
+		//			if (untilSelectField != null) {
+		//				untilSelectField.setVisible(true);
+		//			}
+		//		}
+
+		//		if (untilSelectField != null && !untilSelectField.getValue().equals(Until.never.name())) {
+		//			if (untilSelectField.getValue().equals(Until.count.name()) && untilCountField != null) {
+		//				untilCountField.setVisible(true);
+		//			} else if (untilSelectField.getValue().equals(Until.date.name()) && untilDateField != null) {
+		//				untilDateField.setVisible(true);
+		//			}
+		//		}
+
 	}
 
 	private void setFormDateResolution(Resolution resolution) {
@@ -912,30 +1065,167 @@ public class CalendarDialog implements Window.CloseListener {
 		}
 	}
 
+	private void showDeletePopup(final CalendarCustomEvent event) {
+		if (event == null) {
+			return;
+		}
+
+		if (deleteSchedulePopup == null) {
+			VerticalLayout layout = new VerticalLayout();
+			layout.setMargin(true);
+			layout.setSpacing(true);
+
+			deleteSchedulePopup = new Window("Delete Recurring Event", layout);
+			deleteSchedulePopup.setWidth("600px");
+			deleteSchedulePopup.setModal(true);
+			deleteSchedulePopup.center();
+			deleteSchedulePopup.setContent(layout);
+			deleteSchedulePopup.addCloseListener(new CloseListener() {
+				private static final long serialVersionUID = 1L;
+
+				public void windowClose(CloseEvent e) {
+					UI.getCurrent().removeWindow(deleteSchedulePopup);
+				}
+			});
+
+			Label warning = new Label("Do you want to delete this and all future occurrences of this event, or only the selected occurrence?");
+			layout.addComponent(warning);
+
+			Button cancel = new Button("Cancel", new ClickListener() {
+				private static final long serialVersionUID = 1L;
+
+				public void buttonClick(ClickEvent event) {
+					UI.getCurrent().removeWindow(deleteSchedulePopup);
+				}
+			});
+
+			Button deleteAll = new Button("Delete All Future Events", new ClickListener() {
+				private static final long serialVersionUID = 1L;
+
+				public void buttonClick(ClickEvent dummy) {
+					String scheduleID = (String) event.getData();
+					ScheduleRecord scheduleRecord = schedule.getScheduleList().get(scheduleID);
+					VEvent vEvent = iCalSupport.readiEvent(scheduleRecord.getICal());
+					ManagerUI.log("before Delete All Future Events\n" + vEvent);
+					iCalSupport.deleteAllFuture(vEvent, event.getStart());
+					ManagerUI.log("after Delete All Future Events\n" + vEvent);
+					scheduleRecord.setICal(vEvent.toString());
+
+					Schedule.update(scheduleID, vEvent.toString());
+					ArrayList<CalendarCustomEvent> eventsList = eventsMap.remove(scheduleID);
+					for (CalendarCustomEvent removeEvent : eventsList) {
+						if (dataSource.containsEvent(removeEvent)) {
+							dataSource.removeEvent(removeEvent);
+						}
+					}
+
+					schedule.getScheduleList().put(scheduleID, scheduleRecord);
+
+					addEventsToMap(scheduleID, vEvent, event.getNode());
+					eventsList = eventsMap.get(scheduleID);
+					for (CalendarCustomEvent addEvent : eventsList) {
+						if (!dataSource.containsEvent(addEvent)) {
+							dataSource.addEvent(addEvent);
+						}
+					}
+
+					UI.getCurrent().removeWindow(deleteSchedulePopup);
+
+					UI.getCurrent().removeWindow(scheduleEventPopup);
+
+				}
+			});
+
+			Button deleteSelected = new Button("Delete Only This Event", new ClickListener() {
+				private static final long serialVersionUID = 1L;
+
+				public void buttonClick(ClickEvent dummy) {
+					String scheduleID = (String) event.getData();
+					ScheduleRecord scheduleRecord = schedule.getScheduleList().get(scheduleID);
+					VEvent vEvent = iCalSupport.readiEvent(scheduleRecord.getICal());
+					ManagerUI.log("before Exclude\n" + vEvent);
+					iCalSupport.addExcludedDate(vEvent, event.getStart());
+					ManagerUI.log("after Exclude\n" + vEvent);
+					scheduleRecord.setICal(vEvent.toString());
+
+					Schedule.update(scheduleID, vEvent.toString());
+					ArrayList<CalendarCustomEvent> eventsList = eventsMap.remove(scheduleID);
+					for (CalendarCustomEvent removeEvent : eventsList) {
+						if (dataSource.containsEvent(removeEvent)) {
+							dataSource.removeEvent(removeEvent);
+						}
+					}
+
+					schedule.getScheduleList().put(scheduleID, scheduleRecord);
+
+					addEventsToMap(scheduleID, vEvent, event.getNode());
+					eventsList = eventsMap.get(scheduleID);
+					for (CalendarCustomEvent addEvent : eventsList) {
+						if (!dataSource.containsEvent(addEvent)) {
+							dataSource.addEvent(addEvent);
+						}
+					}
+
+					UI.getCurrent().removeWindow(deleteSchedulePopup);
+
+					UI.getCurrent().removeWindow(scheduleEventPopup);
+
+				}
+			});
+
+			HorizontalLayout buttons = new HorizontalLayout();
+			buttons.setSpacing(true);
+			buttons.addComponent(cancel);
+			buttons.addComponent(deleteAll);
+			buttons.addComponent(deleteSelected);
+			deleteSelected.focus();
+
+			layout.addComponent(buttons);
+			layout.setComponentAlignment(buttons, Alignment.BOTTOM_RIGHT);
+
+		}
+		if (!UI.getCurrent().getWindows().contains(deleteSchedulePopup)) {
+			UI.getCurrent().addWindow(deleteSchedulePopup);
+		}
+	}
+
 	/* Removes the event from the data source and fires change event. */
 	private void deleteCalendarEvent() {
 		CalendarCustomEvent event = (CalendarCustomEvent) getFormCalendarEvent();
-		String scheduleID = (String) event.getData();
-		Schedule.delete(scheduleID);
 
-		if (dataSource.containsEvent(event)) {
-			dataSource.removeEvent(event);
+		if (event.getRepeat().equals(CalendarCustomEvent.RECUR_NONE)) {
+			String scheduleID = (String) event.getData();
+			Schedule.delete(scheduleID);
+
+			schedule.getScheduleList().remove(scheduleID);
+
+			ArrayList<CalendarCustomEvent> eventsList = eventsMap.remove(scheduleID);
+			for (CalendarCustomEvent removeEvent : eventsList) {
+				if (dataSource.containsEvent(removeEvent)) {
+					dataSource.removeEvent(removeEvent);
+				}
+			}
+
+			UI.getCurrent().removeWindow(scheduleEventPopup);
+		} else {
+			showDeletePopup(event);
 		}
-		UI.getCurrent().removeWindow(scheduleEventPopup);
 	}
 
 	/* Adds/updates the event in the data source and fires change event. */
 	private void commitCalendarEvent() {
 		scheduleEventForm.commit();
 		CalendarCustomEvent event = (CalendarCustomEvent) getFormCalendarEvent();
-		VEvent vEvent = iCalSupport.createiEvent(event.getCaption(), event.getDescription(), event.getStart());
+		VEvent vEvent = iCalSupport.createiEvent(event);
 		ManagerUI.log("" + vEvent);
 		String scheduleID = (String) event.getData();
+		ScheduleRecord scheduleRecord;
 		if (scheduleID == null) {
 			ClusterComponent systemRecord = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
 			UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
 			Schedule schedule = new Schedule(systemRecord.getID(), event.getNode(), userObject.getUserID(), "backup", "Full", null, vEvent.toString());
-			scheduleID = schedule.getScheduleList().entrySet().iterator().next().getValue().getID();
+			scheduleRecord = schedule.getScheduleList().entrySet().iterator().next().getValue();
+			scheduleID = scheduleRecord.getID();
 			event.setData(scheduleID);
 			// Generate a UID for the event..
 			UidGenerator ug;
@@ -948,12 +1238,28 @@ public class CalendarDialog implements Window.CloseListener {
 			} catch (SocketException e) {
 				e.printStackTrace();
 			}
+
 		} else {
+			scheduleRecord = schedule.getScheduleList().get(scheduleID);
+			scheduleRecord.setICal(vEvent.toString());
 			Schedule.update(scheduleID, vEvent.toString());
+			ArrayList<CalendarCustomEvent> eventsList = eventsMap.remove(scheduleID);
+			for (CalendarCustomEvent removeEvent : eventsList) {
+				if (dataSource.containsEvent(removeEvent)) {
+					dataSource.removeEvent(removeEvent);
+				}
+			}
+
 		}
 
-		if (!dataSource.containsEvent(event)) {
-			dataSource.addEvent(event);
+		schedule.getScheduleList().put(scheduleID, scheduleRecord);
+
+		addEventsToMap(scheduleID, vEvent, event.getNode());
+		ArrayList<CalendarCustomEvent> eventsList = eventsMap.get(scheduleID);
+		for (CalendarCustomEvent addEvent : eventsList) {
+			if (!dataSource.containsEvent(addEvent)) {
+				dataSource.addEvent(addEvent);
+			}
 		}
 
 		UI.getCurrent().removeWindow(scheduleEventPopup);
@@ -1031,14 +1337,10 @@ public class CalendarDialog implements Window.CloseListener {
 	}
 
 	private CalendarCustomEvent getNewEvent(String caption, String description, Date start) {
-		return getNewEvent(caption, description, start, null, "NULL", null, nodes.get(0).getID());
+		return getNewEvent(caption, description, start, null, null, nodes.get(0).getID());
 	}
 
-	private CalendarCustomEvent getNewEvent(String caption, String description, Date start, String repeat, Date until) {
-		return getNewEvent(caption, description, start, null, repeat, until, nodes.get(0).getID());
-	}
-
-	private CalendarCustomEvent getNewEvent(String caption, String description, Date start, Date end, String repeat, Date until, String node) {
+	private CalendarCustomEvent getNewEvent(String caption, String description, Date start, Date end, String repeat, String node) {
 		CalendarCustomEvent event = new CalendarCustomEvent();
 		event.setCaption(caption);
 		event.setDescription(description);
@@ -1047,7 +1349,7 @@ public class CalendarDialog implements Window.CloseListener {
 		cal.setTime(start);
 		cal.add(java.util.Calendar.HOUR_OF_DAY, 1);
 		event.setEnd(cal.getTime());
-		event.setRepeat(repeat);
+		iCalSupport.parseRepeat(repeat, event);
 		event.setNode(node);
 		//event.setStyleName("color1");
 

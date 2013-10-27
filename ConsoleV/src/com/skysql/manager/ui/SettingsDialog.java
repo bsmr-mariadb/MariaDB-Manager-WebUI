@@ -82,11 +82,13 @@ public class SettingsDialog implements Window.CloseListener {
 			// Monitors Tab
 			SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
 			String systemID = systemInfo.getCurrentID();
-			String systemType;
+			String systemType = null;
 			if (systemID.equals(SystemInfo.SYSTEM_ROOT)) {
 				ClusterComponent clusterComponent = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
-				systemType = clusterComponent.getSystemType();
-				systemID = clusterComponent.getID();
+				if (clusterComponent != null) {
+					systemType = clusterComponent.getSystemType();
+					systemID = clusterComponent.getID();
+				}
 			} else {
 				systemType = systemInfo.getCurrentSystem().getSystemType();
 			}

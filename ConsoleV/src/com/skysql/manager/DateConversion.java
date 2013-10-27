@@ -23,7 +23,7 @@ public class DateConversion {
 	}
 
 	public static String adjust(String timestamp) {
-		if (timestamp == null || adjust == false) {
+		if (timestamp == null || timestamp.isEmpty() || adjust == false) {
 			return timestamp;
 		} else {
 			String adjusted = null;

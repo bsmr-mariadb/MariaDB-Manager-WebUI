@@ -20,10 +20,14 @@ package com.skysql.manager.ui;
 
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.SystemTypes;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.EmptyValueException;
 import com.vaadin.data.Validator.InvalidValueException;
+import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.shared.ui.MarginInfo;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Form;
 import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.PasswordField;
@@ -46,7 +50,7 @@ public class SystemForm extends VerticalLayout {
 
 	final Form form = new Form();
 
-	SystemForm(final SystemRecord system, String description) {
+	SystemForm(final SystemRecord system, String description, final Button commitButton) {
 		this.system = system;
 
 		setMargin(new MarginInfo(true, true, false, true));
@@ -56,6 +60,8 @@ public class SystemForm extends VerticalLayout {
 		form.setImmediate(false);
 		form.setFooter(null);
 		form.setDescription(description);
+
+		commitButton.setCaption(description);
 
 		String value;
 		if ((value = system.getName()) != null) {
@@ -69,6 +75,7 @@ public class SystemForm extends VerticalLayout {
 		}
 		systemType.select(system.getSystemType() != null ? system.getSystemType() : SystemTypes.DEFAULT_SYSTEMTYPE);
 		systemType.setNullSelectionAllowed(false);
+		systemType.setEnabled(false);
 		form.addField("systemType", systemType);
 
 		if ((value = system.getDBUsername()) != null) {
@@ -78,7 +85,7 @@ public class SystemForm extends VerticalLayout {
 		}
 		form.addField("dbusername", dbUsername);
 		dbUsername.setRequired(true);
-		dbUsername.setImmediate(false);
+		dbUsername.setImmediate(true);
 		dbUsername.setRequiredError("Database Username is a required field");
 		dbUsername.addValidator(new UserNotRootValidator(dbUsername.getCaption()));
 
@@ -116,8 +123,15 @@ public class SystemForm extends VerticalLayout {
 		}
 		form.addField("reppassword", repPassword);
 		repPassword.setRequired(true);
-		repPassword.setImmediate(false);
+		repPassword.setImmediate(true);
 		repPassword.setRequiredError("Replication Password is a required field");
+		repPassword.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+			public void valueChange(ValueChangeEvent event) {
+				commitButton.setClickShortcut(KeyCode.ENTER);
+			}
+		});
 
 		if ((value = system.getRepPassword()) != null) {
 			repPassword2.setValue(value);
@@ -127,6 +141,14 @@ public class SystemForm extends VerticalLayout {
 		repPassword2.setImmediate(true);
 		repPassword2.setRequiredError("Confirm Password is a required field");
 		repPassword2.addValidator(new Password2Validator(repPassword));
+		repPassword2.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+			public void valueChange(ValueChangeEvent event) {
+				commitButton.focus();
+			}
+		});
+
 	}
 
 	public boolean validateSystem() {

@@ -33,8 +33,6 @@ import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.ui.RunningTask;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.server.ExternalResource;
-import com.vaadin.server.ThemeResource;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
@@ -65,6 +63,7 @@ public class ParametersLayout extends HorizontalLayout {
 	private RunningTask runningTask;
 	private LinkedHashMap<String, BackupRecord> backupsList;
 	private VerticalLayout backupInfoLayout;
+	private boolean isParameterReady = false;
 
 	public ParametersLayout(final RunningTask runningTask, final NodeInfo nodeInfo, Commands.Command commandEnum) {
 		this.runningTask = runningTask;
@@ -101,6 +100,7 @@ public class ParametersLayout extends HorizontalLayout {
 			});
 
 			backupLevel.setValue("Full");
+			isParameterReady = true;
 
 		case restore:
 			VerticalLayout restoreLayout = new VerticalLayout();
@@ -164,6 +164,7 @@ public class ParametersLayout extends HorizontalLayout {
 			selectPrevBackup.setNullSelectionAllowed(false);
 			selectPrevBackup.setRows(8); // Show a few items and a scrollbar if there are more
 			selectPrevBackup.setWidth("16em");
+			prevBackupsLayout.addComponent(selectPrevBackup);
 			final Backups backups = new Backups(nodeInfo.getParentID(), null);
 			backupsList = backups.getBackupsForNode(nodeInfo.getID());
 			if (backupsList != null && backupsList.size() > 0) {
@@ -177,7 +178,6 @@ public class ParametersLayout extends HorizontalLayout {
 						firstItem = backupRecord.getID();
 					}
 				}
-				prevBackupsLayout.addComponent(selectPrevBackup);
 
 				backupInfoLayout = new VerticalLayout();
 				backupInfoLayout.setMargin(new MarginInfo(false, true, false, true));
@@ -190,6 +190,8 @@ public class ParametersLayout extends HorizontalLayout {
 					public void valueChange(ValueChangeEvent event) {
 						String backupID = (String) event.getProperty().getValue();
 						if (backupID == null) {
+							isParameterReady = false;
+							runningTask.getControlsLayout().setEnabled(isParameterReady);
 							return;
 						}
 						BackupRecord backupRecord = backupsList.get(backupID);
@@ -199,7 +201,11 @@ public class ParametersLayout extends HorizontalLayout {
 						} else {
 							runningTask.selectParameter(backupRecord.getID());
 						}
-
+						isParameterReady = true;
+						VerticalLayout controlsLayout = runningTask.getControlsLayout();
+						if (controlsLayout != null) {
+							controlsLayout.setEnabled(isParameterReady);
+						}
 					}
 				});
 
@@ -215,8 +221,9 @@ public class ParametersLayout extends HorizontalLayout {
 				// no previous backups
 				if (commandEnum == Command.backup) {
 					backupLevel.setEnabled(false);
+					isParameterReady = true;
 				} else if (commandEnum == Command.restore) {
-					runningTask.getControlsLayout().setEnabled(false);
+					//runningTask.getControlsLayout().setEnabled(false);
 				}
 			}
 			break;
@@ -240,18 +247,31 @@ public class ParametersLayout extends HorizontalLayout {
 			break;
 
 		default:
+			isParameterReady = true;
 			break;
 
 		}
 
 	}
 
+	public boolean isParameterReady() {
+		return isParameterReady;
+	}
+
 	private ValueChangeListener connectParamsListener = new ValueChangeListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 		public void valueChange(ValueChangeEvent event) {
-			String params = "rootpassword=" + connectPassword.getValue() + "&sshkey=" + connectKey.getValue();
-			runningTask.selectParameter(params);
+			String password = connectPassword.getValue();
+			String sshkey = connectKey.getValue();
+			if (password != null || sshkey != null) {
+				String params = "rootpassword=" + password + "&sshkey=" + sshkey;
+				runningTask.selectParameter(params);
+				isParameterReady = true;
+			} else {
+				isParameterReady = false;
+			}
+			runningTask.getControlsLayout().setEnabled(isParameterReady);
 		}
 	};
 
@@ -279,23 +299,23 @@ public class ParametersLayout extends HorizontalLayout {
 			backupInfoGrid = newBackupInfoGrid;
 		}
 
-		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
-		LinkedHashMap<String, String> sysProperties = systemInfo.getCurrentSystem().getProperties();
-		String EIP = sysProperties.get(SystemInfo.PROPERTY_EIP);
-		if (EIP != null) {
-			String url = "http://" + EIP + "/consoleAPI/" + record.getLog();
-			Link newBackupLogLink = new Link("Backup Log", new ExternalResource(url));
-			newBackupLogLink.setTargetName("_blank");
-			newBackupLogLink.setDescription("Open backup log in a new window");
-			newBackupLogLink.setIcon(new ThemeResource("img/externalLink.png"));
-			newBackupLogLink.addStyleName("icon-after-caption");
-			if (backupLogLink == null) {
-				layout.addComponent(newBackupLogLink);
-				backupLogLink = newBackupLogLink;
-			} else {
-				layout.replaceComponent(backupLogLink, newBackupLogLink);
-				backupLogLink = newBackupLogLink;
-			}
-		}
+		//		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+		//		LinkedHashMap<String, String> sysProperties = systemInfo.getCurrentSystem().getProperties();
+		//		String EIP = sysProperties.get(SystemInfo.PROPERTY_EIP);
+		//		if (EIP != null) {
+		//			String url = "http://" + EIP + "/consoleAPI/" + record.getLog();
+		//			Link newBackupLogLink = new Link("Backup Log", new ExternalResource(url));
+		//			newBackupLogLink.setTargetName("_blank");
+		//			newBackupLogLink.setDescription("Open backup log in a new window");
+		//			newBackupLogLink.setIcon(new ThemeResource("img/externalLink.png"));
+		//			newBackupLogLink.addStyleName("icon-after-caption");
+		//			if (backupLogLink == null) {
+		//				layout.addComponent(newBackupLogLink);
+		//				backupLogLink = newBackupLogLink;
+		//			} else {
+		//				layout.replaceComponent(backupLogLink, newBackupLogLink);
+		//				backupLogLink = newBackupLogLink;
+		//			}
+		//		}
 	}
 }

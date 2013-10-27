@@ -18,7 +18,9 @@
 
 package com.skysql.manager.api;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
@@ -71,7 +73,9 @@ public class UserObject {
 			APIrestful api = new APIrestful();
 			JSONObject jsonParam = new JSONObject();
 			jsonParam.put("name", name);
-			jsonParam.put("password", password);
+			if (password != null && !password.isEmpty()) {
+				jsonParam.put("password", password);
+			}
 			if (api.put("user/" + userID, jsonParam.toString())) {
 				WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
 				if (writeResponse != null && (!writeResponse.getInsertKey().isEmpty() || writeResponse.getUpdateCount() > 0)) {
@@ -144,8 +148,10 @@ public class UserObject {
 	public boolean login(String userID, String password) {
 
 		APIrestful api = new APIrestful();
-		if (api.post("user/" + userID, "password=" + password)) {
-			try {
+		try {
+			StringBuffer regParam = new StringBuffer();
+			regParam.append("password=" + URLEncoder.encode(password, "UTF-8"));
+			if (api.post("user/" + userID, regParam.toString())) {
 				UserObject login = APIrestful.getGson().fromJson(api.getResult(), UserObject.class);
 				if (login.getUserID() == null) {
 					return false;
@@ -154,18 +160,20 @@ public class UserObject {
 				this.name = login.name;
 				this.properties = login.properties;
 				return true;
-
-			} catch (NullPointerException e) {
-				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
-				throw new RuntimeException("API response");
-			} catch (JsonParseException e) {
-				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
-				throw new RuntimeException("API response");
 			}
+		} catch (UnsupportedEncodingException e) {
+			new ErrorDialog(e, "Error encoding API request");
+			throw new RuntimeException("Error encoding API request");
+		} catch (NullPointerException e) {
+			new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+			throw new RuntimeException("API response");
+		} catch (JsonParseException e) {
+			new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+			throw new RuntimeException("API response");
 		}
+
 		return false;
 	}
-
 }
 
 class UserObjectDeserializer implements JsonDeserializer<UserObject> {

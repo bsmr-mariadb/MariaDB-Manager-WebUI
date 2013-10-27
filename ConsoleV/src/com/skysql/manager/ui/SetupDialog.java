@@ -98,12 +98,13 @@ public class SetupDialog implements Window.CloseListener {
 
 	private void inputUser() {
 
+		final Button finishedButton = new Button("Add User");
+
 		final UserObject user = new UserObject();
-		userForm = new UserForm(user, "Add User to the System");
+		userForm = new UserForm(null, user, "Add User to the System", finishedButton);
 		wrapper.replaceComponent(currentForm, userForm);
 		currentForm = userForm;
 
-		final Button finishedButton = new Button("Add User");
 		buttonsBar.addComponent(finishedButton);
 		buttonsBar.setComponentAlignment(finishedButton, Alignment.MIDDLE_RIGHT);
 

@@ -95,24 +95,13 @@ public class TabbedPanel implements Serializable {
 
 		ClusterComponent componentInfo = session.getAttribute(ClusterComponent.class);
 		if (componentInfo == null || (componentInfo.getType() == ClusterComponent.CCType.system && componentInfo.getParentID() == null)) {
-			if (panelInfo != null)
-				panelInfo.setVisible(false);
-			if (panelControl != null)
-				panelControl.setVisible(false);
-			if (panelBackup != null)
-				panelBackup.setVisible(false);
-			if (panelTools != null)
-				panelTools.setVisible(false);
+			currentTab.setVisible(false);
+			tabsheet.setSelectedTab(currentTab);
+			tabsheet.setEnabled(false);
 			return;
 		} else {
-			if (panelInfo != null)
-				panelInfo.setVisible(true);
-			if (panelControl != null)
-				panelControl.setVisible(true);
-			if (panelBackup != null)
-				panelBackup.setVisible(true);
-			if (panelTools != null)
-				panelTools.setVisible(true);
+			tabsheet.setEnabled(true);
+			currentTab.setVisible(true);
 		}
 
 		tabsheet.getTab(panelBackup).setVisible(componentInfo.getType() == ClusterComponent.CCType.system ? true : false);

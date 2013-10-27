@@ -45,7 +45,7 @@ public class LoginView extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private static final String NOT_AVAILABLE = "n/a";
-	private static final String GUI_VERSION = "1.0.62 Beta";
+	private static final String GUI_VERSION = "1.0.63 Beta";
 
 	private UpdaterThread updaterThread;
 
@@ -158,7 +158,9 @@ public class LoginView extends VerticalLayout {
 		loginFormLayout.addComponent(login);
 		loginFormLayout.setComponentAlignment(login, Alignment.BOTTOM_CENTER);
 
-		Label versionLabel = new Label("API Version " + (apiVersion != null ? apiVersion : NOT_AVAILABLE) + "<br/>GUI Version " + GUI_VERSION, ContentMode.HTML);
+		String versionString = "API Version " + (apiVersion != null ? apiVersion : NOT_AVAILABLE) + "<br/>GUI Version " + GUI_VERSION;
+		System.err.println(versionString);
+		Label versionLabel = new Label(versionString, ContentMode.HTML);
 		versionLabel.setSizeUndefined();
 		addComponent(versionLabel);
 		setComponentAlignment(versionLabel, Alignment.BOTTOM_LEFT);

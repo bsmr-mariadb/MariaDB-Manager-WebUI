@@ -28,6 +28,7 @@ import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.DateConversion;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.ScheduleRecord;
+import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.Schedule;
 import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.ui.CalendarDialog;
@@ -47,6 +48,7 @@ public class BackupScheduledLayout extends VerticalLayout {
 	private UpdaterThread updaterThread;
 	public Schedule schedule;
 	private BackupScheduledLayout thisLayout = this;
+	private Button calendarButton;
 
 	public BackupScheduledLayout() {
 
@@ -63,7 +65,7 @@ public class BackupScheduledLayout extends VerticalLayout {
 		scheduleRow.addComponent(scheduleLabel);
 		scheduleRow.setComponentAlignment(scheduleLabel, Alignment.MIDDLE_LEFT);
 
-		Button calendarButton = new Button("Calendar");
+		calendarButton = new Button("Calendar");
 		calendarButton.addClickListener(new ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -91,6 +93,18 @@ public class BackupScheduledLayout extends VerticalLayout {
 		scheduledTable.addContainerProperty("User", String.class, null);
 		addComponent(scheduledTable);
 		setComponentAlignment(scheduledTable, Alignment.MIDDLE_LEFT);
+
+	}
+
+	private Schedule getSchedule() {
+		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+		String systemID = systemInfo.getCurrentID();
+		if (SystemInfo.SYSTEM_ROOT.equals(systemID)) {
+			ClusterComponent clusterComponent = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
+			systemID = clusterComponent.getID();
+		}
+
+		return new Schedule(systemID, null);
 
 	}
 
@@ -132,18 +146,6 @@ public class BackupScheduledLayout extends VerticalLayout {
 		}
 	}
 
-	private Schedule getSchedule() {
-		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
-		String systemID = systemInfo.getCurrentID();
-		if (SystemInfo.SYSTEM_ROOT.equals(systemID)) {
-			ClusterComponent clusterComponent = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
-			systemID = clusterComponent.getID();
-		}
-
-		return new Schedule(systemID, null);
-
-	}
-
 	private void asynchRefresh(final UpdaterThread updaterThread) {
 
 		ManagerUI managerUI = getSession().getAttribute(ManagerUI.class);
@@ -157,6 +159,21 @@ public class BackupScheduledLayout extends VerticalLayout {
 				// Here the UI is locked and can be updated
 
 				ManagerUI.log(this.getClass().getName() + " access run(): ");
+
+				SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+				String systemID = systemInfo.getCurrentID();
+				if (systemID.equals(SystemInfo.SYSTEM_ROOT)) {
+					ClusterComponent clusterComponent = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
+					systemID = clusterComponent.getID();
+				}
+				SystemRecord systemRecord = systemInfo.getSystemRecord(systemID);
+				if (systemRecord.getNodes().length == 0) {
+					calendarButton.setEnabled(false);
+					calendarButton.setDescription("There are no nodes in this system: no backups scheduling is possible.");
+				} else {
+					calendarButton.setEnabled(true);
+					calendarButton.setDescription(null);
+				}
 
 				scheduledTable.removeAllItems();
 				if (scheduleList != null) {

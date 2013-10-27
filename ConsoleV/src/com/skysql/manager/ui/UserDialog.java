@@ -18,10 +18,8 @@
 
 package com.skysql.manager.ui;
 
-import com.skysql.manager.SystemRecord;
-import com.skysql.manager.api.SystemInfo;
-import com.skysql.manager.ui.components.ComponentButton;
-import com.vaadin.server.VaadinSession;
+import com.skysql.manager.api.UserInfo;
+import com.skysql.manager.api.UserObject;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -32,20 +30,23 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
-public class SystemDialog implements Window.CloseListener {
+public class UserDialog implements Window.CloseListener {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private Window dialogWindow;
 	private HorizontalLayout buttonsBar;
 	private Button commitButton;
-	private final SystemRecord systemRecord;
-	private final SystemForm systemForm;
-	private final ComponentButton button;
+	private final UserInfo userInfo;
+	private final UserObject userObject;
+	private final UserForm userForm;
+	private final UsersSettings usersSettings;
+	private boolean isAdding = false;
 
-	public SystemDialog(final SystemRecord systemRecord, final ComponentButton button) {
-		this.button = button;
+	public UserDialog(final UserInfo userInfo, final UserObject userObject, final UsersSettings usersSettings) {
+		this.userInfo = userInfo;
+		this.usersSettings = usersSettings;
 
-		String windowTitle = (systemRecord != null) ? "Edit System: " + systemRecord.getName() : "Add System";
+		String windowTitle = (userObject != null) ? "Edit User: " + userObject.getName() : "Add User";
 		dialogWindow = new ModalWindow(windowTitle, "350px");
 		dialogWindow.addCloseListener(this);
 		UI.getCurrent().addWindow(dialogWindow);
@@ -73,27 +74,27 @@ public class SystemDialog implements Window.CloseListener {
 
 		commitButton = new Button();
 
-		if (systemRecord == null) {
-			this.systemRecord = new SystemRecord(SystemInfo.SYSTEM_ROOT);
-			systemForm = new SystemForm(this.systemRecord, "Add a System", commitButton);
-			saveSystem("Add System");
+		if (userObject == null) {
+			isAdding = true;
+			this.userObject = new UserObject();
+			userForm = new UserForm(userInfo, this.userObject, "Add a new User", commitButton);
+			saveUser("Add User");
 
 		} else {
-			this.systemRecord = systemRecord;
-			systemForm = new SystemForm(systemRecord, "Edit an existing System", commitButton);
-			saveSystem("Save Changes");
+			this.userObject = userObject;
+			userForm = new UserForm(userInfo, userObject, "Edit an existing User", commitButton);
+			saveUser("Save Changes");
 		}
 
-		wrapper.addComponent(systemForm);
+		wrapper.addComponent(userForm);
 
 	}
 
-	private void saveSystem(final String okButtonCaption) {
+	private void saveUser(final String commitButtonCaption) {
 
 		final Button cancelButton = new Button("Cancel");
 		buttonsBar.addComponent(cancelButton);
 		buttonsBar.setComponentAlignment(cancelButton, Alignment.MIDDLE_RIGHT);
-
 		cancelButton.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -102,25 +103,24 @@ public class SystemDialog implements Window.CloseListener {
 			}
 		});
 
+		commitButton.setCaption(commitButtonCaption);
 		commitButton.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 			public void buttonClick(ClickEvent event) {
-				if (systemForm.validateSystem()) {
-					if (systemRecord.save()) {
-						if (button != null) {
-							button.setName(systemRecord.getName());
-							button.setDescription(systemRecord.ToolTip());
-							if (button.isSelected()) {
-								TabbedPanel tabbedPanel = VaadinSession.getCurrent().getAttribute(TabbedPanel.class);
-								tabbedPanel.refresh();
-							}
+				if (userForm.validateUser()) {
+					boolean success = userInfo.setUser(userObject);
+					if (success) {
+						if (isAdding) {
+							usersSettings.addToSelect(userObject.getUserID());
 						} else {
-							OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
-							overviewPanel.refresh();
+							usersSettings.updateSelect(userObject.getUserID());
 						}
 						windowClose(null);
+					} else {
+						return;
 					}
+
 				}
 
 			}

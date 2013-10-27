@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 
+import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.UserChart;
 import com.skysql.manager.api.Monitors;
@@ -37,6 +38,7 @@ import com.vaadin.data.Validator.EmptyValueException;
 import com.vaadin.event.LayoutEvents.LayoutClickEvent;
 import com.vaadin.event.LayoutEvents.LayoutClickListener;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -402,6 +404,24 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 		validationTarget.select(noValidation);
 		OverviewPanel overviewPanel = getSession().getAttribute(OverviewPanel.class);
 		ArrayList<NodeInfo> nodes = overviewPanel.getNodes();
+
+		if (nodes == null || nodes.isEmpty()) {
+			SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+			String systemID = systemInfo.getCurrentID();
+			String systemType = systemInfo.getCurrentSystem().getSystemType();
+			if (systemID.equals(SystemInfo.SYSTEM_ROOT)) {
+				ClusterComponent clusterComponent = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
+				systemID = clusterComponent.getID();
+				systemType = clusterComponent.getSystemType();
+			}
+			nodes = new ArrayList<NodeInfo>();
+			for (String nodeID : systemInfo.getSystemRecord(systemID).getNodes()) {
+				NodeInfo nodeInfo = new NodeInfo(systemID, systemType, nodeID);
+				nodes.add(nodeInfo);
+			}
+
+		}
+
 		for (NodeInfo node : nodes) {
 			validationTarget.addItem(node.getID());
 			validationTarget.setItemCaption(node.getID(), node.getName());

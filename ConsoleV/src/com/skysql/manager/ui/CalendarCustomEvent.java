@@ -1,5 +1,7 @@
 package com.skysql.manager.ui;
 
+import java.util.Date;
+
 import com.vaadin.ui.components.calendar.event.BasicEvent;
 
 /**
@@ -10,7 +12,12 @@ import com.vaadin.ui.components.calendar.event.BasicEvent;
 public class CalendarCustomEvent extends BasicEvent {
 	private static final long serialVersionUID = -1L;
 
+	public static final String RECUR_NONE = "none";
+
 	private String repeat;
+	private String untilSelect;
+	private String untilCount;
+	private Date untilDate;
 	private String node;
 	private Object data;
 
@@ -20,6 +27,33 @@ public class CalendarCustomEvent extends BasicEvent {
 
 	public void setRepeat(String repeat) {
 		this.repeat = repeat;
+		fireEventChange();
+	}
+
+	public String getUntilSelect() {
+		return untilSelect;
+	}
+
+	public void setUntilSelect(String untilSelect) {
+		this.untilSelect = untilSelect;
+		fireEventChange();
+	}
+
+	public String getUntilCount() {
+		return untilCount;
+	}
+
+	public void setUntilCount(String untilCount) {
+		this.untilCount = untilCount;
+		fireEventChange();
+	}
+
+	public Date getUntilDate() {
+		return untilDate;
+	}
+
+	public void setUntilDate(Date untilDate) {
+		this.untilDate = untilDate;
 		fireEventChange();
 	}
 

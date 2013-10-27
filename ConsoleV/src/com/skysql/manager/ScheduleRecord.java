@@ -60,6 +60,10 @@ public class ScheduleRecord {
 		return iCal;
 	}
 
+	public void setICal(String iCal) {
+		this.iCal = iCal;
+	}
+
 	public String getNextStart() {
 		return nextStart;
 	}

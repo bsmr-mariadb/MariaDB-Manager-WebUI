@@ -18,9 +18,16 @@
 
 package com.skysql.manager.ui;
 
+import com.skysql.manager.api.UserInfo;
 import com.skysql.manager.api.UserObject;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.EmptyValueException;
+import com.vaadin.data.Validator.InvalidValueException;
+import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.shared.ui.MarginInfo;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Form;
 import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
@@ -30,14 +37,16 @@ import com.vaadin.ui.VerticalLayout;
 public class UserForm extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	final TextField newUsername = new TextField("New Username");
+	final TextField userName = new TextField("Username");
 	final TextField fullname = new TextField("Full Name");
-	final PasswordField newPassword;
-	final PasswordField newPassword2;
+	final PasswordField newPassword = new PasswordField("Password");
+	final PasswordField newPassword2 = new PasswordField("Confirm Password");
 	final Form form = new Form();
 	private UserObject user;
+	private UserInfo userInfo;
 
-	UserForm(final UserObject user, String description) {
+	UserForm(final UserInfo userInfo, final UserObject user, String description, final Button commitButton) {
+		this.userInfo = userInfo;
 		this.user = user;
 
 		setMargin(new MarginInfo(true, true, false, true));
@@ -48,16 +57,57 @@ public class UserForm extends VerticalLayout {
 		form.setFooter(null);
 		form.setDescription(description);
 
-		form.addField("newUsername", newUsername);
-		form.getField("newUsername").setRequired(true);
-		form.getField("newUsername").setRequiredError("Username is missing");
-		newUsername.focus();
+		String value;
+		if ((value = user.getUserID()) != null) {
+			userName.setValue(value);
+			userName.setEnabled(false);
+		} else {
+			userName.setRequired(true);
+			userName.setRequiredError("Username is missing");
+			userName.focus();
+			userName.setImmediate(true);
+			userName.addValidator(new UserNameValidator());
+		}
+		form.addField("userName", userName);
+
+		if ((value = user.getName()) != null) {
+			fullname.setValue(value);
+		}
 		form.addField("fullname", fullname);
-		newPassword = new PasswordField("New Password");
-		newPassword2 = new PasswordField("Verify Password");
+
+		// we don't get the user password from the API - set input prompt so bullets are displayed
+		if (user.getUserID() != null) {
+			newPassword.setInputPrompt("placeholder");
+			newPassword2.setInputPrompt("placeholder");
+		} else {
+			newPassword.setRequired(true);
+			newPassword.setRequiredError("Password is a required field");
+			newPassword2.setRequired(true);
+			newPassword2.setRequiredError("Password is a required field");
+		}
+
+		newPassword.setImmediate(true);
+		newPassword.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+			public void valueChange(ValueChangeEvent event) {
+				commitButton.setClickShortcut(KeyCode.ENTER);
+				newPassword2.focus();
+			}
+		});
 		form.addField("newPassword", newPassword);
-		form.addField("newPassword2", newPassword2);
+
 		newPassword2.setImmediate(true);
+		newPassword2.addValidator(new Password2Validator(newPassword));
+		newPassword2.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+			public void valueChange(ValueChangeEvent event) {
+				commitButton.focus();
+			}
+		});
+		form.addField("newPassword2", newPassword2);
+
 	}
 
 	public boolean validateUser() {
@@ -66,19 +116,75 @@ public class UserForm extends VerticalLayout {
 			form.setComponentError(null);
 			form.commit();
 
-			user.setUserID(newUsername.getValue());
+			user.setUserID(userName.getValue());
 			user.setName(fullname.getValue());
-			user.setPassword(newPassword.getValue());
+			String password = newPassword.getValue();
+			user.setPassword(password);
 
 			return true;
 
 		} catch (EmptyValueException e) {
+			return false;
+		} catch (InvalidValueException e) {
 			return false;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
 
+	}
+
+	class UserNameValidator implements Validator {
+		private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+		public boolean isValid(Object value) {
+			if (value == null || !(value instanceof String)) {
+				return false;
+			}
+			return (true);
+		}
+
+		// Upon failure, the validate() method throws an exception
+		public void validate(Object value) throws InvalidValueException {
+			if (!isValid(value)) {
+				throw new InvalidValueException("Username invalid");
+			} else {
+				String name = (String) value;
+				if (name.contains(" ")) {
+					throw new InvalidValueException("Username contains illegal characters");
+				} else if (userInfo != null && userInfo.findIDByName((String) value) != null) {
+					throw new InvalidValueException("Username already exists");
+				}
+			}
+		}
+	}
+
+	class Password2Validator implements Validator {
+		private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+		private PasswordField otherPassword;
+
+		public Password2Validator(PasswordField otherPassword) {
+			super();
+			this.otherPassword = otherPassword;
+		}
+
+		public boolean isValid(Object value) {
+			if (value == null || !(value instanceof String)) {
+				return false;
+			} else {
+				boolean equals = ((String) value).equals((String) otherPassword.getValue());
+				return equals;
+			}
+		}
+
+		// Upon failure, the validate() method throws an exception
+		public void validate(Object value) throws InvalidValueException {
+			if (!isValid(value)) {
+				newPassword2.focus();
+				throw new InvalidValueException("Passwords do not match.");
+			}
+		}
 	}
 
 }

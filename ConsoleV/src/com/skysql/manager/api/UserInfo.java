@@ -21,9 +21,6 @@ package com.skysql.manager.api;
 import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -95,31 +92,15 @@ public class UserInfo {
 		return null;
 	}
 
-	public boolean setUser(String userID, String name, String password) {
+	public boolean setUser(UserObject userObject) {
 
-		boolean success = false;
-		try {
-			APIrestful api = new APIrestful();
-			JSONObject jsonParam = new JSONObject();
-			jsonParam.put("name", name);
-			jsonParam.put("password", password);
-			success = api.put("user/" + userID, jsonParam.toString());
-		} catch (JSONException e) {
-			new ErrorDialog(e, "Error encoding API request");
-			throw new RuntimeException("Error encoding API request");
+		if (userObject.set()) {
+			userObject.setPassword(null);
+			usersList.put(userObject.getUserID(), userObject);
+			return true;
 		}
 
-		// TODO: check this code!  Shouldn't it be like Monitors? 
-		// if we added a user, versus modified it
-		if (!usersList.containsKey(userID)) {
-			UserObject userObject = new UserObject(userID, name);
-			usersList.put(userID, userObject);
-		} else {
-			UserObject userObject = usersList.get(userID);
-			userObject.setName(name);
-		}
-
-		return success;
+		return false;
 	}
 
 	public boolean deleteUser(String userID) {
