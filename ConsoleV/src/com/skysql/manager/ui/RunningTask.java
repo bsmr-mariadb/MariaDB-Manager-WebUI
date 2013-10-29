@@ -137,7 +137,7 @@ public final class RunningTask {
 		return containerLayout;
 	}
 
-	public VerticalLayout getControlsLayout() {
+	public ScriptingControlsLayout getControlsLayout() {
 		return scriptingControlsLayout;
 	}
 

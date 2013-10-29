@@ -74,6 +74,15 @@ public class UserInfo {
 		return userObject.getName();
 	}
 
+	public String findAnyNameByID(String id) {
+		UserObject userObject = usersList.get(id);
+		if (userObject == null) {
+			// TODO: reload UserInfo from API, in case this user was created after the last load
+			return NOT_AVAILABLE;
+		}
+		return userObject.getAnyName();
+	}
+
 	public String completeNamesByID(String id) {
 		UserObject userObject = usersList.get(id);
 		if (userObject == null) {
@@ -81,15 +90,6 @@ public class UserInfo {
 		}
 		String name = userObject.getName();
 		return id + ((name == null || name.isEmpty()) ? "" : " (" + name + ")");
-	}
-
-	public String findIDByName(String name) {
-		for (UserObject user : usersList.values()) {
-			if (name.equals(user.getName())) {
-				return user.getUserID();
-			}
-		}
-		return null;
 	}
 
 	public boolean setUser(UserObject userObject) {

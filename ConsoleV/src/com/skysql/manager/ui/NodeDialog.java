@@ -18,6 +18,7 @@
 
 package com.skysql.manager.ui;
 
+import com.skysql.manager.api.APIrestful;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.api.TaskRun;
@@ -127,7 +128,9 @@ public class NodeDialog implements Window.CloseListener {
 							String userID = userObject.getUserID();
 							String looseExecution = userObject.getProperty(UserObject.PROPERTY_COMMAND_EXECUTION);
 							String state = (looseExecution != null && Boolean.valueOf(looseExecution)) ? null : nodeInfo.getState();
-							String params = "rootpassword=" + nodeForm.connectPassword.getValue() + "&sshkey=" + nodeForm.connectKey.getValue();
+							APIrestful api = new APIrestful();
+							String encryptedPassword = api.encryptAES(nodeForm.connectPassword.getValue());
+							String params = "rootpassword=" + encryptedPassword + "&sshkey=" + nodeForm.connectKey.getValue();
 							TaskRun taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, "connect", params, null);
 
 						}

@@ -137,6 +137,8 @@ public class BackupSetsLayout extends HorizontalLayout {
 					if (oldBackupsCount != size) {
 						oldBackupsCount = size;
 
+						DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
+
 						backupsTable.removeAllItems();
 						ListIterator<Map.Entry<String, BackupRecord>> iter = new ArrayList<Entry<String, BackupRecord>>(backupsList.entrySet()).listIterator(0);
 
@@ -162,8 +164,8 @@ public class BackupSetsLayout extends HorizontalLayout {
 							***/
 
 							backupsTable.addItem(
-									new Object[] { DateConversion.adjust(backupRecord.getStarted()), DateConversion.adjust(backupRecord.getUpdated()),
-											DateConversion.adjust(backupRecord.getRestored()), backupRecord.getLevel(), backupRecord.getNode(),
+									new Object[] { dateConversion.adjust(backupRecord.getStarted()), dateConversion.adjust(backupRecord.getUpdated()),
+											dateConversion.adjust(backupRecord.getRestored()), backupRecord.getLevel(), backupRecord.getNode(),
 											backupRecord.getSize(), backupRecord.getStorage(), BackupStates.getDescriptions().get(backupRecord.getState()),
 											backupLogLink }, backupRecord.getID());
 						}

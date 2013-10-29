@@ -30,6 +30,7 @@ import com.skysql.manager.api.UserObject;
 import com.skysql.manager.ui.DebugPanel;
 import com.skysql.manager.ui.ErrorDialog;
 import com.skysql.manager.ui.ErrorView;
+import com.skysql.manager.ui.GeneralSettings;
 import com.skysql.manager.ui.LoginView;
 import com.skysql.manager.ui.OverviewPanel;
 import com.skysql.manager.ui.SetupDialog;
@@ -149,8 +150,10 @@ public class ManagerUI extends UI {
 		if (userObject == null) {
 			setContent(new LoginView(systemName, systemVersion));
 		} else {
-			DateConversion.setAdjust(userObject.getProperty(UserObject.PROPERTY_TIME_ADJUST));
-			DateConversion.setFormat(userObject.getProperty(UserObject.PROPERTY_TIME_FORMAT));
+			String adjust = userObject.getProperty(UserObject.PROPERTY_TIME_ADJUST);
+			DateConversion dateConversion = new DateConversion((adjust == null ? GeneralSettings.DEFAULT_TIME_ADJUST : Boolean.valueOf(adjust)),
+					userObject.getProperty(UserObject.PROPERTY_TIME_FORMAT));
+			session.setAttribute(DateConversion.class, dateConversion);
 
 			session.setAttribute("isChartsEditing", false);
 

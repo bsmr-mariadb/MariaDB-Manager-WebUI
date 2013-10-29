@@ -118,8 +118,9 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 		if (observerMode) {
 			// String userName = Users.getUserNames().get(taskRecord.getUser());
 			String userID = taskRecord.getUserID();
-			UserInfo userInfo = (UserInfo) VaadinSession.getCurrent().getAttribute(UserInfo.class);
-			setTitle(command + " was started on " + taskRecord.getStart() + " by " + userInfo.findNameByID(userID));
+			UserInfo userInfo = (UserInfo) getSession().getAttribute(UserInfo.class);
+			DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
+			setTitle(command + " was started on " + dateConversion.adjust(taskRecord.getStart()) + " by " + userID);
 		} else {
 			setTitle(command);
 		}
@@ -204,6 +205,8 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 
 				ManagerUI.log(this.getClass().getName() + " access run(): ");
 
+				DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
+
 				String stateString;
 				if ((stateString = taskRecord.getState()) == null) {
 					return; // we're waiting for something to happen
@@ -233,20 +236,20 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 					break;
 				case done:
 					taskImages[index].setSource(new ThemeResource("img/scripting/past.png/"));
-					result += "<br/><br/>on " + DateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>in " + getRunningTime();
+					result += "<br/><br/>on " + dateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>in " + getRunningTime();
 					runningTask.close();
 					break;
 				case error:
 				case missing:
 					taskImages[taskImages.length - 1].setSource(new ThemeResource("img/scripting/error.png"));
-					result += "<br/><br/>on " + DateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>after " + getRunningTime() + "<br/><br/>with error: "
+					result += "<br/><br/>on " + dateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>after " + getRunningTime() + "<br/><br/>with error: "
 							+ taskRecord.getError();
 					runningTask.close();
 					break;
 				case cancelled:
 				case stopped:
 					taskImages[taskImages.length - 1].setSource(new ThemeResource("img/scripting/error.png"));
-					result += "<br/><br/>on " + DateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>after " + getRunningTime();
+					result += "<br/><br/>on " + dateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>after " + getRunningTime();
 					runningTask.close();
 					break;
 				default:
@@ -260,8 +263,13 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 
 	private String getRunningTime() {
 		runningTime = System.currentTimeMillis() - startTime;
-		String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime), TimeUnit.MILLISECONDS.toSeconds(runningTime)
-				- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
+		//String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime), TimeUnit.MILLISECONDS.toSeconds(runningTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
+
+		//hh:mm:ss
+		String time = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(runningTime),
+				TimeUnit.MILLISECONDS.toMinutes(runningTime) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(runningTime)),
+				TimeUnit.MILLISECONDS.toSeconds(runningTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));
+
 		return time;
 	}
 }

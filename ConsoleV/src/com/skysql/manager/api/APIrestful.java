@@ -19,23 +19,36 @@
 package com.skysql.manager.api;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
+import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.DatatypeConverter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -329,6 +342,46 @@ public class APIrestful {
 			throw new RuntimeException("Exception inputStream");
 		}
 
+	}
+
+	public String encryptAES(String input) {
+		SecureRandom random = new SecureRandom();
+		byte ivBytes[] = new byte[16];
+		random.nextBytes(ivBytes);
+		byte[] data = input.getBytes();
+		byte[] encrypted = null;
+		byte[] keyBytes = new BigInteger(keyCode, 16).toByteArray();
+		SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
+		IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+		Cipher cipher;
+		try {
+			cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+			encrypted = cipher.doFinal(data);
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			e.printStackTrace();
+		} catch (IllegalBlockSizeException e) {
+			e.printStackTrace();
+		} catch (BadPaddingException e) {
+			e.printStackTrace();
+		} catch (InvalidAlgorithmParameterException e) {
+			e.printStackTrace();
+		}
+
+		byte output[] = null;
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		try {
+			outputStream.write(ivBytes);
+			outputStream.write(encrypted);
+			output = outputStream.toByteArray();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return DatatypeConverter.printBase64Binary(output);
 	}
 }
 

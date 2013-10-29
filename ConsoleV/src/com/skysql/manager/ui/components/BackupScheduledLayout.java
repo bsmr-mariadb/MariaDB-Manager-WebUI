@@ -179,6 +179,8 @@ public class BackupScheduledLayout extends VerticalLayout {
 				if (scheduleList != null) {
 					ListIterator<Map.Entry<String, ScheduleRecord>> iter = new ArrayList<Entry<String, ScheduleRecord>>(scheduleList.entrySet()).listIterator();
 
+					DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
+
 					while (iter.hasNext()) {
 						if (updaterThread.flagged) {
 							ManagerUI.log("ScheduleLayout - flagged is set during table population");
@@ -189,7 +191,7 @@ public class BackupScheduledLayout extends VerticalLayout {
 						ScheduleRecord scheduleRecord = entry.getValue();
 
 						scheduledTable.addItem(
-								new Object[] { DateConversion.adjust(scheduleRecord.getNextStart()), scheduleRecord.getNodeID(), scheduleRecord.getParams(),
+								new Object[] { dateConversion.adjust(scheduleRecord.getNextStart()), scheduleRecord.getNodeID(), scheduleRecord.getParams(),
 										scheduleRecord.getUserID() }, scheduleRecord.getID());
 					}
 

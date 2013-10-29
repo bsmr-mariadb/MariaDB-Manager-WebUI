@@ -20,6 +20,9 @@ package com.skysql.manager.ui;
 
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemTypes;
+import com.skysql.manager.validators.Password2Validator;
+import com.skysql.manager.validators.PasswordOrKeyValidator;
+import com.skysql.manager.validators.UserNotRootValidator;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Validator;
@@ -249,88 +252,6 @@ public class NodeForm extends VerticalLayout {
 			return false;
 		}
 
-	}
-
-	class Password2Validator implements Validator {
-		private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-		private PasswordField otherPassword;
-
-		public Password2Validator(PasswordField otherPassword) {
-			super();
-			this.otherPassword = otherPassword;
-		}
-
-		public boolean isValid(Object value) {
-			if (value == null || !(value instanceof String)) {
-				return false;
-			} else {
-				boolean equal = ((String) value).equals((String) otherPassword.getValue());
-				return equal;
-			}
-		}
-
-		// Upon failure, the validate() method throws an exception
-		public void validate(Object value) throws InvalidValueException {
-			if (!isValid(value)) {
-				throw new InvalidValueException(otherPassword.getCaption() + " mismatch.");
-			}
-		}
-	}
-
-	class PasswordOrKeyValidator implements Validator {
-		private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-		private PasswordField passwordField;
-
-		public PasswordOrKeyValidator(PasswordField passwordField) {
-			super();
-			this.passwordField = passwordField;
-		}
-
-		public boolean isValid(Object value) {
-			if (value == null || !(value instanceof String)) {
-				return false;
-			} else {
-				boolean isKey = !String.valueOf(value).isEmpty();
-				boolean isPassword = !String.valueOf(passwordField.getValue()).isEmpty();
-				return isKey || isPassword;
-			}
-		}
-
-		// Upon failure, the validate() method throws an exception
-		public void validate(Object value) throws InvalidValueException {
-			if (!isValid(value)) {
-				throw new InvalidValueException("Either Root Password or SSH Key must be provided.");
-			}
-		}
-	}
-
-	class UserNotRootValidator implements Validator {
-		private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-		private String label;
-
-		public UserNotRootValidator(String label) {
-			super();
-			this.label = label;
-		}
-
-		public boolean isValid(Object value) {
-			if (value == null || !(value instanceof String)) {
-				return false;
-			} else {
-				boolean isRoot = "root".equalsIgnoreCase((String) value);
-				return !isRoot;
-			}
-		}
-
-		// Upon failure, the validate() method throws an exception
-		public void validate(Object value) throws InvalidValueException {
-			if (!isValid(value)) {
-				throw new InvalidValueException(label + " cannot be root.");
-			}
-		}
 	}
 
 }

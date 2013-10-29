@@ -3,26 +3,34 @@ package com.skysql.manager;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.skysql.manager.ui.GeneralSettings;
+import com.vaadin.server.WebBrowser;
 
 public class DateConversion {
 	public static String DEFAULT_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
-	private static boolean adjust = false;
-	private static String format = DEFAULT_TIME_FORMAT;
 
-	public static void setAdjust(boolean adjust) {
-		DateConversion.adjust = adjust;
+	private boolean adjust = false;
+	private String format = DEFAULT_TIME_FORMAT;
+
+	public DateConversion(boolean adjust, String format) {
+		this.adjust = adjust;
+		this.format = (format == null ? DEFAULT_TIME_FORMAT : format);
+
+		WebBrowser webBrowser = new WebBrowser();
+		int tzOffset = webBrowser.getTimezoneOffset();
+		int tzDSOffset = webBrowser.getRawTimezoneOffset();
+		int dstSavings = webBrowser.getDSTSavings();
+
 	}
 
-	public static void setAdjust(String adjust) {
-		DateConversion.adjust = (adjust == null ? GeneralSettings.DEFAULT_TIME_ADJUST : Boolean.valueOf(adjust));
+	public void setAdjuts(boolean adjust) {
+		this.adjust = adjust;
 	}
 
-	public static void setFormat(String format) {
-		DateConversion.format = (format == null ? DEFAULT_TIME_FORMAT : format);
+	public void setFormat(String format) {
+		this.format = format;
 	}
 
-	public static String adjust(String timestamp) {
+	public String adjust(String timestamp) {
 		if (timestamp == null || timestamp.isEmpty() || adjust == false) {
 			return timestamp;
 		} else {
@@ -41,7 +49,7 @@ public class DateConversion {
 		}
 	}
 
-	public static String adjust(Date myDate) {
+	public String adjust(Date myDate) {
 		if (myDate == null) {
 			return null;
 		} else {

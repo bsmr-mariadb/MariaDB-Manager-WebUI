@@ -229,12 +229,14 @@ public class PanelControl extends VerticalLayout {
 					logsTable.removeAllItems();
 
 					if (tasksList != null) {
+
+						DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
+
 						oldTasksCount = tasksList.size();
 						for (TaskRecord taskRecord : tasksList) {
-							logsTable.addItem(new Object[] { DateConversion.adjust(taskRecord.getStart()), DateConversion.adjust(taskRecord.getEnd()),
+							logsTable.addItem(new Object[] { dateConversion.adjust(taskRecord.getStart()), dateConversion.adjust(taskRecord.getEnd()),
 									taskRecord.getCommand(), taskRecord.getParams(), taskRecord.getSteps(), taskRecord.getPID(), taskRecord.getPrivateIP(),
-									userInfo.findNameByID(taskRecord.getUserID()), CommandStates.getDescriptions().get(taskRecord.getState()) },
-									taskRecord.getID());
+									taskRecord.getUserID(), CommandStates.getDescriptions().get(taskRecord.getState()) }, taskRecord.getID());
 						}
 					}
 				}

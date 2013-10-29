@@ -20,9 +20,11 @@ package com.skysql.manager.ui;
 
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.SystemTypes;
+import com.skysql.manager.validators.Password2Validator;
+import com.skysql.manager.validators.UserDifferentValidator;
+import com.skysql.manager.validators.UserNotRootValidator;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.EmptyValueException;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.event.ShortcutAction.KeyCode;
@@ -175,87 +177,6 @@ public class SystemForm extends VerticalLayout {
 			return false;
 		}
 
-	}
-
-	class Password2Validator implements Validator {
-		private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-		private PasswordField otherPassword;
-
-		public Password2Validator(PasswordField otherPassword) {
-			super();
-			this.otherPassword = otherPassword;
-		}
-
-		public boolean isValid(Object value) {
-			if (value == null || !(value instanceof String)) {
-				return false;
-			} else {
-				boolean equal = ((String) value).equals((String) otherPassword.getValue());
-				return equal;
-			}
-		}
-
-		// Upon failure, the validate() method throws an exception
-		public void validate(Object value) throws InvalidValueException {
-			if (!isValid(value)) {
-				throw new InvalidValueException(otherPassword.getCaption() + " mismatch.");
-			}
-		}
-	}
-
-	class UserDifferentValidator implements Validator {
-		private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-		private TextField otherUser;
-
-		public UserDifferentValidator(TextField otherUser) {
-			super();
-			this.otherUser = otherUser;
-		}
-
-		public boolean isValid(Object value) {
-			if (value == null || !(value instanceof String)) {
-				return false;
-			} else {
-				boolean equal = ((String) value).equals((String) otherUser.getValue());
-				return !equal;
-			}
-		}
-
-		// Upon failure, the validate() method throws an exception
-		public void validate(Object value) throws InvalidValueException {
-			if (!isValid(value)) {
-				throw new InvalidValueException("Database User and Replication User must be different.");
-			}
-		}
-	}
-
-	class UserNotRootValidator implements Validator {
-		private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-		private String label;
-
-		public UserNotRootValidator(String label) {
-			super();
-			this.label = label;
-		}
-
-		public boolean isValid(Object value) {
-			if (value == null || !(value instanceof String)) {
-				return false;
-			} else {
-				boolean isRoot = "root".equalsIgnoreCase((String) value);
-				return !isRoot;
-			}
-		}
-
-		// Upon failure, the validate() method throws an exception
-		public void validate(Object value) throws InvalidValueException {
-			if (!isValid(value)) {
-				throw new InvalidValueException(label + " cannot be root.");
-			}
-		}
 	}
 
 }

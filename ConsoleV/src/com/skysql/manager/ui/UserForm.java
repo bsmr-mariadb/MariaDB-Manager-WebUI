@@ -20,9 +20,10 @@ package com.skysql.manager.ui;
 
 import com.skysql.manager.api.UserInfo;
 import com.skysql.manager.api.UserObject;
+import com.skysql.manager.validators.Password2Validator;
+import com.skysql.manager.validators.UserNameValidator;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.EmptyValueException;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.event.ShortcutAction.KeyCode;
@@ -43,10 +44,8 @@ public class UserForm extends VerticalLayout {
 	final PasswordField newPassword2 = new PasswordField("Confirm Password");
 	final Form form = new Form();
 	private UserObject user;
-	private UserInfo userInfo;
 
 	UserForm(final UserInfo userInfo, final UserObject user, String description, final Button commitButton) {
-		this.userInfo = userInfo;
 		this.user = user;
 
 		setMargin(new MarginInfo(true, true, false, true));
@@ -66,7 +65,7 @@ public class UserForm extends VerticalLayout {
 			userName.setRequiredError("Username is missing");
 			userName.focus();
 			userName.setImmediate(true);
-			userName.addValidator(new UserNameValidator());
+			userName.addValidator(new UserNameValidator(userInfo));
 		}
 		form.addField("userName", userName);
 
@@ -118,8 +117,7 @@ public class UserForm extends VerticalLayout {
 
 			user.setUserID(userName.getValue());
 			user.setName(fullname.getValue());
-			String password = newPassword.getValue();
-			user.setPassword(password);
+			user.setPassword(newPassword.getValue());
 
 			return true;
 
@@ -132,59 +130,6 @@ public class UserForm extends VerticalLayout {
 			return false;
 		}
 
-	}
-
-	class UserNameValidator implements Validator {
-		private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-		public boolean isValid(Object value) {
-			if (value == null || !(value instanceof String)) {
-				return false;
-			}
-			return (true);
-		}
-
-		// Upon failure, the validate() method throws an exception
-		public void validate(Object value) throws InvalidValueException {
-			if (!isValid(value)) {
-				throw new InvalidValueException("Username invalid");
-			} else {
-				String name = (String) value;
-				if (name.contains(" ")) {
-					throw new InvalidValueException("Username contains illegal characters");
-				} else if (userInfo != null && userInfo.findIDByName((String) value) != null) {
-					throw new InvalidValueException("Username already exists");
-				}
-			}
-		}
-	}
-
-	class Password2Validator implements Validator {
-		private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-		private PasswordField otherPassword;
-
-		public Password2Validator(PasswordField otherPassword) {
-			super();
-			this.otherPassword = otherPassword;
-		}
-
-		public boolean isValid(Object value) {
-			if (value == null || !(value instanceof String)) {
-				return false;
-			} else {
-				boolean equals = ((String) value).equals((String) otherPassword.getValue());
-				return equals;
-			}
-		}
-
-		// Upon failure, the validate() method throws an exception
-		public void validate(Object value) throws InvalidValueException {
-			if (!isValid(value)) {
-				newPassword2.focus();
-				throw new InvalidValueException("Passwords do not match.");
-			}
-		}
 	}
 
 }

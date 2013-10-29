@@ -177,15 +177,11 @@ public class UsersSettings extends VerticalLayout implements Window.CloseListene
 	public void addToSelect(String userID) {
 		select.addItem(userID);
 		select.select(userID);
-		if (userID.equals(currentUserID)) {
-			String name = userInfo.findNameByID(selectedUserID);
-			TopPanel topPanel = getSession().getAttribute(TopPanel.class);
-			topPanel.setUserName(name);
-		}
+		updateSelect(userID);
 	}
 
 	public void updateSelect(String userID) {
-		String name = userInfo.findNameByID(userID);
+		String name = userInfo.findAnyNameByID(userID);
 		userName.setValue(name);
 		if (userID.equals(currentUserID)) {
 			TopPanel topPanel = getSession().getAttribute(TopPanel.class);

@@ -396,6 +396,8 @@ public class PanelInfo extends HorizontalSplitPanel {
 
 		nameLabel.setValue(componentInfo.getName());
 
+		DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
+
 		String value, values[] = null;
 		Label[] currentLabels = null;
 		LinkedHashMap<String, String> monitorLatest;
@@ -411,14 +413,14 @@ public class PanelInfo extends HorizontalSplitPanel {
 			monitorLatest = newMonitorLatest.getData();
 			String systemValues[] = { (value = systemRecord.getState()) != null ? value : NOT_AVAILABLE,
 					(value = systemRecord.getSystemType()) != null ? value : NOT_AVAILABLE,
-					(value = systemRecord.getLastMonitored()) != null ? DateConversion.adjust(value) : NOT_AVAILABLE,
+					(value = systemRecord.getLastMonitored()) != null ? dateConversion.adjust(value) : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.availability.toString())) != null ? value + "%" : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.capacity.toString())) != null ? value + "%" : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.connections.toString())) != null ? value : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.traffic.toString())) != null ? value + " KB" : NOT_AVAILABLE,
-					(value = systemRecord.getLastBackup()) != null ? DateConversion.adjust(value) : NOT_AVAILABLE,
-					(value = systemRecord.getStartDate()) != null ? DateConversion.adjust(value) : NOT_AVAILABLE,
-					(value = systemRecord.getLastAccess()) != null ? DateConversion.adjust(value) : NOT_AVAILABLE };
+					(value = systemRecord.getLastBackup()) != null ? dateConversion.adjust(value) : NOT_AVAILABLE,
+					(value = systemRecord.getStartDate()) != null ? dateConversion.adjust(value) : NOT_AVAILABLE,
+					(value = systemRecord.getLastAccess()) != null ? dateConversion.adjust(value) : NOT_AVAILABLE };
 			values = systemValues;
 			break;
 
@@ -437,7 +439,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 			//  "State", "Command Running", "Availability", "Capacity", "Connections", "Traffic", "Hostname", "Public IP", "Private IP", "Instance ID"
 			String nodeValues[] = { (value = nodeInfo.getState()) != null ? value : NOT_AVAILABLE,
 					(taskRecord != null && taskRecord.getState().equals("running") && (value = taskRecord.getCommand()) != null) ? value : NOT_AVAILABLE,
-					(value = nodeInfo.getLastMonitored()) != null ? DateConversion.adjust(value) : NOT_AVAILABLE,
+					(value = nodeInfo.getLastMonitored()) != null ? dateConversion.adjust(value) : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.availability.toString())) != null ? value + "%" : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.capacity.toString())) != null ? value + "%" : NOT_AVAILABLE,
 					(value = monitorLatest.get(MonitorNames.connections.toString())) != null ? value : NOT_AVAILABLE,

@@ -175,11 +175,13 @@ public class GeneralSettings extends HorizontalLayout {
 		form.addField("timeFormat", timeFormat);
 		defaultLayout.addComponent(form);
 
+		final DateConversion dateConversion = VaadinSession.getCurrent().getAttribute(DateConversion.class);
+
 		option.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(final ValueChangeEvent event) {
-				Boolean value = (Boolean) event.getProperty().getValue();
-				DateConversion.setAdjust(value);
+				boolean value = (Boolean) event.getProperty().getValue();
+				dateConversion.setAdjuts(value);
 				userObject.setProperty(UserObject.PROPERTY_TIME_ADJUST, String.valueOf(value));
 				timeFormat.setEnabled(value);
 				settingsDialog.setRefresh(true);
@@ -220,7 +222,7 @@ public class GeneralSettings extends HorizontalLayout {
 					form.commit();
 					timeFormat.setComponentError(null);
 					form.setValidationVisible(false);
-					DateConversion.setFormat(value);
+					dateConversion.setFormat(value);
 					userObject.setProperty(UserObject.PROPERTY_TIME_FORMAT, value);
 					settingsDialog.setClose(true);
 					settingsDialog.setRefresh(true);
@@ -279,7 +281,6 @@ public class GeneralSettings extends HorizontalLayout {
 			@Override
 			public void valueChange(final ValueChangeEvent event) {
 				Object value = event.getProperty().getValue();
-				DateConversion.setAdjust((Boolean) value);
 				userObject.setProperty(UserObject.PROPERTY_COMMAND_EXECUTION, String.valueOf(value));
 			}
 		});

@@ -54,11 +54,15 @@ public class UserObject {
 	}
 
 	public String getName() {
-		return (name != null && !name.isEmpty()) ? name : userID;
+		return name;
 	}
 
 	public String getPassword() {
 		return password;
+	}
+
+	public String getAnyName() {
+		return (name != null && !name.isEmpty()) ? name : userID;
 	}
 
 	public String getProperty(String key) {

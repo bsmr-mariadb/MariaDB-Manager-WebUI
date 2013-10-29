@@ -26,24 +26,32 @@ import com.skysql.manager.BackupRecord;
 import com.skysql.manager.Commands;
 import com.skysql.manager.Commands.Command;
 import com.skysql.manager.SystemRecord;
+import com.skysql.manager.api.APIrestful;
 import com.skysql.manager.api.BackupStates;
 import com.skysql.manager.api.Backups;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.ui.RunningTask;
+import com.skysql.manager.ui.components.ScriptingControlsLayout.Controls;
+import com.skysql.manager.validators.Password2Validator;
+import com.skysql.manager.validators.PasswordOrKeyValidator;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.Validator;
+import com.vaadin.data.Validator.EmptyValueException;
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Form;
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
 import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
@@ -57,13 +65,16 @@ public class ParametersLayout extends HorizontalLayout {
 	private ListSelect selectPrevBackup;
 	private String firstItem;
 	private GridLayout backupInfoGrid;
-	private Link backupLogLink;
-	private TextField connectPassword;
-	private TextField connectKey;
+	//private Link backupLogLink;
 	private RunningTask runningTask;
 	private LinkedHashMap<String, BackupRecord> backupsList;
 	private VerticalLayout backupInfoLayout;
 	private boolean isParameterReady = false;
+	final Form form = new Form();
+	final PasswordField connectPassword = new PasswordField("Root Password");
+	final PasswordField connectPassword2 = new PasswordField("Confirm Password");
+	final TextField connectKey = new TextField("SSH Key");
+	final Validator connectValidator = new PasswordOrKeyValidator(connectPassword);
 
 	public ParametersLayout(final RunningTask runningTask, final NodeInfo nodeInfo, Commands.Command commandEnum) {
 		this.runningTask = runningTask;
@@ -148,10 +159,12 @@ public class ParametersLayout extends HorizontalLayout {
 									selectPrevBackup.select(firstItem);
 								}
 							}
-							runningTask.getControlsLayout().setEnabled(true);
+							runningTask.getControlsLayout().enableControls(true, Controls.run);
 						} else {
-							displayBackupInfo(backupInfoLayout, new BackupRecord());
-							runningTask.getControlsLayout().setEnabled(false);
+							if (backupInfoLayout != null) {
+								displayBackupInfo(backupInfoLayout, new BackupRecord());
+							}
+							runningTask.getControlsLayout().enableControls(false, Controls.run);
 						}
 					}
 				});
@@ -191,7 +204,7 @@ public class ParametersLayout extends HorizontalLayout {
 						String backupID = (String) event.getProperty().getValue();
 						if (backupID == null) {
 							isParameterReady = false;
-							runningTask.getControlsLayout().setEnabled(isParameterReady);
+							runningTask.getControlsLayout().enableControls(isParameterReady, Controls.run);
 							return;
 						}
 						BackupRecord backupRecord = backupsList.get(backupID);
@@ -202,9 +215,9 @@ public class ParametersLayout extends HorizontalLayout {
 							runningTask.selectParameter(backupRecord.getID());
 						}
 						isParameterReady = true;
-						VerticalLayout controlsLayout = runningTask.getControlsLayout();
+						ScriptingControlsLayout controlsLayout = runningTask.getControlsLayout();
 						if (controlsLayout != null) {
-							controlsLayout.setEnabled(isParameterReady);
+							controlsLayout.enableControls(isParameterReady, Controls.run);
 						}
 					}
 				});
@@ -223,27 +236,30 @@ public class ParametersLayout extends HorizontalLayout {
 					backupLevel.setEnabled(false);
 					isParameterReady = true;
 				} else if (commandEnum == Command.restore) {
-					//runningTask.getControlsLayout().setEnabled(false);
+					//runningTask.getControlsLayout().enableControls(false, Controls.run);
 				}
 			}
 			break;
 
 		case connect:
-			VerticalLayout connectParamsLayout = new VerticalLayout();
-			addComponent(connectParamsLayout);
-			setComponentAlignment(connectParamsLayout, Alignment.MIDDLE_LEFT);
+			addComponent(form);
+			form.setImmediate(false);
+			form.setFooter(null);
+			form.setDescription("Enter either Root Password or SSH Key");
 
-			connectPassword = new TextField("Root Password");
+			form.addField("connectPassword", connectPassword);
 			connectPassword.setImmediate(true);
-			connectParamsLayout.addComponent(connectPassword);
-			connectParamsLayout.setComponentAlignment(connectPassword, Alignment.MIDDLE_LEFT);
 			connectPassword.addValueChangeListener(connectParamsListener);
 
-			connectKey = new TextField("SSH Key");
+			form.addField("connectPassword2", connectPassword2);
+			connectPassword2.setImmediate(true);
+			connectPassword2.addValueChangeListener(connectParamsListener);
+			connectPassword2.addValidator(new Password2Validator(connectPassword));
+
+			form.addField("connectKey", connectKey);
 			connectKey.setImmediate(true);
-			connectParamsLayout.addComponent(connectKey);
-			connectParamsLayout.setComponentAlignment(connectKey, Alignment.MIDDLE_LEFT);
 			connectKey.addValueChangeListener(connectParamsListener);
+
 			break;
 
 		default:
@@ -262,18 +278,42 @@ public class ParametersLayout extends HorizontalLayout {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 		public void valueChange(ValueChangeEvent event) {
-			String password = connectPassword.getValue();
-			String sshkey = connectKey.getValue();
-			if (password != null || sshkey != null) {
-				String params = "rootpassword=" + password + "&sshkey=" + sshkey;
-				runningTask.selectParameter(params);
-				isParameterReady = true;
-			} else {
-				isParameterReady = false;
+			if (validateConnectParams()) {
+				String password = connectPassword.getValue();
+				String sshkey = connectKey.getValue();
+				if (password != null || sshkey != null) {
+					APIrestful api = new APIrestful();
+					String encryptedPassword = api.encryptAES(password);
+					String params = "rootpassword=" + encryptedPassword + "&sshkey=" + sshkey;
+					runningTask.selectParameter(params);
+					isParameterReady = true;
+				} else {
+					isParameterReady = false;
+				}
+				runningTask.getControlsLayout().enableControls(isParameterReady, Controls.run);
+
 			}
-			runningTask.getControlsLayout().setEnabled(isParameterReady);
 		}
 	};
+
+	public boolean validateConnectParams() {
+
+		try {
+			form.setComponentError(null);
+			form.commit();
+
+			return true;
+
+		} catch (EmptyValueException e) {
+			return false;
+		} catch (InvalidValueException e) {
+			return false;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+	}
 
 	private String backupLabels[] = { "Node", "Level", "State", "Size", "Restored" };
 
@@ -318,4 +358,5 @@ public class ParametersLayout extends HorizontalLayout {
 		//			}
 		//		}
 	}
+
 }
