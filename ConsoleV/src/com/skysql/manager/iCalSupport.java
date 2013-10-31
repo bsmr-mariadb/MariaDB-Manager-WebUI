@@ -169,14 +169,16 @@ public class iCalSupport {
 
 	}
 
-	public static synchronized void deleteAllFuture(VEvent vEvent, Date date) {
+	public static synchronized void deleteAllFuture(VEvent vEvent, Date endDate) {
 		net.fortuna.ical4j.model.Property rruleProperty = vEvent.getProperty("RRULE");
 		String rruleStr = rruleProperty != null ? rruleProperty.getValue() : null;
 		try {
 			RRule rule = new RRule(rruleStr);
 			Recur recur = rule.getRecur();
 			recur.setCount(0);
-			recur.setUntil(new DateTime(new Date(date.getTime() - 1000)));
+			DateTime newEndDate = new DateTime(endDate.getTime() - 1);
+			newEndDate.setUtc(true);
+			recur.setUntil(newEndDate);
 			vEvent.getProperties().remove(rruleProperty);
 			vEvent.getProperties().add(rule);
 		} catch (ParseException e) {

@@ -92,7 +92,7 @@ public class CalendarDialog implements Window.CloseListener {
 
 	private GregorianCalendar calendar;
 	private Calendar calendarComponent;
-	private Date currentMonthsFirstDate;
+	private Date currentMonthsFirstDate, visibleFirstDate;
 	private final Label captionLabel = new Label("");
 	private Button monthButton;
 	private Button weekButton;
@@ -228,23 +228,27 @@ public class CalendarDialog implements Window.CloseListener {
 		net.fortuna.ical4j.model.Property rruleProperty = vEvent.getProperty("RRULE");
 		String rrule = rruleProperty != null ? rruleProperty.getValue() : null;
 
-		ArrayList<CalendarCustomEvent> eventsList = eventsMap.get(eventID);
-		if (eventsList == null) {
-			eventsList = new ArrayList<CalendarCustomEvent>();
-		}
+		ArrayList<CalendarCustomEvent> eventsList = new ArrayList<CalendarCustomEvent>();
 		eventsMap.put(eventID, eventsList);
-		Date endDate = calendarComponent.getEndDate();
-		PeriodList periodList = vEvent.calculateRecurrenceSet(new Period(new DateTime(currentMonthsFirstDate), new DateTime(endDate)));
-		for (Object po : periodList) {
-			Period period = (Period) po;
-			ManagerUI.log(period.toString());
 
-			DateTime start = new DateTime(period.getStart());
-			DateTime end = new DateTime(period.getEnd());
-			CalendarCustomEvent event = getNewEvent(summary, description, start, end, rrule, nodeID);
-			event.setData(eventID);
-			dataSource.addEvent(event);
-			eventsList.add(event);
+		Date startDate = calendarComponent.getStartDate();
+		if (startDate.before(getToday())) {
+			startDate = getToday();
+		}
+		Date endDate = calendarComponent.getEndDate();
+		if (startDate.before(endDate)) {
+			PeriodList periodList = vEvent.calculateRecurrenceSet(new Period(new DateTime(startDate), new DateTime(endDate)));
+			for (Object po : periodList) {
+				Period period = (Period) po;
+				ManagerUI.log(period.toString());
+
+				DateTime start = new DateTime(period.getStart());
+				DateTime end = new DateTime(period.getEnd());
+				CalendarCustomEvent event = getNewEvent(summary, description, start, end, rrule, nodeID);
+				event.setData(eventID);
+				dataSource.addEvent(event);
+				eventsList.add(event);
+			}
 		}
 
 	}
@@ -426,9 +430,12 @@ public class CalendarDialog implements Window.CloseListener {
 			calendar.add(GregorianCalendar.DAY_OF_MONTH, -rollAmount);
 			resetTime(false);
 			currentMonthsFirstDate = calendar.getTime();
-			calendarComponent.setStartDate(currentMonthsFirstDate);
-			calendar.add(GregorianCalendar.MONTH, 1);
-			calendar.add(GregorianCalendar.DATE, -1);
+			calendar.add(java.util.Calendar.DAY_OF_WEEK, -(calendar.get(java.util.Calendar.DAY_OF_WEEK) - 1));
+			visibleFirstDate = calendar.getTime();
+			calendarComponent.setStartDate(visibleFirstDate);
+			calendar.add(GregorianCalendar.DAY_OF_YEAR, 34);
+			resetTime(true);
+			Date lastm = calendar.getTime();
 			calendarComponent.setEndDate(calendar.getTime());
 		}
 
@@ -1040,20 +1047,6 @@ public class CalendarDialog implements Window.CloseListener {
 		scheduleEventForm
 				.setVisibleItemProperties(new Object[] { "caption", "description", "node", "start", "repeat", "untilSelect", "untilCount", "untilDate" });
 
-		//		if (repeatSelectField != null && !repeatSelectField.getValue().equals(CalendarCustomEvent.RECUR_NONE)) {
-		//			if (untilSelectField != null) {
-		//				untilSelectField.setVisible(true);
-		//			}
-		//		}
-
-		//		if (untilSelectField != null && !untilSelectField.getValue().equals(Until.never.name())) {
-		//			if (untilSelectField.getValue().equals(Until.count.name()) && untilCountField != null) {
-		//				untilCountField.setVisible(true);
-		//			} else if (untilSelectField.getValue().equals(Until.date.name()) && untilDateField != null) {
-		//				untilDateField.setVisible(true);
-		//			}
-		//		}
-
 	}
 
 	private void setFormDateResolution(Resolution resolution) {
@@ -1070,120 +1063,118 @@ public class CalendarDialog implements Window.CloseListener {
 			return;
 		}
 
-		if (deleteSchedulePopup == null) {
-			VerticalLayout layout = new VerticalLayout();
-			layout.setMargin(true);
-			layout.setSpacing(true);
+		VerticalLayout layout = new VerticalLayout();
+		layout.setMargin(true);
+		layout.setSpacing(true);
 
-			deleteSchedulePopup = new Window("Delete Recurring Event", layout);
-			deleteSchedulePopup.setWidth("600px");
-			deleteSchedulePopup.setModal(true);
-			deleteSchedulePopup.center();
-			deleteSchedulePopup.setContent(layout);
-			deleteSchedulePopup.addCloseListener(new CloseListener() {
-				private static final long serialVersionUID = 1L;
+		deleteSchedulePopup = new Window("Delete Recurring Event", layout);
+		deleteSchedulePopup.setWidth("600px");
+		deleteSchedulePopup.setModal(true);
+		deleteSchedulePopup.center();
+		deleteSchedulePopup.setContent(layout);
+		deleteSchedulePopup.addCloseListener(new CloseListener() {
+			private static final long serialVersionUID = 1L;
 
-				public void windowClose(CloseEvent e) {
-					UI.getCurrent().removeWindow(deleteSchedulePopup);
-				}
-			});
+			public void windowClose(CloseEvent e) {
+				UI.getCurrent().removeWindow(deleteSchedulePopup);
+			}
+		});
 
-			Label warning = new Label("Do you want to delete this and all future occurrences of this event, or only the selected occurrence?");
-			layout.addComponent(warning);
+		Label warning = new Label("Do you want to delete this and all future occurrences of this event, or only the selected occurrence?");
+		layout.addComponent(warning);
 
-			Button cancel = new Button("Cancel", new ClickListener() {
-				private static final long serialVersionUID = 1L;
+		Button cancel = new Button("Cancel", new ClickListener() {
+			private static final long serialVersionUID = 1L;
 
-				public void buttonClick(ClickEvent event) {
-					UI.getCurrent().removeWindow(deleteSchedulePopup);
-				}
-			});
+			public void buttonClick(ClickEvent event) {
+				UI.getCurrent().removeWindow(deleteSchedulePopup);
+			}
+		});
 
-			Button deleteAll = new Button("Delete All Future Events", new ClickListener() {
-				private static final long serialVersionUID = 1L;
+		Button deleteAll = new Button("Delete All Future Events", new ClickListener() {
+			private static final long serialVersionUID = 1L;
 
-				public void buttonClick(ClickEvent dummy) {
-					String scheduleID = (String) event.getData();
-					ScheduleRecord scheduleRecord = schedule.getScheduleList().get(scheduleID);
-					VEvent vEvent = iCalSupport.readiEvent(scheduleRecord.getICal());
-					ManagerUI.log("before Delete All Future Events\n" + vEvent);
-					iCalSupport.deleteAllFuture(vEvent, event.getStart());
-					ManagerUI.log("after Delete All Future Events\n" + vEvent);
-					scheduleRecord.setICal(vEvent.toString());
+			public void buttonClick(ClickEvent dummy) {
+				String scheduleID = (String) event.getData();
+				ScheduleRecord scheduleRecord = schedule.getScheduleList().get(scheduleID);
+				VEvent vEvent = iCalSupport.readiEvent(scheduleRecord.getICal());
+				ManagerUI.log("before Delete All Future Events\n" + vEvent);
+				iCalSupport.deleteAllFuture(vEvent, event.getStart());
+				ManagerUI.log("after Delete All Future Events\n" + vEvent);
+				scheduleRecord.setICal(vEvent.toString());
 
-					Schedule.update(scheduleID, vEvent.toString());
-					ArrayList<CalendarCustomEvent> eventsList = eventsMap.remove(scheduleID);
-					for (CalendarCustomEvent removeEvent : eventsList) {
-						if (dataSource.containsEvent(removeEvent)) {
-							dataSource.removeEvent(removeEvent);
-						}
+				Schedule.update(scheduleID, vEvent.toString());
+				ArrayList<CalendarCustomEvent> eventsList = eventsMap.remove(scheduleID);
+				for (CalendarCustomEvent removeEvent : eventsList) {
+					if (dataSource.containsEvent(removeEvent)) {
+						dataSource.removeEvent(removeEvent);
 					}
-
-					schedule.getScheduleList().put(scheduleID, scheduleRecord);
-
-					addEventsToMap(scheduleID, vEvent, event.getNode());
-					eventsList = eventsMap.get(scheduleID);
-					for (CalendarCustomEvent addEvent : eventsList) {
-						if (!dataSource.containsEvent(addEvent)) {
-							dataSource.addEvent(addEvent);
-						}
-					}
-
-					UI.getCurrent().removeWindow(deleteSchedulePopup);
-
-					UI.getCurrent().removeWindow(scheduleEventPopup);
-
 				}
-			});
 
-			Button deleteSelected = new Button("Delete Only This Event", new ClickListener() {
-				private static final long serialVersionUID = 1L;
+				schedule.getScheduleList().put(scheduleID, scheduleRecord);
 
-				public void buttonClick(ClickEvent dummy) {
-					String scheduleID = (String) event.getData();
-					ScheduleRecord scheduleRecord = schedule.getScheduleList().get(scheduleID);
-					VEvent vEvent = iCalSupport.readiEvent(scheduleRecord.getICal());
-					ManagerUI.log("before Exclude\n" + vEvent);
-					iCalSupport.addExcludedDate(vEvent, event.getStart());
-					ManagerUI.log("after Exclude\n" + vEvent);
-					scheduleRecord.setICal(vEvent.toString());
-
-					Schedule.update(scheduleID, vEvent.toString());
-					ArrayList<CalendarCustomEvent> eventsList = eventsMap.remove(scheduleID);
-					for (CalendarCustomEvent removeEvent : eventsList) {
-						if (dataSource.containsEvent(removeEvent)) {
-							dataSource.removeEvent(removeEvent);
-						}
+				addEventsToMap(scheduleID, vEvent, event.getNode());
+				eventsList = eventsMap.get(scheduleID);
+				for (CalendarCustomEvent addEvent : eventsList) {
+					if (!dataSource.containsEvent(addEvent)) {
+						dataSource.addEvent(addEvent);
 					}
-
-					schedule.getScheduleList().put(scheduleID, scheduleRecord);
-
-					addEventsToMap(scheduleID, vEvent, event.getNode());
-					eventsList = eventsMap.get(scheduleID);
-					for (CalendarCustomEvent addEvent : eventsList) {
-						if (!dataSource.containsEvent(addEvent)) {
-							dataSource.addEvent(addEvent);
-						}
-					}
-
-					UI.getCurrent().removeWindow(deleteSchedulePopup);
-
-					UI.getCurrent().removeWindow(scheduleEventPopup);
-
 				}
-			});
 
-			HorizontalLayout buttons = new HorizontalLayout();
-			buttons.setSpacing(true);
-			buttons.addComponent(cancel);
-			buttons.addComponent(deleteAll);
-			buttons.addComponent(deleteSelected);
-			deleteSelected.focus();
+				UI.getCurrent().removeWindow(deleteSchedulePopup);
 
-			layout.addComponent(buttons);
-			layout.setComponentAlignment(buttons, Alignment.BOTTOM_RIGHT);
+				UI.getCurrent().removeWindow(scheduleEventPopup);
 
-		}
+			}
+		});
+
+		Button deleteSelected = new Button("Delete Only This Event", new ClickListener() {
+			private static final long serialVersionUID = 1L;
+
+			public void buttonClick(ClickEvent dummy) {
+				String scheduleID = (String) event.getData();
+				ScheduleRecord scheduleRecord = schedule.getScheduleList().get(scheduleID);
+				VEvent vEvent = iCalSupport.readiEvent(scheduleRecord.getICal());
+				ManagerUI.log("before Exclude\n" + vEvent);
+				iCalSupport.addExcludedDate(vEvent, event.getStart());
+				ManagerUI.log("after Exclude\n" + vEvent);
+				scheduleRecord.setICal(vEvent.toString());
+
+				Schedule.update(scheduleID, vEvent.toString());
+				ArrayList<CalendarCustomEvent> eventsList = eventsMap.remove(scheduleID);
+				for (CalendarCustomEvent removeEvent : eventsList) {
+					if (dataSource.containsEvent(removeEvent)) {
+						dataSource.removeEvent(removeEvent);
+					}
+				}
+
+				schedule.getScheduleList().put(scheduleID, scheduleRecord);
+
+				addEventsToMap(scheduleID, vEvent, event.getNode());
+				eventsList = eventsMap.get(scheduleID);
+				for (CalendarCustomEvent addEvent : eventsList) {
+					if (!dataSource.containsEvent(addEvent)) {
+						dataSource.addEvent(addEvent);
+					}
+				}
+
+				UI.getCurrent().removeWindow(deleteSchedulePopup);
+
+				UI.getCurrent().removeWindow(scheduleEventPopup);
+
+			}
+		});
+
+		HorizontalLayout buttons = new HorizontalLayout();
+		buttons.setSpacing(true);
+		buttons.addComponent(cancel);
+		buttons.addComponent(deleteAll);
+		buttons.addComponent(deleteSelected);
+		deleteSelected.focus();
+
+		layout.addComponent(buttons);
+		layout.setComponentAlignment(buttons, Alignment.BOTTOM_RIGHT);
+
 		if (!UI.getCurrent().getWindows().contains(deleteSchedulePopup)) {
 			UI.getCurrent().addWindow(deleteSchedulePopup);
 		}
@@ -1306,12 +1297,11 @@ public class CalendarDialog implements Window.CloseListener {
 		calendar.add(GregorianCalendar.MONTH, direction);
 		resetTime(false);
 		currentMonthsFirstDate = calendar.getTime();
-		calendarComponent.setStartDate(currentMonthsFirstDate);
-
 		updateCaptionLabel();
-
-		calendar.add(GregorianCalendar.MONTH, 1);
-		calendar.add(GregorianCalendar.DATE, -1);
+		calendar.add(java.util.Calendar.DAY_OF_WEEK, -(calendar.get(java.util.Calendar.DAY_OF_WEEK) - 1));
+		visibleFirstDate = calendar.getTime();
+		calendarComponent.setStartDate(visibleFirstDate);
+		calendar.add(GregorianCalendar.DAY_OF_YEAR, 34);
 		resetCalendarTime(true);
 	}
 
@@ -1348,7 +1338,8 @@ public class CalendarDialog implements Window.CloseListener {
 		java.util.Calendar cal = java.util.Calendar.getInstance();
 		cal.setTime(start);
 		cal.add(java.util.Calendar.HOUR_OF_DAY, 1);
-		event.setEnd(cal.getTime());
+		//event.setEnd(cal.getTime());
+		event.setEnd(end);
 		iCalSupport.parseRepeat(repeat, event);
 		event.setNode(node);
 		//event.setStyleName("color1");
@@ -1375,13 +1366,13 @@ public class CalendarDialog implements Window.CloseListener {
 		weekButton.setVisible(false);
 
 		calendar.setTime(currentMonthsFirstDate);
-		calendarComponent.setStartDate(currentMonthsFirstDate);
-
 		updateCaptionLabel();
-
-		calendar.add(GregorianCalendar.MONTH, 1);
-		calendar.add(GregorianCalendar.DATE, -1);
+		calendar.add(java.util.Calendar.DAY_OF_WEEK, -(calendar.get(java.util.Calendar.DAY_OF_WEEK) - 1));
+		visibleFirstDate = calendar.getTime();
+		calendarComponent.setStartDate(visibleFirstDate);
+		calendar.add(GregorianCalendar.DAY_OF_YEAR, 34);
 		resetCalendarTime(true);
+
 	}
 
 	/*
@@ -1394,6 +1385,8 @@ public class CalendarDialog implements Window.CloseListener {
 	}
 
 	private void resetCalendarTime(boolean resetEndTime) {
+		Date first = calendarComponent.getStartDate();
+		Date last = calendarComponent.getEndDate();
 		resetTime(resetEndTime);
 		if (resetEndTime) {
 			calendarComponent.setEndDate(calendar.getTime());
