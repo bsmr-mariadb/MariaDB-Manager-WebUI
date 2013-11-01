@@ -1,3 +1,21 @@
+/*
+ * This file is distributed as part of the SkySQL Cloud Data Suite.  It is free
+ * software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation,
+ * version 2.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Copyright 2012-2013 SkySQL Ab
+ */
+
 package com.skysql.manager.ui;
 
 import java.net.SocketException;
@@ -107,6 +125,7 @@ public class CalendarDialog implements Window.CloseListener {
 	private final Form scheduleEventForm = new Form();
 	private Button deleteEventButton;
 	private Button applyEventButton;
+	private Button editOriginalButton;
 	private Mode viewMode = Mode.MONTH;
 	private BasicEventProvider dataSource;
 	private Button addNewEvent;
@@ -122,6 +141,7 @@ public class CalendarDialog implements Window.CloseListener {
 	private Window dialogWindow;
 	private NativeSelect repeatSelectField;
 	private NativeSelect untilSelectField;
+	private DateField startDateField;
 	private DateField untilDateField;
 	private TextField untilCountField;
 	private ArrayList<NodeInfo> nodes;
@@ -227,6 +247,7 @@ public class CalendarDialog implements Window.CloseListener {
 		String description = vEvent.getDescription().getValue();
 		net.fortuna.ical4j.model.Property rruleProperty = vEvent.getProperty("RRULE");
 		String rrule = rruleProperty != null ? rruleProperty.getValue() : null;
+		ManagerUI.log("RRULE: " + rrule);
 
 		ArrayList<CalendarCustomEvent> eventsList = new ArrayList<CalendarCustomEvent>();
 		eventsMap.put(eventID, eventsList);
@@ -246,6 +267,10 @@ public class CalendarDialog implements Window.CloseListener {
 				DateTime end = new DateTime(period.getEnd());
 				CalendarCustomEvent event = getNewEvent(summary, description, start, end, rrule, nodeID);
 				event.setData(eventID);
+				Date masterStart = vEvent.getStartDate().getDate();
+				if (!start.equals(masterStart)) {
+					event.setOccurrence(masterStart);
+				}
 				dataSource.addEvent(event);
 				eventsList.add(event);
 			}
@@ -745,7 +770,7 @@ public class CalendarDialog implements Window.CloseListener {
 			return;
 		}
 
-		updateCalendarEventPopup(newEvent);
+		updateCalendarEventPopup((CalendarCustomEvent) event, newEvent);
 		updateCalendarEventForm(event);
 
 		if (!UI.getCurrent().getWindows().contains(scheduleEventPopup)) {
@@ -754,7 +779,7 @@ public class CalendarDialog implements Window.CloseListener {
 	}
 
 	/* Initializes a modal window to edit schedule event. */
-	private void createCalendarEventPopup() {
+	private void createCalendarEventPopup(CalendarCustomEvent event, boolean newEvent) {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setMargin(true);
 		layout.setSpacing(true);
@@ -763,6 +788,49 @@ public class CalendarDialog implements Window.CloseListener {
 		scheduleEventPopup.setWidth("400px");
 		scheduleEventPopup.setModal(true);
 		scheduleEventPopup.center();
+
+		Date occurrence = event.getOccurrence();
+		if (!newEvent && occurrence != null) {
+			Form form = new Form();
+			form.setCaption("This is a repeat occurrence");
+			layout.addComponent(form);
+
+			DateField dateField = new DateField("Occurrence Start");
+			if (useSecondResolution) {
+				dateField.setResolution(Resolution.SECOND);
+			} else {
+				dateField.setResolution(Resolution.MINUTE);
+			}
+			dateField.setValue(event.getStart());
+			dateField.setEnabled(false);
+			form.addField("dateField", dateField);
+			form.setFooter(null);
+
+			HorizontalLayout editLayout = new HorizontalLayout();
+			editLayout.setSpacing(true);
+			layout.addComponent(editLayout);
+
+			final Label label = new Label("Click to change the original event below:");
+			editLayout.addComponent(label);
+			editLayout.setComponentAlignment(label, Alignment.BOTTOM_LEFT);
+
+			editOriginalButton = new Button("Edit", new ClickListener() {
+
+				private static final long serialVersionUID = 1L;
+
+				public void buttonClick(ClickEvent clickEvent) {
+					scheduleEventForm.setEnabled(true);
+					applyEventButton.setEnabled(true);
+					label.setValue("Editing original event:");
+					editOriginalButton.setVisible(false);
+				}
+			});
+			editLayout.addComponent(editOriginalButton);
+
+			scheduleEventForm.setEnabled(false);
+		} else {
+			scheduleEventForm.setEnabled(true);
+		}
 
 		layout.addComponent(scheduleEventForm);
 
@@ -807,10 +875,8 @@ public class CalendarDialog implements Window.CloseListener {
 		layout.setComponentAlignment(buttons, Alignment.BOTTOM_RIGHT);
 	}
 
-	private void updateCalendarEventPopup(boolean newEvent) {
-		if (scheduleEventPopup == null) {
-			createCalendarEventPopup();
-		}
+	private void updateCalendarEventPopup(CalendarCustomEvent event, boolean newEvent) {
+		createCalendarEventPopup(event, newEvent);
 
 		if (newEvent) {
 			scheduleEventPopup.setCaption("Add Backup");
@@ -821,7 +887,7 @@ public class CalendarDialog implements Window.CloseListener {
 		deleteEventButton.setVisible(!newEvent);
 		deleteEventButton.setEnabled(!calendarComponent.isReadOnly());
 		applyEventButton.setCaption(newEvent ? "Add" : "Save");
-		applyEventButton.setEnabled(!calendarComponent.isReadOnly());
+		applyEventButton.setEnabled(!calendarComponent.isReadOnly() && event.getOccurrence() == null);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -850,7 +916,8 @@ public class CalendarDialog implements Window.CloseListener {
 					return createStyleNameSelect();
 
 				} else if (propertyId.equals("start")) {
-					return createDateField("Start");
+					startDateField = createDateField("Start");
+					return startDateField;
 
 				} else if (propertyId.equals("end")) {
 					return createDateField("End");
@@ -1047,6 +1114,10 @@ public class CalendarDialog implements Window.CloseListener {
 		scheduleEventForm
 				.setVisibleItemProperties(new Object[] { "caption", "description", "node", "start", "repeat", "untilSelect", "untilCount", "untilDate" });
 
+		Date occurrence = ((CalendarCustomEvent) event).getOccurrence();
+		if (occurrence != null) {
+			startDateField.setValue(occurrence);
+		}
 	}
 
 	private void setFormDateResolution(Resolution resolution) {
@@ -1068,7 +1139,7 @@ public class CalendarDialog implements Window.CloseListener {
 		layout.setSpacing(true);
 
 		deleteSchedulePopup = new Window("Delete Recurring Event", layout);
-		deleteSchedulePopup.setWidth("600px");
+		deleteSchedulePopup.setWidth("740px");
 		deleteSchedulePopup.setModal(true);
 		deleteSchedulePopup.center();
 		deleteSchedulePopup.setContent(layout);
@@ -1080,7 +1151,7 @@ public class CalendarDialog implements Window.CloseListener {
 			}
 		});
 
-		Label warning = new Label("Do you want to delete this and all future occurrences of this event, or only the selected occurrence?");
+		Label warning = new Label("Do you want to delete the original event, or this and all future occurrences of the event, or only the selected occurrence?");
 		layout.addComponent(warning);
 
 		Button cancel = new Button("Cancel", new ClickListener() {
@@ -1091,7 +1162,30 @@ public class CalendarDialog implements Window.CloseListener {
 			}
 		});
 
-		Button deleteAll = new Button("Delete All Future Events", new ClickListener() {
+		Button deleteAll = new Button("Delete Original Event", new ClickListener() {
+			private static final long serialVersionUID = 1L;
+
+			public void buttonClick(ClickEvent dummy) {
+				String scheduleID = (String) event.getData();
+				Schedule.delete(scheduleID);
+
+				schedule.getScheduleList().remove(scheduleID);
+
+				ArrayList<CalendarCustomEvent> eventsList = eventsMap.remove(scheduleID);
+				for (CalendarCustomEvent removeEvent : eventsList) {
+					if (dataSource.containsEvent(removeEvent)) {
+						dataSource.removeEvent(removeEvent);
+					}
+				}
+
+				UI.getCurrent().removeWindow(deleteSchedulePopup);
+
+				UI.getCurrent().removeWindow(scheduleEventPopup);
+
+			}
+		});
+
+		Button deleteFuture = new Button("Delete All Future Events", new ClickListener() {
 			private static final long serialVersionUID = 1L;
 
 			public void buttonClick(ClickEvent dummy) {
@@ -1169,6 +1263,7 @@ public class CalendarDialog implements Window.CloseListener {
 		buttons.setSpacing(true);
 		buttons.addComponent(cancel);
 		buttons.addComponent(deleteAll);
+		buttons.addComponent(deleteFuture);
 		buttons.addComponent(deleteSelected);
 		deleteSelected.focus();
 
@@ -1342,6 +1437,7 @@ public class CalendarDialog implements Window.CloseListener {
 		event.setEnd(end);
 		iCalSupport.parseRepeat(repeat, event);
 		event.setNode(node);
+		//event.setOccurrence(occurrence);
 		//event.setStyleName("color1");
 
 		return event;

@@ -110,7 +110,7 @@ public class Schedule {
 
 		APIrestful api = new APIrestful();
 		// TODO: incorporate or eliminate date parameter
-		if (api.get("schedule", "?systemid=" + system)) {
+		if (api.get("schedule" + (date != null ? "/" + date : ""), "?systemid=" + system)) {
 			try {
 				Schedule schedule = APIrestful.getGson().fromJson(api.getResult(), Schedule.class);
 				this.scheduleList = schedule.scheduleList;

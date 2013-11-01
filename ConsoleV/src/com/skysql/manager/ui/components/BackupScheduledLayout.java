@@ -18,17 +18,28 @@
 
 package com.skysql.manager.ui.components;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
+
+import net.fortuna.ical4j.model.DateTime;
+import net.fortuna.ical4j.model.Period;
+import net.fortuna.ical4j.model.PeriodList;
+import net.fortuna.ical4j.model.component.VEvent;
 
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.DateConversion;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.ScheduleRecord;
 import com.skysql.manager.SystemRecord;
+import com.skysql.manager.iCalSupport;
 import com.skysql.manager.api.Schedule;
 import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.ui.CalendarDialog;
@@ -39,6 +50,7 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
 @SuppressWarnings("serial")
@@ -105,6 +117,44 @@ public class BackupScheduledLayout extends VerticalLayout {
 		}
 
 		return new Schedule(systemID, null);
+
+	}
+
+	private TreeMap<String, String> collectEvents() {
+
+		TreeMap<String, String> eventsTree = new TreeMap<String, String>();
+
+		// loop through events from API and add to calendar
+		final LinkedHashMap<String, ScheduleRecord> scheduleList = schedule.getScheduleList();
+		ListIterator<Map.Entry<String, ScheduleRecord>> iter = new ArrayList<Entry<String, ScheduleRecord>>(scheduleList.entrySet()).listIterator();
+
+		while (iter.hasNext()) {
+			Map.Entry<String, ScheduleRecord> entry = iter.next();
+			ScheduleRecord scheduleRecord = entry.getValue();
+
+			String iCalString = scheduleRecord.getICal();
+			VEvent vEvent = iCalSupport.readiEvent(iCalString);
+			addEventsToMap(eventsTree, scheduleRecord.getID(), vEvent);
+
+		}
+
+		return eventsTree;
+
+	}
+
+	private void addEventsToMap(TreeMap<String, String> eventsMap, String eventID, VEvent vEvent) {
+
+		Date start = new Date();
+		GregorianCalendar calendar = new GregorianCalendar(UI.getCurrent().getLocale());
+		calendar.setTime(start);
+		calendar.add(GregorianCalendar.MONTH, 1);
+		Date end = calendar.getTime();
+		PeriodList periodList = vEvent.calculateRecurrenceSet(new Period(new DateTime(start), new DateTime(end)));
+		for (Object po : periodList) {
+			Period period = (Period) po;
+			DateTime startDate = new DateTime(period.getStart());
+			eventsMap.put(startDate.toString(), eventID);
+		}
 
 	}
 
@@ -177,22 +227,26 @@ public class BackupScheduledLayout extends VerticalLayout {
 
 				scheduledTable.removeAllItems();
 				if (scheduleList != null) {
-					ListIterator<Map.Entry<String, ScheduleRecord>> iter = new ArrayList<Entry<String, ScheduleRecord>>(scheduleList.entrySet()).listIterator();
 
 					DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
+					TreeMap<String, String> eventsTree = collectEvents();
 
-					while (iter.hasNext()) {
-						if (updaterThread.flagged) {
-							ManagerUI.log("ScheduleLayout - flagged is set during table population");
-							return;
+					int i = 0;
+					for (Map.Entry<String, String> entry : eventsTree.entrySet()) {
+						String key = entry.getKey();
+						String myDate = null;
+						try {
+							Date start = new DateTime(key);
+							SimpleDateFormat sdfInput = new SimpleDateFormat("E, d MMM y HH:mm:ss Z"); // Mon, 02 Sep 2013 13:08:14 +0000
+							myDate = sdfInput.format(start);
+						} catch (ParseException e) {
+							e.printStackTrace();
 						}
 
-						Map.Entry<String, ScheduleRecord> entry = iter.next();
-						ScheduleRecord scheduleRecord = entry.getValue();
+						ScheduleRecord scheduleRecord = scheduleList.get(entry.getValue());
 
-						scheduledTable.addItem(
-								new Object[] { dateConversion.adjust(scheduleRecord.getNextStart()), scheduleRecord.getNodeID(), scheduleRecord.getParams(),
-										scheduleRecord.getUserID() }, scheduleRecord.getID());
+						scheduledTable.addItem(new Object[] { dateConversion.adjust(myDate), scheduleRecord.getNodeID(), scheduleRecord.getParams(),
+								scheduleRecord.getUserID() }, i++);
 					}
 
 				}

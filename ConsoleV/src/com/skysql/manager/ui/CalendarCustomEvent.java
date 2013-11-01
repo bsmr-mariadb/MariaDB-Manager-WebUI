@@ -18,6 +18,7 @@ public class CalendarCustomEvent extends BasicEvent {
 	private String untilSelect;
 	private String untilCount;
 	private Date untilDate;
+	private Date occurrence;
 	private String node;
 	private Object data;
 
@@ -54,6 +55,15 @@ public class CalendarCustomEvent extends BasicEvent {
 
 	public void setUntilDate(Date untilDate) {
 		this.untilDate = untilDate;
+		fireEventChange();
+	}
+
+	public Date getOccurrence() {
+		return occurrence;
+	}
+
+	public void setOccurrence(Date occurrence) {
+		this.occurrence = occurrence;
 		fireEventChange();
 	}
 
