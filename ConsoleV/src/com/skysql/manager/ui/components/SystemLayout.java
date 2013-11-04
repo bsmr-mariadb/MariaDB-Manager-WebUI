@@ -179,6 +179,10 @@ public class SystemLayout extends VerticalLayout {
 				setVisible(systemRecord.getParentID() == null ? false : true);
 			}
 
+			systemButton.setData(systemRecord);
+			if (systemButton.isSelected()) {
+				getSession().setAttribute(ClusterComponent.class, systemRecord);
+			}
 		} finally {
 			if (session != null) {
 				session.unlock();
