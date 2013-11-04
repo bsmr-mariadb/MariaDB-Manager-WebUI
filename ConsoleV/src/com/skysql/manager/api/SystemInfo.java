@@ -84,7 +84,6 @@ public class SystemInfo {
 			SystemRecord oldSystemRecord = systemsMap.get(systemID);
 			if (oldSystemRecord != null) {
 				systemRecord.setButton(oldSystemRecord.getButton());
-				oldSystemRecord.getButton().setData(systemRecord);
 			}
 			systemsMap.put(systemID, systemRecord);
 		}
