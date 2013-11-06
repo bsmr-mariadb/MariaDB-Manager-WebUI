@@ -101,10 +101,10 @@ public class NodesLayout extends HorizontalLayout {
 		}
 	}
 
-	public ComponentButton getButton(String id) {
+	public ComponentButton getButton(String parentID, String componentID) {
 		for (ComponentButton button : buttons) {
 			ClusterComponent componentInfo = (ClusterComponent) button.getData();
-			if (componentInfo.getID().equals(id)) {
+			if (componentInfo.getID().equals(componentID) && componentInfo.getParentID().equals(parentID)) {
 				return button;
 			}
 		}
@@ -303,9 +303,6 @@ public class NodesLayout extends HorizontalLayout {
 			case node:
 				NodeInfo nodeInfo = (NodeInfo) currentComponent;
 				newComponent = new NodeInfo(nodeInfo.getParentID(), nodeInfo.getSystemType(), nodeInfo.getID());
-				MonitorLatest monitorLatest = newComponent.getMonitorLatest();
-				String value = monitorLatest.getData().get(MonitorNames.capacity.name());
-				newComponent.setCapacity(value);
 				break;
 
 			default:
@@ -333,16 +330,16 @@ public class NodesLayout extends HorizontalLayout {
 					String newState = newComponent.getState();
 					currentComponent.setState(newState);
 
-					String newCapacity = newComponent.getCapacity();
-					currentComponent.setCapacity(newCapacity);
-					button.setIcon(currentComponent.getType().toString(), newState, newCapacity);
-
 					String toolTip = null;
 					switch (newComponent.getType()) {
 					case system:
 						toolTip = ((SystemRecord) newComponent).ToolTip();
 						break;
 					case node:
+						MonitorLatest monitorLatest = newComponent.getMonitorLatest();
+						String newCapacity = monitorLatest.getData().get(MonitorNames.capacity.name());
+						button.setIcon(currentComponent.getType().toString(), newState, newCapacity);
+
 						NodeInfo nodeInfo = (NodeInfo) newComponent;
 						toolTip = nodeInfo.ToolTip();
 						// carry over RunningTask(s)

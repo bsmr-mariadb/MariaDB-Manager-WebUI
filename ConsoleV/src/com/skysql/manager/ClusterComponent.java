@@ -33,7 +33,6 @@ public class ClusterComponent {
 	protected String systemType;
 	protected String state;
 	protected String updated;
-	protected String capacity;
 	protected ComponentButton button;
 	protected MonitorLatest monitorLatest;
 	protected String dbUsername;
@@ -96,14 +95,6 @@ public class ClusterComponent {
 
 	public void setUpdated(String updated) {
 		this.updated = updated;
-	}
-
-	public String getCapacity() {
-		return capacity;
-	}
-
-	public void setCapacity(String capacity) {
-		this.capacity = capacity;
 	}
 
 	public ComponentButton getButton() {

@@ -55,12 +55,14 @@ import com.vaadin.ui.VerticalSplitPanel;
 @PreserveOnRefresh
 public class ManagerUI extends UI {
 
+	private static final String GUI_VERSION = "1.0.69 Beta";
+	private static final String NOT_AVAILABLE = "n/a";
+
 	private DebugPanel debugPanel;
 	private ScheduledFuture<?> mainTimerFuture;
 
 	private OverviewPanel overviewPanel;
 	private TabbedPanel tabbedPanel;
-	private String systemName, systemVersion;
 
 	@Override
 	protected void init(VaadinRequest request) {
@@ -133,8 +135,13 @@ public class ManagerUI extends UI {
 			return;
 		}
 
-		systemName = "{ Installation/API name goes here }";
-		systemVersion = api.getVersion();
+		String systemName = "{ Installation/API name goes here }";
+		String guiVersion = GUI_VERSION;
+		String apiVersion = api.getVersion();
+		String monitorVersion = NOT_AVAILABLE;
+		String addOnVersion = NOT_AVAILABLE;
+		AboutRecord aboutRecord = new AboutRecord(systemName, guiVersion, apiVersion, monitorVersion, addOnVersion);
+		session.setAttribute(AboutRecord.class, aboutRecord);
 
 		SystemInfo systemInfo = new SystemInfo(SystemInfo.SYSTEM_ROOT);
 		session.setAttribute(SystemInfo.class, systemInfo);
@@ -148,7 +155,7 @@ public class ManagerUI extends UI {
 
 		UserObject userObject = session.getAttribute(UserObject.class);
 		if (userObject == null) {
-			setContent(new LoginView(systemName, systemVersion));
+			setContent(new LoginView(aboutRecord));
 		} else {
 			String adjust = userObject.getProperty(UserObject.PROPERTY_TIME_ADJUST);
 			DateConversion dateConversion = new DateConversion((adjust == null ? GeneralSettings.DEFAULT_TIME_ADJUST : Boolean.valueOf(adjust)),
@@ -237,6 +244,12 @@ public class ManagerUI extends UI {
 				debugPanel.setBeat(count);
 				log("", debugPanel);
 				log("Heartbeat: " + count++, debugPanel);
+			}
+
+			Boolean isChartsRefreshing;
+			if ((isChartsRefreshing = (Boolean) session.getAttribute("ChartsRefresh")) != null && isChartsRefreshing == true) {
+				log("Charts is still refreshing: skipping heartbeat", debugPanel);
+				return;
 			}
 
 			OverviewPanel overviewPanel = session.getAttribute(OverviewPanel.class);

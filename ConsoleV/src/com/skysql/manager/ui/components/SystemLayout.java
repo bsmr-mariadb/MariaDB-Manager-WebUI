@@ -167,13 +167,12 @@ public class SystemLayout extends VerticalLayout {
 
 				systemSlot.removeAllComponents();
 
-				if ((systemButton = systemRecord.getButton()) == null) {
-					systemButton = new ComponentButton(systemRecord);
-				}
+				systemButton = new ComponentButton(systemRecord);
 				systemButton.addLayoutClickListener(componentListener);
-				systemSlot.addComponent(systemButton);
 				systemButton.setSelected(systemButton.isSelected());
 				systemButton.setDescription(systemRecord.ToolTip());
+				systemSlot.addComponent(systemButton);
+
 				setEditable(isEditable);
 
 				setVisible(systemRecord.getParentID() == null ? false : true);

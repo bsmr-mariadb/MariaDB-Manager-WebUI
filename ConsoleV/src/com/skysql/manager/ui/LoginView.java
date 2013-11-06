@@ -18,6 +18,7 @@
 
 package com.skysql.manager.ui;
 
+import com.skysql.manager.AboutRecord;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.api.BackupStates;
 import com.skysql.manager.api.CommandStates;
@@ -43,9 +44,6 @@ import com.vaadin.ui.VerticalLayout;
 
 public class LoginView extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-	private static final String NOT_AVAILABLE = "n/a";
-	private static final String GUI_VERSION = "1.0.68 Beta";
 
 	private UpdaterThread updaterThread;
 
@@ -81,7 +79,7 @@ public class LoginView extends VerticalLayout {
 
 	};
 
-	public LoginView(String name, String apiVersion) {
+	public LoginView(AboutRecord aboutRecord) {
 
 		setSizeFull();
 		setMargin(true);
@@ -158,7 +156,8 @@ public class LoginView extends VerticalLayout {
 		loginFormLayout.addComponent(login);
 		loginFormLayout.setComponentAlignment(login, Alignment.BOTTOM_CENTER);
 
-		String versionString = "API Version " + (apiVersion != null ? apiVersion : NOT_AVAILABLE) + "<br/>GUI Version " + GUI_VERSION;
+		String versionString = "GUI Version: " + aboutRecord.getVersionGUI() + "<br/>API Version: " + aboutRecord.getVersionAPI() + "<br/>Monitor Version: "
+				+ aboutRecord.getVersionMonitor() + "<br/>AddOns Version: " + aboutRecord.getVersionAddOns();
 		System.err.println(versionString);
 		Label versionLabel = new Label(versionString, ContentMode.HTML);
 		versionLabel.setSizeUndefined();

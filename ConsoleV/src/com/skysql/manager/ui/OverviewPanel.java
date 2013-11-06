@@ -179,7 +179,7 @@ public class OverviewPanel extends Panel {
 	}
 
 	public ComponentButton getNodeButton(String nodeID) {
-		return nodesLayout.getButton(nodeID);
+		return nodesLayout.getButton(systemRecord.getID(), nodeID);
 	}
 
 	public void clickComponentButton(final int buttonIndex, boolean isManual) {

@@ -31,7 +31,9 @@ import com.skysql.manager.api.TaskInfo;
 import com.skysql.manager.api.UserInfo;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Embedded;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ListSelect;
@@ -146,15 +148,14 @@ public class PanelControl extends VerticalLayout {
 
 		logsTable = new Table("Previously run Commands");
 		logsTable.setPageLength(10);
+		logsTable.addContainerProperty("Command", String.class, null);
+		logsTable.addContainerProperty("State", String.class, null);
+		logsTable.addContainerProperty("Info", Embedded.class, null);
 		logsTable.addContainerProperty("Started", String.class, null);
 		logsTable.addContainerProperty("Completed", String.class, null);
-		logsTable.addContainerProperty("Command", String.class, null);
-		logsTable.addContainerProperty("Parameters", String.class, null);
 		logsTable.addContainerProperty("Steps", String.class, null);
-		logsTable.addContainerProperty("PID", String.class, null);
-		logsTable.addContainerProperty("Private IP", String.class, null);
+		logsTable.addContainerProperty("Parameters", String.class, null);
 		logsTable.addContainerProperty("User", String.class, null);
-		logsTable.addContainerProperty("State", String.class, null);
 
 		logsLayout.addComponent(logsTable);
 		logsLayout.setComponentAlignment(logsTable, Alignment.MIDDLE_CENTER);
@@ -234,9 +235,16 @@ public class PanelControl extends VerticalLayout {
 
 						oldTasksCount = tasksList.size();
 						for (TaskRecord taskRecord : tasksList) {
-							logsTable.addItem(new Object[] { dateConversion.adjust(taskRecord.getStart()), dateConversion.adjust(taskRecord.getEnd()),
-									taskRecord.getCommand(), taskRecord.getParams(), taskRecord.getSteps(), taskRecord.getPID(), taskRecord.getPrivateIP(),
-									taskRecord.getUserID(), CommandStates.getDescriptions().get(taskRecord.getState()) }, taskRecord.getID());
+							Embedded info = null;
+							if (taskRecord.getState().equals(CommandStates.States.error.name())) {
+								info = new Embedded(null, new ThemeResource("img/alert.png"));
+								info.addStyleName("infoButton");
+								info.setDescription(taskRecord.getError());
+							}
+							logsTable.addItem(
+									new Object[] { taskRecord.getCommand(), CommandStates.getDescriptions().get(taskRecord.getState()), info,
+											dateConversion.adjust(taskRecord.getStart()), dateConversion.adjust(taskRecord.getEnd()), taskRecord.getSteps(),
+											taskRecord.getParams(), taskRecord.getUserID() }, taskRecord.getID());
 						}
 					}
 				}

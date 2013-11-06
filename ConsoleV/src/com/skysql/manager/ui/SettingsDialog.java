@@ -100,6 +100,13 @@ public class SettingsDialog implements Window.CloseListener {
 				}
 			}
 
+			// About Tab
+			AboutSettings aboutTab = new AboutSettings();
+			tab = tabsheet.addTab(aboutTab, "About");
+			if (selectedTab != null && selectedTab.equals("About")) {
+				tabsheet.setSelectedTab(tab);
+			}
+
 			((ComponentContainer) dialogWindow.getContent()).addComponent(tabsheet);
 
 			// Handling tab changes

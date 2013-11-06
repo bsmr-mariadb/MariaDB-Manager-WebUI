@@ -108,6 +108,14 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 		resultLabel.setValue(value);
 	}
 
+	public void setErrorInfo(String msg) {
+		Embedded info = new Embedded(null, new ThemeResource("img/alert.png"));
+		info.addStyleName("infoButton");
+		info.setDescription(msg);
+		resultLayout.addComponent(info);
+		resultLayout.setComponentAlignment(info, Alignment.MIDDLE_CENTER);
+	}
+
 	public void start() {
 		startTime = System.currentTimeMillis();
 		setResult("Launching");
@@ -242,14 +250,16 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 				case error:
 				case missing:
 					taskImages[taskImages.length - 1].setSource(new ThemeResource("img/scripting/error.png"));
-					result += "<br/><br/>on " + dateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>after " + getRunningTime() + "<br/><br/>with error: "
-							+ taskRecord.getError();
+					result += (!taskRecord.getEnd().isEmpty() ? "<br/><br/>on " + dateConversion.adjust(taskRecord.getEnd()) : "") + "<br/><br/>after "
+							+ getRunningTime();
+					setErrorInfo(taskRecord.getError());
 					runningTask.close();
 					break;
 				case cancelled:
 				case stopped:
 					taskImages[taskImages.length - 1].setSource(new ThemeResource("img/scripting/error.png"));
-					result += "<br/><br/>on " + dateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>after " + getRunningTime();
+					result += (!taskRecord.getEnd().isEmpty() ? "<br/><br/>on " + dateConversion.adjust(taskRecord.getEnd()) : "") + "<br/><br/>after "
+							+ getRunningTime();
 					runningTask.close();
 					break;
 				default:

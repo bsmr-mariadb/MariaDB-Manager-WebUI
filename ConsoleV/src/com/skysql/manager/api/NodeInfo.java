@@ -50,6 +50,53 @@ public class NodeInfo extends ClusterComponent {
 	private String instanceID;
 	private RunningTask commandTask;
 
+	public NodeInfo() {
+	}
+
+	public NodeInfo(String systemID, String systemType) {
+		this.type = CCType.node;
+		this.parentID = systemID;
+		this.systemType = systemType;
+		this.state = "placeholder";
+	}
+
+	public NodeInfo(String systemID, String systemType, String nodeID) {
+
+		APIrestful api = new APIrestful();
+		if (api.get("system/" + systemID + "/node/" + nodeID)) {
+			try {
+				NodeInfo nodeInfo = APIrestful.getGson().fromJson(api.getResult(), NodeInfo.class);
+				this.type = CCType.node;
+				this.parentID = systemID;
+				this.systemType = systemType;
+				this.ID = nodeID;
+				this.name = nodeInfo.name;
+				this.state = nodeInfo.state;
+				this.updated = nodeInfo.updated;
+				this.commands = nodeInfo.commands;
+				this.monitorLatest = nodeInfo.monitorLatest;
+				this.task = nodeInfo.task;
+				this.hostname = nodeInfo.hostname;
+				this.publicIP = nodeInfo.publicIP;
+				this.privateIP = nodeInfo.privateIP;
+				this.port = nodeInfo.port;
+				this.instanceID = nodeInfo.instanceID;
+				this.dbUsername = nodeInfo.dbUsername;
+				this.dbPassword = nodeInfo.dbPassword;
+				this.repUsername = nodeInfo.repUsername;
+				this.repPassword = nodeInfo.repPassword;
+				this.lastMonitored = nodeInfo.lastMonitored;
+			} catch (NullPointerException e) {
+				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+				throw new RuntimeException("API response");
+			} catch (JsonParseException e) {
+				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+				throw new RuntimeException("API response");
+			}
+		}
+
+	}
+
 	public Commands getCommands() {
 		return commands;
 	}
@@ -112,6 +159,33 @@ public class NodeInfo extends ClusterComponent {
 
 	public void setCommandTask(RunningTask commandTask) {
 		this.commandTask = commandTask;
+	}
+
+	public boolean updateTask() {
+
+		APIrestful api = new APIrestful();
+		boolean success = false;
+
+		if (api.get("system/" + this.parentID + "/node/" + ID, "?fields=task,state")) {
+			try {
+				NodeInfo nodeInfo = APIrestful.getGson().fromJson(api.getResult(), NodeInfo.class);
+				this.state = nodeInfo.state;
+				this.task = nodeInfo.task;
+
+				return true;
+
+			} catch (NullPointerException e) {
+				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+				throw new RuntimeException("API response");
+			} catch (JsonParseException e) {
+				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+				throw new RuntimeException("API response");
+			}
+
+		}
+
+		return false;
+
 	}
 
 	public boolean save() {
@@ -194,54 +268,6 @@ public class NodeInfo extends ClusterComponent {
 			}
 		}
 		return false;
-	}
-
-	public NodeInfo() {
-	}
-
-	public NodeInfo(String systemID, String systemType) {
-		this.type = CCType.node;
-		this.parentID = systemID;
-		this.systemType = systemType;
-		this.state = "placeholder";
-	}
-
-	public NodeInfo(String systemID, String systemType, String nodeID) {
-
-		APIrestful api = new APIrestful();
-		if (api.get("system/" + systemID + "/node/" + nodeID)) {
-			try {
-				NodeInfo nodeInfo = APIrestful.getGson().fromJson(api.getResult(), NodeInfo.class);
-				this.type = CCType.node;
-				this.parentID = systemID;
-				this.systemType = systemType;
-				this.ID = nodeID;
-				this.name = nodeInfo.name;
-				this.state = nodeInfo.state;
-				this.updated = nodeInfo.updated;
-				this.capacity = nodeInfo.capacity;
-				this.commands = nodeInfo.commands;
-				this.monitorLatest = nodeInfo.monitorLatest;
-				this.task = nodeInfo.task;
-				this.hostname = nodeInfo.hostname;
-				this.publicIP = nodeInfo.publicIP;
-				this.privateIP = nodeInfo.privateIP;
-				this.port = nodeInfo.port;
-				this.instanceID = nodeInfo.instanceID;
-				this.dbUsername = nodeInfo.dbUsername;
-				this.dbPassword = nodeInfo.dbPassword;
-				this.repUsername = nodeInfo.repUsername;
-				this.repPassword = nodeInfo.repPassword;
-				this.lastMonitored = nodeInfo.lastMonitored;
-			} catch (NullPointerException e) {
-				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
-				throw new RuntimeException("API response");
-			} catch (JsonParseException e) {
-				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
-				throw new RuntimeException("API response");
-			}
-		}
-
 	}
 
 	public String ToolTip() {

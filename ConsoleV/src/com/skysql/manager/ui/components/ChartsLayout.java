@@ -212,7 +212,10 @@ public class ChartsLayout extends DDCssLayout {
 	private void asynchRefresh(UpdaterThread updaterThread) {
 
 		ManagerUI.log(this.getClass().getName() + " asynchRefresh updaterThread: " + updaterThread);
+
+		VaadinSession.getCurrent().setAttribute("ChartsRefresh", true);
 		refreshCode(time, interval);
+		VaadinSession.getCurrent().setAttribute("ChartsRefresh", false);
 
 	}
 

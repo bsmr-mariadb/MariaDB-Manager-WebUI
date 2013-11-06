@@ -82,7 +82,7 @@ public class APIrestful {
 	private String lastCall;
 	private String result;
 	private String errors;
-	private String version;
+	private static String version;
 
 	public static String getURI() {
 		return apiURI;
@@ -97,8 +97,10 @@ public class APIrestful {
 				keyID = (String) keys.keySet().toArray()[0];
 				keyCode = keys.get(keyID);
 			}
-			api.get("systemtype");
-
+			api.get("apidate");
+			String apiDate = api.result.substring(api.result.indexOf(":") + 2);
+			apiDate = apiDate.substring(0, apiDate.indexOf("\""));
+			version += " (" + apiDate + ")";
 		}
 
 		return api;
@@ -265,10 +267,11 @@ public class APIrestful {
 			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 			result = in.readLine();
 
-			Map<String, List<String>> headers = httpConnection.getHeaderFields();
-			List<String> version = headers.get("X-SkySQL-API-Version");
-			api.version = version.get(0);
-
+			if (api.version == null) {
+				Map<String, List<String>> headers = httpConnection.getHeaderFields();
+				List<String> version = headers.get("X-SkySQL-API-Version");
+				api.version = version.get(0);
+			}
 			in.close();
 
 			long estimatedTime = (System.nanoTime() - startTime) / 1000000;

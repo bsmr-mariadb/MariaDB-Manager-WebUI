@@ -23,7 +23,9 @@ import java.util.concurrent.ScheduledFuture;
 import com.skysql.manager.Commands;
 import com.skysql.manager.ExecutorFactory;
 import com.skysql.manager.ManagerUI;
+import com.skysql.manager.MonitorLatest;
 import com.skysql.manager.TaskRecord;
+import com.skysql.manager.api.Monitors.MonitorNames;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.TaskRun;
 import com.skysql.manager.api.UserObject;
@@ -193,12 +195,14 @@ public final class RunningTask {
 
 		taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, command, params, state);
 		if (taskRun.getTaskRecord() == null) {
+			command = null;
 			commandSelect.select(null);
 			commandSelect.setEnabled(true);
 			if (parametersLayout != null) {
 				parametersLayout.setEnabled(true);
 			}
-			scriptingProgressLayout.setResult("Failed to launch: " + taskRun.getError());
+			scriptingProgressLayout.setResult("Failed to launch");
+			scriptingProgressLayout.setErrorInfo(taskRun.getError());
 			overviewPanel.refresh();
 			return;
 		}
@@ -284,20 +288,22 @@ public final class RunningTask {
 
 		public void run() {
 			++fCount;
-			ManagerUI.log("timer - task:" + nodeInfo.getTask() + " - " + fCount);
+			ManagerUI.log("RunningTask - task:" + nodeInfo.getTask() + " - " + fCount);
 
-			NodeInfo newNodeInfo = new NodeInfo(nodeInfo.getParentID(), nodeInfo.getSystemType(), nodeInfo.getID());
-			TaskRecord taskRecord = newNodeInfo.getTask();
-			if (taskRecord != null && taskRecord.getID().equals(nodeInfo.getTask().getID())) {
+			nodeInfo.updateTask();
+			TaskRecord taskRecord = nodeInfo.getTask();
+			if (taskRecord != null) {
 				scriptingProgressLayout.refresh(taskRecord);
 			} else {
-				// we either got no TaskRecord or a different one than we were tracking; either way shut down the timer and cleanup.
+				// we got no TaskRecord; shut down the timer and cleanup.
 				close();
 			}
 
 			// ComponentButton button = nodeInfo.getButton();
 			ComponentButton button = overviewPanel.getNodeButton(nodeInfo.getID());
-			overviewPanel.updateButton(button, newNodeInfo.getState(), taskRecord, newNodeInfo.getCapacity());
+			MonitorLatest monitorLatest = nodeInfo.getMonitorLatest();
+			String newCapacity = monitorLatest.getData().get(MonitorNames.capacity.name());
+			overviewPanel.updateButton(button, nodeInfo.getState(), taskRecord, newCapacity);
 
 		}
 	}
