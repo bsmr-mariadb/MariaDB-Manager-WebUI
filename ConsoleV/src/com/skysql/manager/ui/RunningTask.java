@@ -21,6 +21,7 @@ package com.skysql.manager.ui;
 import java.util.concurrent.ScheduledFuture;
 
 import com.skysql.manager.Commands;
+import com.skysql.manager.Commands.Command;
 import com.skysql.manager.ExecutorFactory;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.MonitorLatest;
@@ -100,7 +101,7 @@ public final class RunningTask {
 			} else {
 				parametersLayout = new ParametersLayout(this, nodeInfo, commandEnum);
 				scriptingLayout.addComponent(parametersLayout);
-				scriptingLayout.setComponentAlignment(parametersLayout, Alignment.MIDDLE_LEFT);
+				scriptingLayout.setComponentAlignment(parametersLayout, Alignment.TOP_LEFT);
 			}
 			break;
 		default:
@@ -190,9 +191,11 @@ public final class RunningTask {
 
 		UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
 		String userID = userObject.getUserID();
-		String looseExecution = userObject.getProperty(UserObject.PROPERTY_COMMAND_EXECUTION);
-		String state = (looseExecution != null && Boolean.valueOf(looseExecution)) ? null : nodeInfo.getState();
-
+		// we used to look up user-settable setting of loose/strict; after discussion with Mark on Nov 15, 
+		// we make is strict only for backup, which currently is the only command where different steps sequences apply depending on node state
+		//String looseExecution = userObject.getProperty(UserObject.PROPERTY_COMMAND_EXECUTION);
+		//String state = (looseExecution != null && Boolean.valueOf(looseExecution)) ? null : nodeInfo.getState();
+		String state = (command.equals(Command.backup) ? nodeInfo.getState() : null);
 		taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, command, params, state);
 		if (taskRun.getTaskRecord() == null) {
 			command = null;

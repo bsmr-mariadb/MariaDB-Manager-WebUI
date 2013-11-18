@@ -21,7 +21,6 @@ package com.skysql.manager.ui;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemTypes;
 import com.skysql.manager.validators.Password2Validator;
-import com.skysql.manager.validators.PasswordOrKeyValidator;
 import com.skysql.manager.validators.UserNotRootValidator;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -36,6 +35,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.PasswordField;
+import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
@@ -58,12 +58,12 @@ public class NodeForm extends VerticalLayout {
 	final PasswordField repPassword2 = new PasswordField("Confirm Password");
 	final PasswordField connectPassword = new PasswordField("Root Password");
 	final PasswordField connectPassword2 = new PasswordField("Confirm Password");
-	final TextField connectKey = new TextField("SSH Key");
-	final Validator connectValidator = new PasswordOrKeyValidator(connectPassword);
-
+	final TextArea connectKey = new TextArea("SSH Key");
+	final OptionGroup passwordOption = new OptionGroup();
 	final Form form = new Form();
+
 	private NodeInfo node;
-	public boolean runConnect = false;
+	public boolean runConnect = false, usePassword = false;
 	public boolean isGalera = false;
 
 	NodeForm(final NodeInfo node, String description) {
@@ -170,6 +170,7 @@ public class NodeForm extends VerticalLayout {
 			HorizontalLayout optionLayout = new HorizontalLayout();
 			optionLayout.addStyleName("formInfoLayout");
 			optionLayout.setSpacing(true);
+			optionLayout.setSizeUndefined();
 			layout.addComponent(optionLayout);
 
 			Embedded info = new Embedded(null, new ThemeResource("img/info.png"));
@@ -177,38 +178,87 @@ public class NodeForm extends VerticalLayout {
 			info.setDescription(connectionInfo);
 			optionLayout.addComponent(info);
 
-			final OptionGroup option = new OptionGroup("Connection options");
-			option.addItem(true);
-			option.setItemCaption(true, "Node is available now, connect automatically.");
-			option.addItem(false);
-			option.setItemCaption(false, "Node is not available, user will run connect later.");
-			option.setImmediate(true);
-			option.addValueChangeListener(new Property.ValueChangeListener() {
+			final Validator validator = new Password2Validator(connectPassword);
+
+			final OptionGroup connectOption = new OptionGroup("Connection options");
+			connectOption.setSizeUndefined();
+			connectOption.addItem(false);
+			connectOption.setItemCaption(false, "Node is not available, user will run connect later");
+			connectOption.addItem(true);
+			connectOption.setItemCaption(true, "Node is available now, connect automatically");
+			connectOption.setImmediate(true);
+			connectOption.addValueChangeListener(new Property.ValueChangeListener() {
 				private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 				@Override
 				public void valueChange(ValueChangeEvent event) {
 					runConnect = (Boolean) event.getProperty().getValue();
-					connectPassword.setEnabled(runConnect);
-					connectPassword2.setEnabled(runConnect);
-					connectKey.setEnabled(runConnect);
+					passwordOption.setVisible(runConnect);
+					connectPassword.setRequired(runConnect && usePassword);
+					connectPassword2.setRequired(runConnect && usePassword);
+					connectKey.setRequired(runConnect && !usePassword);
 					if (!runConnect) {
-						connectKey.removeValidator(connectValidator);
+						connectPassword.setVisible(false);
+						connectPassword2.setVisible(false);
+						connectPassword2.removeValidator(validator);
+						connectKey.setVisible(false);
+					} else {
+						if (usePassword) {
+							connectPassword.setVisible(true);
+							connectPassword2.setVisible(true);
+							connectPassword2.addValidator(validator);
+						} else {
+							connectKey.setVisible(true);
+						}
 					}
+					form.setComponentError(null);
+					form.setValidationVisible(false);
 				}
 			});
-			optionLayout.addComponent(option);
-			option.select(true);
+			optionLayout.addComponent(connectOption);
+			connectOption.select(true);
+
+			passwordOption.addItem(true);
+			passwordOption.setItemCaption(true, "Authenticate with root user");
+			passwordOption.addItem(false);
+			passwordOption.setItemCaption(false, "Authenticate with SSH Key");
+			passwordOption.setImmediate(true);
+			passwordOption.addValueChangeListener(new Property.ValueChangeListener() {
+				private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					usePassword = (Boolean) event.getProperty().getValue();
+					if (usePassword) {
+						connectPassword2.addValidator(validator);
+					} else {
+						connectPassword2.removeValidator(validator);
+					}
+					connectPassword.setVisible(usePassword);
+					connectPassword.setRequired(usePassword);
+					connectPassword2.setVisible(usePassword);
+					connectPassword2.setRequired(usePassword);
+					connectKey.setVisible(!usePassword);
+					connectKey.setRequired(!usePassword);
+					form.setComponentError(null);
+					form.setValidationVisible(false);
+				}
+			});
+			layout.addComponent(passwordOption);
+			passwordOption.select(true);
 
 			form.addField("connectPassword", connectPassword);
 			connectPassword.setImmediate(false);
+			connectPassword.setRequiredError("Root Password is a required field");
 
 			form.addField("connectPassword2", connectPassword2);
 			connectPassword2.setImmediate(true);
-			connectPassword2.addValidator(new Password2Validator(connectPassword));
+			connectPassword2.setRequiredError("Confirm Password is a required field");
 
 			form.addField("connectKey", connectKey);
-			connectKey.setImmediate(true);
+			connectKey.setStyleName("sshkey");
+			connectKey.setColumns(41);
+			connectKey.setRequiredError("SSH Key is a required field");
 		}
 
 	}
@@ -236,8 +286,7 @@ public class NodeForm extends VerticalLayout {
 
 			}
 			if (runConnect) {
-				// get and validate password and/or key logic, or do nothing
-				connectKey.addValidator(connectValidator);
+				// get and validate password or key logic, or do nothing
 				connectKey.validate();
 			}
 

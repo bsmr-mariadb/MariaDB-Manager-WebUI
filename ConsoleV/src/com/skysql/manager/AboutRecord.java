@@ -24,7 +24,6 @@ public class AboutRecord {
 	private String versionGUI;
 	private String versionAPI;
 	private String versionMonitor;
-	private String versionAddOns;
 
 	public String getInstallationName() {
 		return installationName;
@@ -42,15 +41,10 @@ public class AboutRecord {
 		return versionMonitor;
 	}
 
-	public String getVersionAddOns() {
-		return versionAddOns;
-	}
-
-	public AboutRecord(String installationName, String versionGUI, String versionAPI, String versionMonitor, String versionAddOns) {
+	public AboutRecord(String installationName, String versionGUI, String versionAPI, String versionMonitor) {
 		this.installationName = installationName;
 		this.versionGUI = versionGUI;
 		this.versionAPI = versionAPI;
 		this.versionMonitor = versionMonitor;
-		this.versionAddOns = versionAddOns;
 	}
 }

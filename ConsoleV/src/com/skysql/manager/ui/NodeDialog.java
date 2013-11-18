@@ -49,13 +49,9 @@ public class NodeDialog implements Window.CloseListener {
 		this.button = button;
 
 		String windowTitle = (nodeInfo != null) ? "Edit Node: " + nodeInfo.getName() : "Add Node";
-		dialogWindow = new ModalWindow(windowTitle, (nodeInfo != null) ? "350px" : "400px");
+		dialogWindow = new ModalWindow(windowTitle, (nodeInfo != null) ? "350px" : "650px");
 		dialogWindow.addCloseListener(this);
 		UI.getCurrent().addWindow(dialogWindow);
-
-		wrapper = new HorizontalLayout();
-		wrapper.setWidth("100%");
-		wrapper.setMargin(true);
 
 		buttonsBar = new HorizontalLayout();
 		buttonsBar.setStyleName("buttonsBar");
@@ -68,12 +64,6 @@ public class NodeDialog implements Window.CloseListener {
 		buttonsBar.addComponent(filler);
 		buttonsBar.setExpandRatio(filler, 1.0f);
 
-		VerticalLayout windowLayout = (VerticalLayout) dialogWindow.getContent();
-		windowLayout.setSpacing(false);
-		windowLayout.setMargin(false);
-		windowLayout.addComponent(wrapper);
-		windowLayout.addComponent(buttonsBar);
-
 		if (nodeInfo == null) {
 			SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
 			this.nodeInfo = new NodeInfo(systemInfo.getCurrentID(), systemInfo.getCurrentSystem().getSystemType());
@@ -85,7 +75,11 @@ public class NodeDialog implements Window.CloseListener {
 			saveNode("Save Changes");
 		}
 
-		wrapper.addComponent(nodeForm);
+		VerticalLayout windowLayout = (VerticalLayout) dialogWindow.getContent();
+		windowLayout.setSpacing(false);
+		windowLayout.setMargin(false);
+		windowLayout.addComponent(nodeForm);
+		windowLayout.addComponent(buttonsBar);
 
 	}
 
@@ -126,13 +120,13 @@ public class NodeDialog implements Window.CloseListener {
 						if (nodeForm.runConnect) {
 							UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
 							String userID = userObject.getUserID();
-							String looseExecution = userObject.getProperty(UserObject.PROPERTY_COMMAND_EXECUTION);
-							String state = (looseExecution != null && Boolean.valueOf(looseExecution)) ? null : nodeInfo.getState();
 							APIrestful api = new APIrestful();
-							String encryptedPassword = api.encryptAES(nodeForm.connectPassword.getValue());
-							String params = "rootpassword=" + encryptedPassword + "&sshkey=" + nodeForm.connectKey.getValue();
-							TaskRun taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, "connect", params, null);
-
+							String password = nodeForm.connectPassword.getValue();
+							String sshkey = nodeForm.connectKey.getValue();
+							if (!password.isEmpty() || !sshkey.isEmpty()) {
+								String params = nodeForm.usePassword ? "rootpassword=" + api.encryptAES(password) : "sshkey=" + api.encryptAES(sshkey);
+								TaskRun taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, "connect", params, null);
+							}
 						}
 					}
 				}

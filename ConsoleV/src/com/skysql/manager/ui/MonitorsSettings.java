@@ -106,15 +106,16 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 				String monitorID = (String) event.getProperty().getValue();
 				displayMonitorRecord(monitorID);
 				MonitorRecord monitor = monitorsAll.get(monitorID);
-				String monitorType = monitor.getType();
-				editMonitor.setEnabled(false);
-				for (Monitors.EditableMonitorType editable : EditableMonitorType.values()) {
-					if (editable.name().equals(monitorType)) {
-						editMonitor.setEnabled(true);
-						break;
+				if (monitor != null) {
+					String monitorType = monitor.getType();
+
+					for (Monitors.EditableMonitorType editable : EditableMonitorType.values()) {
+						if (editable.name().equals(monitorType)) {
+							editMonitor.setEnabled(true);
+							break;
+						}
 					}
 				}
-
 			}
 		});
 
@@ -306,7 +307,6 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 				if (Monitors.deleteMonitor(monitor)) {
 					select.removeItem(monitor.getID());
 					monitorsAll = Monitors.getMonitorsList(systemType);
-					displayMonitorRecord(null);
 					secondaryDialog.close();
 				}
 

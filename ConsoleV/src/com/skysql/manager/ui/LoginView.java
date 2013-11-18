@@ -157,8 +157,8 @@ public class LoginView extends VerticalLayout {
 		loginFormLayout.setComponentAlignment(login, Alignment.BOTTOM_CENTER);
 
 		String versionString = "GUI Version: " + aboutRecord.getVersionGUI() + "<br/>API Version: " + aboutRecord.getVersionAPI() + "<br/>Monitor Version: "
-				+ aboutRecord.getVersionMonitor() + "<br/>AddOns Version: " + aboutRecord.getVersionAddOns();
-		System.err.println(versionString);
+				+ aboutRecord.getVersionMonitor();
+		System.out.println(versionString);
 		Label versionLabel = new Label(versionString, ContentMode.HTML);
 		versionLabel.setSizeUndefined();
 		addComponent(versionLabel);

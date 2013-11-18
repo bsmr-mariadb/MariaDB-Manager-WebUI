@@ -29,6 +29,7 @@ import com.skysql.manager.api.CommandStates;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.TaskInfo;
 import com.skysql.manager.api.UserInfo;
+import com.vaadin.data.Item;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.ThemeResource;
@@ -53,6 +54,7 @@ public class PanelControl extends VerticalLayout {
 	private int oldTasksCount;
 	private UpdaterThread updaterThread;
 	private Label placeholderLabel;
+	private Object firstObject;
 
 	private ValueChangeListener commandListener = new ValueChangeListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
@@ -225,15 +227,16 @@ public class PanelControl extends VerticalLayout {
 
 				RunningTask runningTask = nodeInfo.getCommandTask();
 
+				DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
+
 				if (!newNodeID.equals(lastNodeID) || (tasksList != null && tasksList.size() != oldTasksCount)) {
 
 					logsTable.removeAllItems();
 
 					if (tasksList != null) {
 
-						DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
-
 						oldTasksCount = tasksList.size();
+						firstObject = null;
 						for (TaskRecord taskRecord : tasksList) {
 							Embedded info = null;
 							if (taskRecord.getState().equals(CommandStates.States.error.name())) {
@@ -241,12 +244,29 @@ public class PanelControl extends VerticalLayout {
 								info.addStyleName("infoButton");
 								info.setDescription(taskRecord.getError());
 							}
-							logsTable.addItem(
-									new Object[] { taskRecord.getCommand(), CommandStates.getDescriptions().get(taskRecord.getState()), info,
-											dateConversion.adjust(taskRecord.getStart()), dateConversion.adjust(taskRecord.getEnd()), taskRecord.getSteps(),
-											taskRecord.getParams(), taskRecord.getUserID() }, taskRecord.getID());
+							Object itemID = logsTable.addItem(new Object[] { taskRecord.getCommand(),
+									CommandStates.getDescriptions().get(taskRecord.getState()), info, dateConversion.adjust(taskRecord.getStart()),
+									dateConversion.adjust(taskRecord.getEnd()), taskRecord.getSteps(), taskRecord.getParams(), taskRecord.getUserID() },
+									taskRecord.getID());
+							if (firstObject == null) {
+								firstObject = itemID;
+							}
+
 						}
 					}
+				} else if (tasksList.size() > 0 && firstObject != null) {
+					// update top of the list with last task info
+					TaskRecord taskRecord = tasksList.get(0);
+					Embedded info = null;
+					if (taskRecord.getState().equals(CommandStates.States.error.name())) {
+						info = new Embedded(null, new ThemeResource("img/alert.png"));
+						info.addStyleName("infoButton");
+						info.setDescription(taskRecord.getError());
+					}
+					Item tableRow = logsTable.getItem(firstObject);
+					tableRow.getItemProperty("State").setValue(CommandStates.getDescriptions().get(taskRecord.getState()));
+					tableRow.getItemProperty("Info").setValue(info);
+					tableRow.getItemProperty("Completed").setValue(dateConversion.adjust(taskRecord.getEnd()));
 				}
 
 				// task is running although it was not started by us

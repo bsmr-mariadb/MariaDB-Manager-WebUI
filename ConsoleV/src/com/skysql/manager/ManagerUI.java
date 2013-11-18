@@ -27,6 +27,7 @@ import com.skysql.manager.api.APIrestful;
 import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.api.UserInfo;
 import com.skysql.manager.api.UserObject;
+import com.skysql.manager.api.Versions;
 import com.skysql.manager.ui.DebugPanel;
 import com.skysql.manager.ui.ErrorDialog;
 import com.skysql.manager.ui.ErrorView;
@@ -55,7 +56,7 @@ import com.vaadin.ui.VerticalSplitPanel;
 @PreserveOnRefresh
 public class ManagerUI extends UI {
 
-	private static final String GUI_VERSION = "1.0.69 Beta";
+	private static final String GUI_VERSION = "1.0.70 Beta";
 	private static final String NOT_AVAILABLE = "n/a";
 
 	private DebugPanel debugPanel;
@@ -138,9 +139,9 @@ public class ManagerUI extends UI {
 		String systemName = "{ Installation/API name goes here }";
 		String guiVersion = GUI_VERSION;
 		String apiVersion = api.getVersion();
-		String monitorVersion = NOT_AVAILABLE;
-		String addOnVersion = NOT_AVAILABLE;
-		AboutRecord aboutRecord = new AboutRecord(systemName, guiVersion, apiVersion, monitorVersion, addOnVersion);
+		Versions monitor = new Versions("monitor");
+		String monitorVersion = (monitor.getVersion() != null ? monitor.getVersion() : NOT_AVAILABLE);
+		AboutRecord aboutRecord = new AboutRecord(systemName, guiVersion, apiVersion, monitorVersion);
 		session.setAttribute(AboutRecord.class, aboutRecord);
 
 		SystemInfo systemInfo = new SystemInfo(SystemInfo.SYSTEM_ROOT);

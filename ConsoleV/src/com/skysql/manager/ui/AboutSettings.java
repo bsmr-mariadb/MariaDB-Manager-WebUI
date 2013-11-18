@@ -48,7 +48,6 @@ public class AboutSettings extends VerticalLayout implements Window.CloseListene
 		addComponent(new Label("GUI Version: " + aboutRecord.getVersionGUI()));
 		addComponent(new Label("API Version: " + aboutRecord.getVersionAPI()));
 		addComponent(new Label("Monitor Version: " + aboutRecord.getVersionMonitor()));
-		addComponent(new Label("AddOns Version: " + aboutRecord.getVersionAddOns()));
 		addComponent(new Label(""));
 		addComponent(new Label(""));
 

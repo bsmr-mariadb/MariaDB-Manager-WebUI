@@ -33,6 +33,10 @@ hr {
 
 }
 
+textarea.v-textarea-sshkey {
+    font-family: monospace;
+}
+
 .v-nativebutton-backButton {
 	border: none;
 	background: transparent url(img/back.png) no-repeat;
@@ -308,9 +312,12 @@ hr {
 .v-verticallayout-joiner {
     background: transparent url(img/components/DB-mustard.png) no-repeat;
 }
-.v-verticallayout-incompatible,
+
 .v-verticallayout-down,
-.v-verticallayout-incorrectly-joined {
+.v-verticallayout-incompatible,
+.v-verticallayout-incorrectly-joined,
+.v-verticallayout-initialized,
+.v-verticallayout-machine-down {
     background: transparent url(img/components/DB-red.png) no-repeat;
 }
 

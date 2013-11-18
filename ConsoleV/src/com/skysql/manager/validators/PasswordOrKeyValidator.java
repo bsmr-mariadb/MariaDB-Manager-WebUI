@@ -19,7 +19,7 @@ public class PasswordOrKeyValidator implements Validator {
 		} else {
 			boolean isKey = !String.valueOf(value).isEmpty();
 			boolean isPassword = !String.valueOf(passwordField.getValue()).isEmpty();
-			return isKey || isPassword;
+			return (isKey && !isPassword) || (!isKey && isPassword);
 		}
 	}
 

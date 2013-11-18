@@ -45,7 +45,7 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 	private HorizontalLayout progressIconsLayout;
 	private VerticalLayout progressLayout, resultLayout;
 	private boolean observerMode;
-	private int lastIndex = -1, lastProgressIndex = 0;
+	private int lastProgressIndex = 0;
 	private Embedded[] taskImages;
 	private String primitives[];
 	private TaskRecord taskRecord;
@@ -123,11 +123,16 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 
 	public void buildProgress(TaskRecord taskRecord, String command, String steps) {
 
+		VaadinSession session = getSession();
+		if (session == null) {
+			session = VaadinSession.getCurrent();
+		}
+
 		if (observerMode) {
 			// String userName = Users.getUserNames().get(taskRecord.getUser());
 			String userID = taskRecord.getUserID();
-			UserInfo userInfo = (UserInfo) getSession().getAttribute(UserInfo.class);
-			DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
+			UserInfo userInfo = (UserInfo) session.getAttribute(UserInfo.class);
+			DateConversion dateConversion = session.getAttribute(DateConversion.class);
 			setTitle(command + " was started on " + dateConversion.adjust(taskRecord.getStart()) + " by " + userID);
 		} else {
 			setTitle(command);
@@ -204,16 +209,26 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 
 	private void asynchRefresh(final UpdaterThread updaterThread) {
 
-		ManagerUI managerUI = VaadinSession.getCurrent().getAttribute(ManagerUI.class);
+		VaadinSession session = getSession();
+		if (session == null) {
+			session = VaadinSession.getCurrent();
+		}
+
+		ManagerUI managerUI = session.getAttribute(ManagerUI.class);
 
 		managerUI.access(new Runnable() {
 			@Override
 			public void run() {
 				// Here the UI is locked and can be updated
 
+				VaadinSession session = getSession();
+				if (session == null) {
+					session = VaadinSession.getCurrent();
+				}
+
 				ManagerUI.log(this.getClass().getName() + " access run(): ");
 
-				DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
+				DateConversion dateConversion = session.getAttribute(DateConversion.class);
 
 				String stateString;
 				if ((stateString = taskRecord.getState()) == null) {
@@ -233,39 +248,44 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 					lastProgressIndex++;
 				}
 
-				String result = CommandStates.getDescriptions().get(state.name());
-				switch (state) {
-				case running:
-					if (index != lastIndex) {
+				if (index >= 0) {
+					switch (state) {
+					case running:
 						taskImages[index].setSource(new ThemeResource("img/scripting/active.png"));
 						setProgress(taskImages[index].getDescription());
-						lastIndex = index;
+						break;
+					case done:
+						taskImages[index].setSource(new ThemeResource("img/scripting/past.png/"));
+						break;
+					case error:
+					case missing:
+						taskImages[index].setSource(new ThemeResource("img/scripting/error.png"));
+						break;
+					case cancelled:
+					case stopped:
+						taskImages[index].setSource(new ThemeResource("img/scripting/error.png"));
+						break;
+					default:
+						break;
 					}
-					break;
-				case done:
-					taskImages[index].setSource(new ThemeResource("img/scripting/past.png/"));
-					result += "<br/><br/>on " + dateConversion.adjust(taskRecord.getEnd()) + "<br/><br/>in " + getRunningTime();
-					runningTask.close();
+				}
+
+				setResult(CommandStates.getDescriptions().get(state.name()));
+
+				switch (state) {
+				case running:
 					break;
 				case error:
 				case missing:
-					taskImages[taskImages.length - 1].setSource(new ThemeResource("img/scripting/error.png"));
-					result += (!taskRecord.getEnd().isEmpty() ? "<br/><br/>on " + dateConversion.adjust(taskRecord.getEnd()) : "") + "<br/><br/>after "
-							+ getRunningTime();
 					setErrorInfo(taskRecord.getError());
-					runningTask.close();
-					break;
+				case done:
 				case cancelled:
 				case stopped:
-					taskImages[taskImages.length - 1].setSource(new ThemeResource("img/scripting/error.png"));
-					result += (!taskRecord.getEnd().isEmpty() ? "<br/><br/>on " + dateConversion.adjust(taskRecord.getEnd()) : "") + "<br/><br/>after "
-							+ getRunningTime();
+				default:
 					runningTask.close();
 					break;
-				default:
-					break;
+
 				}
-				setResult(result);
 			}
 		});
 

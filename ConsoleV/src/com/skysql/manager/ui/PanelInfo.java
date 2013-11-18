@@ -375,6 +375,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 
 			// zero out existing display in order to eliminate false user readings if new data is slow to be retrieved
 			if (chartsArrayLayout != null) {
+				chartsArrayLayout.stopRefresh();
 				chartsArrayLayout.hideCharts();
 			}
 

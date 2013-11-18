@@ -64,15 +64,17 @@ public class NodeStates {
 		galeraIcons.put("unprovisioned", "unprovisioned");
 		galeraIcons.put("incompatible", "incompatible");
 		galeraIcons.put("provisioned", "provisioned");
-		galeraIcons.put("down", "down");
+		galeraIcons.put("initialized", "initialized");
 		galeraIcons.put("open", "open");
 		galeraIcons.put("primary", "primary");
 		galeraIcons.put("joiner", "joiner");
 		galeraIcons.put("joined", "joined");
 		galeraIcons.put("synced", "synced");
 		galeraIcons.put("donor", "donor");
-		galeraIcons.put("isolated", "isolated");
 		galeraIcons.put("incorrectly-joined", "incorrectly-joined");
+		galeraIcons.put("isolated", "isolated");
+		galeraIcons.put("machine-down", "machine-down");
+		galeraIcons.put("down", "down");
 	}
 
 	public static final Map<String, Map<String, String>> states;

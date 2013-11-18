@@ -70,8 +70,8 @@ public class GeneralSettings extends HorizontalLayout {
 		//layout.addComponent(backupsLayout());
 		//layout.addComponent(separator);
 		layout.addComponent(timeLayout());
-		layout.addComponent(separator);
-		layout.addComponent(commandsLayout());
+		//layout.addComponent(separator);
+		//layout.addComponent(commandsLayout());
 
 	}
 

@@ -35,6 +35,7 @@ import com.skysql.manager.ui.RunningTask;
 import com.skysql.manager.ui.components.ScriptingControlsLayout.Controls;
 import com.skysql.manager.validators.Password2Validator;
 import com.skysql.manager.validators.PasswordOrKeyValidator;
+import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
@@ -48,11 +49,12 @@ import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Layout;
 import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.PasswordField;
-import com.vaadin.ui.TextField;
+import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 
 @SuppressWarnings("serial")
@@ -73,8 +75,10 @@ public class ParametersLayout extends HorizontalLayout {
 	final Form form = new Form();
 	final PasswordField connectPassword = new PasswordField("Root Password");
 	final PasswordField connectPassword2 = new PasswordField("Confirm Password");
-	final TextField connectKey = new TextField("SSH Key");
+	final TextArea connectKey = new TextArea("SSH Key");
 	final Validator connectValidator = new PasswordOrKeyValidator(connectPassword);
+	final OptionGroup passwordOption = new OptionGroup();
+	public boolean usePassword = false;
 
 	public ParametersLayout(final RunningTask runningTask, final NodeInfo nodeInfo, Commands.Command commandEnum) {
 		this.runningTask = runningTask;
@@ -242,24 +246,74 @@ public class ParametersLayout extends HorizontalLayout {
 			break;
 
 		case connect:
-			addComponent(form);
-			form.setImmediate(false);
+			VerticalLayout connectLayout = new VerticalLayout();
+			addComponent(connectLayout);
+
+			final Validator validator = new Password2Validator(connectPassword);
+
+			passwordOption.addItem(true);
+			passwordOption.setItemCaption(true, "Authenticate with root user");
+			passwordOption.addItem(false);
+			passwordOption.setItemCaption(false, "Authenticate with SSH Key");
+			passwordOption.setImmediate(true);
+			passwordOption.addValueChangeListener(new Property.ValueChangeListener() {
+				private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					usePassword = (Boolean) event.getProperty().getValue();
+					if (usePassword) {
+						connectPassword2.addValidator(validator);
+					} else {
+						connectPassword2.removeValidator(validator);
+					}
+					connectPassword.setVisible(usePassword);
+					connectPassword.setRequired(usePassword);
+					connectPassword2.setVisible(usePassword);
+					connectPassword2.setRequired(usePassword);
+					connectKey.setVisible(!usePassword);
+					connectKey.setRequired(!usePassword);
+					boolean isValid;
+					if (runningTask.getControlsLayout() != null) {
+						if (usePassword) {
+							isValid = connectPassword.isValid();
+						} else {
+							isValid = connectKey.isValid();
+						}
+						if (isValid) {
+							connectParamsListener.valueChange(null);
+						} else {
+							form.setComponentError(null);
+							form.setValidationVisible(false);
+							runningTask.getControlsLayout().enableControls(false, Controls.run);
+						}
+					}
+				}
+			});
+			connectLayout.addComponent(passwordOption);
+			passwordOption.select(true);
+
+			connectLayout.addComponent(form);
+			form.setImmediate(true);
 			form.setFooter(null);
-			form.setDescription("Enter either Root Password or SSH Key");
+			Layout layout = form.getLayout();
 
 			form.addField("connectPassword", connectPassword);
 			connectPassword.setImmediate(true);
+			connectPassword.setRequiredError("Root Password is a required field");
 			connectPassword.addValueChangeListener(connectParamsListener);
 
 			form.addField("connectPassword2", connectPassword2);
 			connectPassword2.setImmediate(true);
+			connectPassword2.setRequiredError("Confirm Password is a required field");
 			connectPassword2.addValueChangeListener(connectParamsListener);
-			connectPassword2.addValidator(new Password2Validator(connectPassword));
 
 			form.addField("connectKey", connectKey);
+			connectKey.setStyleName("sshkey");
+			connectKey.setColumns(41);
 			connectKey.setImmediate(true);
+			connectKey.setRequiredError("SSH Key is a required field");
 			connectKey.addValueChangeListener(connectParamsListener);
-
 			break;
 
 		default:
@@ -278,21 +332,18 @@ public class ParametersLayout extends HorizontalLayout {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 		public void valueChange(ValueChangeEvent event) {
+			isParameterReady = false;
 			if (validateConnectParams()) {
 				String password = connectPassword.getValue();
 				String sshkey = connectKey.getValue();
-				if (password != null || sshkey != null) {
+				if (!password.isEmpty() || !sshkey.isEmpty()) {
 					APIrestful api = new APIrestful();
-					String encryptedPassword = api.encryptAES(password);
-					String params = "rootpassword=" + encryptedPassword + "&sshkey=" + sshkey;
+					String params = usePassword ? "rootpassword=" + api.encryptAES(password) : "sshkey=" + api.encryptAES(sshkey);
 					runningTask.selectParameter(params);
 					isParameterReady = true;
-				} else {
-					isParameterReady = false;
 				}
-				runningTask.getControlsLayout().enableControls(isParameterReady, Controls.run);
-
 			}
+			runningTask.getControlsLayout().enableControls(isParameterReady, Controls.run);
 		}
 	};
 

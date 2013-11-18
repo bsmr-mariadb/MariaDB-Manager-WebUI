@@ -155,6 +155,14 @@ public class ChartsLayout extends DDCssLayout {
 		}
 	}
 
+	public void stopRefresh() {
+		if (updaterThread != null && updaterThread.isAlive()) {
+			ManagerUI.log(this.getClass().getName() + "Stopping thread: " + updaterThread);
+			updaterThread.flagged = true;
+			updaterThread.interrupt();
+		}
+	}
+
 	private String time, interval;
 
 	public void refresh(String time, String interval) {
