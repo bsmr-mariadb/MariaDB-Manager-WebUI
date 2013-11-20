@@ -359,8 +359,8 @@ textarea.v-textarea-sshkey {
 }
 
 .selected {
-	background-color: #F5F5F5;
-	border-color: #F5F5F5;
+	background-color: #E5EAF1;
+	border-color: #CCD7E4;
 	border-radius: 10px;
 	border-width: 10px;
 }
