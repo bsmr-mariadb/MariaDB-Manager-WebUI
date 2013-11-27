@@ -30,9 +30,12 @@ Manager management and monitoring API.
 %build
 
 %post
+/etc/init.d/tomcat7 stop
+rm -rf %{install_path}MariaDBManager/
 chown tomcat:tomcat %{install_path}MariaDBManager.war
 iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
 service iptables save
+/etc/init.d/tomcat7 start
 
 %install
 mkdir -p $RPM_BUILD_ROOT%{install_path}
