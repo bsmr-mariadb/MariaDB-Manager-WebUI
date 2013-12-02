@@ -1,5 +1,5 @@
 /*
- * This file is distributed as part of the SkySQL Cloud Data Suite.  It is free
+ * This file is distributed as part of the MariaDB Manager.  It is free
  * software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation,
  * version 2.
@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2013 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Ab
  */
 
 package com.skysql.manager.api;
@@ -64,9 +64,7 @@ import com.skysql.manager.AppData.Debug;
 import com.skysql.manager.Commands;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.MonitorLatest;
-import com.skysql.manager.ui.DebugPanel;
 import com.skysql.manager.ui.ErrorDialog;
-import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Notification;
 
 public class APIrestful {
@@ -218,12 +216,10 @@ public class APIrestful {
 		URL url = null;
 		long startTime = System.nanoTime();
 
-		DebugPanel debugPanel = VaadinSession.getCurrent().getAttribute(DebugPanel.class);
-
 		try {
 			url = new URL(apiURI + "/" + uri + ((type == CallType.GET && value != null) ? value : ""));
 			lastCall = type + " " + url.toString() + (type != CallType.GET && value != null ? " parameters: " + value : "");
-			ManagerUI.log("API " + lastCall, debugPanel);
+			ManagerUI.log("API " + lastCall);
 			URLConnection sc = url.openConnection();
 			httpConnection = (HttpURLConnection) sc;
 			String date = sdf.format(new Date());
@@ -276,7 +272,7 @@ public class APIrestful {
 			in.close();
 
 			long estimatedTime = (System.nanoTime() - startTime) / 1000000;
-			ManagerUI.log("Response Time: " + estimatedTime + "ms, inputStream: " + result, debugPanel);
+			ManagerUI.log("Response Time: " + estimatedTime + "ms, inputStream: " + result);
 
 			APIrestful api = getGson().fromJson(result, APIrestful.class);
 
@@ -304,7 +300,7 @@ public class APIrestful {
 
 				long estimatedTime = (System.nanoTime() - startTime) / 1000000;
 				if (Debug.ON) {
-					ManagerUI.log("Response Time: " + estimatedTime + "ms, errorStream: " + errors, debugPanel);
+					ManagerUI.log("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
 				} else {
 					System.err.println("API " + lastCall);
 					System.err.println("Response Time: " + estimatedTime + "ms, errorStream: " + errors);

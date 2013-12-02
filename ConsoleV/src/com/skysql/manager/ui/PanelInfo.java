@@ -1,5 +1,5 @@
 /*
- * This file is distributed as part of the SkySQL Cloud Data Suite.  It is free
+ * This file is distributed as part of the MariaDB Manager.  It is free
  * software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation,
  * version 2.
@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2013 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Ab
  */
 
 package com.skysql.manager.ui;
@@ -59,7 +59,7 @@ import fi.jasoft.dragdroplayouts.client.ui.LayoutDragMode;
 public class PanelInfo extends HorizontalSplitPanel {
 
 	private static final String NOT_AVAILABLE = "n/a";
-	private static final int PANEL_SPLIT_X = 305;
+	private static final int PANEL_SPLIT_X = 315;
 
 	private ClusterComponent lastComponent;
 	private Component systemGrid, nodeGrid;
@@ -331,6 +331,13 @@ public class PanelInfo extends HorizontalSplitPanel {
 
 	}
 
+	public void stopRefresh() {
+		if (chartsArrayLayout != null) {
+			chartsArrayLayout.stopRefresh();
+			//chartsArrayLayout.hideCharts();
+		}
+	}
+
 	public void refresh() {
 		ClusterComponent componentInfo = getSession().getAttribute(ClusterComponent.class);
 		if (componentInfo == null) {
@@ -376,7 +383,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 			// zero out existing display in order to eliminate false user readings if new data is slow to be retrieved
 			if (chartsArrayLayout != null) {
 				chartsArrayLayout.stopRefresh();
-				chartsArrayLayout.hideCharts();
+				//chartsArrayLayout.hideCharts();
 			}
 
 			// fetch user-based chart properties once per session
@@ -388,7 +395,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 			chartControls.selectInterval(chartProperties.getTimeSpan());
 			chartControls.selectTheme(chartProperties.getTheme());
 
-			chartsArrayLayout = new ChartsLayout(false);
+			chartsArrayLayout = new ChartsLayout(false, chartTime, chartInterval);
 			chartsArrayLayout.initializeCharts(chartProperties, componentInfo.getSystemType());
 			chartsArray = chartsArrayLayout;
 			chartsPanel.setContent(chartsArray);

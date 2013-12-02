@@ -1,5 +1,5 @@
 /*
- * This file is distributed as part of the SkySQL Cloud Data Suite.  It is free
+ * This file is distributed as part of the MariaDB Manager.  It is free
  * software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation,
  * version 2.
@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2013 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Ab
  */
 
 package com.skysql.manager;
@@ -28,7 +28,6 @@ import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.api.UserInfo;
 import com.skysql.manager.api.UserObject;
 import com.skysql.manager.api.Versions;
-import com.skysql.manager.ui.DebugPanel;
 import com.skysql.manager.ui.ErrorDialog;
 import com.skysql.manager.ui.ErrorView;
 import com.skysql.manager.ui.GeneralSettings;
@@ -47,7 +46,6 @@ import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.VerticalSplitPanel;
 
 @SuppressWarnings("serial")
 @Theme("skystyle1")
@@ -56,10 +54,9 @@ import com.vaadin.ui.VerticalSplitPanel;
 @PreserveOnRefresh
 public class ManagerUI extends UI {
 
-	private static final String GUI_VERSION = "1.0.70 Beta";
+	private static final String GUI_VERSION = "1.0.74 Beta";
 	private static final String NOT_AVAILABLE = "n/a";
 
-	private DebugPanel debugPanel;
 	private ScheduledFuture<?> mainTimerFuture;
 
 	private OverviewPanel overviewPanel;
@@ -177,19 +174,7 @@ public class ManagerUI extends UI {
 		main.setSpacing(true);
 		main.setSizeFull();
 
-		if (Debug.ON) {
-			VerticalSplitPanel debugUnderlayout = new VerticalSplitPanel();
-			debugUnderlayout.setSizeFull();
-
-			debugPanel = new DebugPanel();
-			getSession().setAttribute(DebugPanel.class, debugPanel);
-			debugUnderlayout.addComponent(debugPanel);
-			debugUnderlayout.addComponent(main);
-			debugUnderlayout.setSplitPosition(200, Unit.PIXELS);
-			setContent(debugUnderlayout);
-		} else {
-			setContent(main);
-		}
+		setContent(main);
 
 		VaadinSession session = getSession();
 
@@ -241,15 +226,13 @@ public class ManagerUI extends UI {
 			}
 
 			if (Debug.ON) {
-				DebugPanel debugPanel = session.getAttribute(DebugPanel.class);
-				debugPanel.setBeat(count);
-				log("", debugPanel);
-				log("Heartbeat: " + count++, debugPanel);
+				log("");
+				log("Heartbeat: " + count++);
 			}
 
 			Boolean isChartsRefreshing;
 			if ((isChartsRefreshing = (Boolean) session.getAttribute("ChartsRefresh")) != null && isChartsRefreshing == true) {
-				log("Charts is still refreshing: skipping heartbeat", debugPanel);
+				log("Charts is still refreshing: skipping heartbeat");
 				return;
 			}
 
@@ -272,16 +255,8 @@ public class ManagerUI extends UI {
 	}
 
 	public static void log(String msg) {
-		log(msg, null);
-	}
-
-	public static void log(String msg, DebugPanel debugPanel) {
 		if (Debug.ON) {
 			System.out.println(msg);
-			if (debugPanel != null) {
-				debugPanel.setLog(msg);
-			}
-
 		}
 	}
 

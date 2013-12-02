@@ -1,16 +1,11 @@
 /*
- * This file is distributed asimport com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComponentContainer;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
-import com.vaadin.ui.Window.CloseEvent;
-SS
+ * This file is distributed as part of the MariaDB Manager.  It is free
+ * software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation,
+ * version 2.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  * details.
  * 
@@ -18,7 +13,7 @@ SS
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2013 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Ab
  */
 
 package com.skysql.manager.ui;

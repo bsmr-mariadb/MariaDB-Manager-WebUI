@@ -1,14 +1,27 @@
+/*
+ * This file is distributed as part of the MariaDB Manager.  It is free
+ * software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation,
+ * version 2.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Copyright 2012-2014 SkySQL Ab
+ */
+ 
 package com.skysql.manager.ui;
 
 import java.util.Date;
 
 import com.vaadin.ui.components.calendar.event.BasicEvent;
 
-/**
- * Test CalendarEvent implementation.
- * 
- * @see com.vaadin.addon.calendar.test.ui.Calendar.Event
- */
 public class CalendarCustomEvent extends BasicEvent {
 	private static final long serialVersionUID = -1L;
 

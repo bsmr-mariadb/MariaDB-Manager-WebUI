@@ -1,5 +1,5 @@
 /*
- * This file is distributed as part of the SkySQL Cloud Data Suite.  It is free
+ * This file is distributed as part of the MariaDB Manager.  It is free
  * software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation,
  * version 2.
@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2013 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Ab
  */
 
 package com.skysql.manager;
@@ -89,9 +89,9 @@ public class SystemRecord extends ClusterComponent {
 	public String ToolTip() {
 		DateConversion dateConversion = VaadinSession.getCurrent().getAttribute(DateConversion.class);
 
-		return "<h2>System - (Double-click to open)</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Type:</b> " + this.systemType + "</li>"
-				+ "<li><b>Name:</b> " + this.name + "</li>" + "</li>" + "<li><b>State:</b> " + ((this.state == null) ? NOT_AVAILABLE : this.state) + "</li>"
-				+ "<li><b>Nodes:</b> " + ((this.nodes == null) ? NOT_AVAILABLE : Arrays.toString(this.nodes)) + "</li>" + "<li><b>Start Date:</b> "
+		return "<h2>System</h2>" + "<ul>" + "<li><b>ID:</b> " + this.ID + "</li>" + "<li><b>Type:</b> " + this.systemType + "</li>" + "<li><b>Name:</b> "
+				+ this.name + "</li>" + "</li>" + "<li><b>State:</b> " + ((this.state == null) ? NOT_AVAILABLE : this.state) + "</li>" + "<li><b>Nodes:</b> "
+				+ ((this.nodes == null) ? NOT_AVAILABLE : Arrays.toString(this.nodes)) + "</li>" + "<li><b>Start Date:</b> "
 				+ ((this.startDate == null) ? NOT_AVAILABLE : dateConversion.adjust(this.startDate)) + "</li>" + "<li><b>Last Access:</b> "
 				+ ((this.lastAccess == null) ? NOT_AVAILABLE : dateConversion.adjust(this.lastAccess)) + "</li>" + "<li><b>Last Backup:</b> "
 				+ ((this.lastBackup == null) ? NOT_AVAILABLE : dateConversion.adjust(this.lastBackup)) + "</li>" + "</ul>";

@@ -1,5 +1,5 @@
 /*
- * This file is distributed as part of the SkySQL Cloud Data Suite.  It is free
+ * This file is distributed as part of the MariaDB Manager.  It is free
  * software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation,
  * version 2.
@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2013 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Ab
  */
 
 package com.skysql.manager.ui;
@@ -193,8 +193,6 @@ public final class RunningTask {
 		String userID = userObject.getUserID();
 		// we used to look up user-settable setting of loose/strict; after discussion with Mark on Nov 15, 
 		// we make is strict only for backup, which currently is the only command where different steps sequences apply depending on node state
-		//String looseExecution = userObject.getProperty(UserObject.PROPERTY_COMMAND_EXECUTION);
-		//String state = (looseExecution != null && Boolean.valueOf(looseExecution)) ? null : nodeInfo.getState();
 		String state = (command.equals(Command.backup) ? nodeInfo.getState() : null);
 		taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, command, params, state);
 		if (taskRun.getTaskRecord() == null) {

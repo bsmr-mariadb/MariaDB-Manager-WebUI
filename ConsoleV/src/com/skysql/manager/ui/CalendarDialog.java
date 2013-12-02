@@ -1,5 +1,5 @@
 /*
- * This file is distributed as part of the SkySQL Cloud Data Suite.  It is free
+ * This file is distributed as part of the MariaDB Manager.  It is free
  * software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation,
  * version 2.
@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2013 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Ab
  */
 
 package com.skysql.manager.ui;
@@ -433,13 +433,11 @@ public class CalendarDialog implements Window.CloseListener {
 		}
 
 		if (firstHour != null && lastHour != null) {
-			//calendarComponent.setVisibleHoursOfDay(firstHour, lastHour);
 			calendarComponent.setFirstVisibleHourOfDay(firstHour);
 			calendarComponent.setLastVisibleHourOfDay(lastHour);
 		}
 
 		if (firstDay != null && lastDay != null) {
-			//calendarComponent.setVisibleDaysOfWeek(firstDay, lastDay);
 			calendarComponent.setFirstVisibleDayOfWeek(firstDay);
 			calendarComponent.setLastVisibleDayOfWeek(lastDay);
 		}
@@ -619,7 +617,10 @@ public class CalendarDialog implements Window.CloseListener {
 			calendarComponent.setStartDate(calendar.getTime());
 			calendar.add(java.util.Calendar.DATE, 6);
 			calendarComponent.setEndDate(calendar.getTime());
+		} else if (viewMode == Mode.MONTH) {
+			rollMonth(0);
 		}
+
 	}
 
 	private void updateCalendarFormat(Object format) {

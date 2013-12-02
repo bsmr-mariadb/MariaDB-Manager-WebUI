@@ -1,5 +1,5 @@
 /*
- * This file is distributed as part of the SkySQL Cloud Data Suite.  It is free
+ * This file is distributed as part of the MariaDB Manager.  It is free
  * software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation,
  * version 2.
@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2013 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Ab
  */
 
 package com.skysql.manager.ui;
@@ -36,15 +36,17 @@ import com.vaadin.ui.VerticalLayout;
 public class ChartPreviewLayout extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	private String chartTime, chartInterval = "1800";
 	private ChartsLayout chartLayout;
 	private UserChart userChart;
 	private TextField chartName, chartDescription, chartUnit;
 	private NativeSelect chartSelectType, selectCount;
 	private boolean blockRefresh = false;
+	private String time, interval;
 
-	public ChartPreviewLayout(final UserChart userChart) {
+	public ChartPreviewLayout(final UserChart userChart, String time, String interval) {
 		this.userChart = userChart;
+		this.time = time;
+		this.interval = interval;
 
 		addStyleName("ChartPreviewLayout");
 		setSpacing(true);
@@ -188,13 +190,13 @@ public class ChartPreviewLayout extends VerticalLayout {
 	}
 
 	private ChartsLayout drawChart() {
-		ChartsLayout newChartsLayout = new ChartsLayout(true);
+		ChartsLayout newChartsLayout = new ChartsLayout(true, time, interval);
 		newChartsLayout.addStyleName("chartPreview");
 		userChart.clearMonitorData();
 		ChartButton newChartButton = new ChartButton(userChart);
 		newChartButton.setChartsLayout(newChartsLayout);
 		newChartsLayout.addComponent(newChartButton);
-		newChartsLayout.refreshCode(chartTime, chartInterval);
+		newChartsLayout.refreshCode(newChartButton, null);
 		return newChartsLayout;
 	}
 
