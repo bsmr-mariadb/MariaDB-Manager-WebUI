@@ -94,6 +94,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 		public void valueChange(ValueChangeEvent event) {
 			String themeName = (String) event.getProperty().getValue();
 			chartProperties.setTheme(themeName);
+			chartControls.selectTheme(themeName);
 		}
 
 	};
@@ -281,6 +282,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 				addChartButton.setVisible(false);
 				OverviewPanel overviewPanel = getSession().getAttribute(OverviewPanel.class);
 				overviewPanel.setEnabled(true);
+				refresh();
 			}
 		});
 
