@@ -158,7 +158,7 @@ public class LoginView extends VerticalLayout {
 
 		String versionString = "GUI Version: " + aboutRecord.getVersionGUI() + "<br/>API Version: " + aboutRecord.getVersionAPI() + "<br/>Monitor Version: "
 				+ aboutRecord.getVersionMonitor();
-		System.out.println(versionString);
+		ManagerUI.log(versionString);
 		Label versionLabel = new Label(versionString, ContentMode.HTML);
 		versionLabel.setSizeUndefined();
 		addComponent(versionLabel);

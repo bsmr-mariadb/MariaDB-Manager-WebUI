@@ -291,7 +291,7 @@ public class ParametersLayout extends HorizontalLayout {
 				}
 			});
 			connectLayout.addComponent(passwordOption);
-			passwordOption.select(true);
+			passwordOption.select(false);
 
 			connectLayout.addComponent(form);
 			form.setImmediate(true);

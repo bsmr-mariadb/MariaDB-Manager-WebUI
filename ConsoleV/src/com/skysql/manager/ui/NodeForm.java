@@ -32,6 +32,7 @@ import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Form;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.PasswordField;
@@ -173,6 +174,9 @@ public class NodeForm extends VerticalLayout {
 			optionLayout.setSizeUndefined();
 			layout.addComponent(optionLayout);
 
+			Label padding = new Label("\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0");
+			optionLayout.addComponent(padding);
+
 			Embedded info = new Embedded(null, new ThemeResource("img/info.png"));
 			info.addStyleName("infoButton");
 			info.setDescription(connectionInfo);
@@ -245,7 +249,7 @@ public class NodeForm extends VerticalLayout {
 				}
 			});
 			layout.addComponent(passwordOption);
-			passwordOption.select(true);
+			passwordOption.select(false);
 
 			form.addField("connectPassword", connectPassword);
 			connectPassword.setImmediate(false);
