@@ -23,8 +23,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -36,7 +36,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
@@ -351,14 +350,13 @@ public class APIrestful {
 		random.nextBytes(ivBytes);
 		byte[] data = input.getBytes();
 		byte[] encrypted = null;
-		byte[] keyBytes;
+		byte[] keyBytes = new BigInteger(keyCode, 16).toByteArray();
+		if (keyBytes[0] == 0) {
+			byte[] tmp = new byte[keyBytes.length - 1];
+			System.arraycopy(keyBytes, 1, tmp, 0, tmp.length);
+			keyBytes = tmp;
+		}
 		try {
-			keyBytes = keyCode.getBytes("UTF-8");
-			MessageDigest sha;
-			sha = MessageDigest.getInstance("SHA-1");
-			keyBytes = sha.digest(keyBytes);
-			keyBytes = Arrays.copyOf(keyBytes, 16); // use only first 128 bit
-
 			SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
 			IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
 			Cipher cipher;
@@ -381,9 +379,6 @@ public class APIrestful {
 			e.printStackTrace();
 			return null;
 		} catch (InvalidAlgorithmParameterException e) {
-			e.printStackTrace();
-			return null;
-		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			return null;
 		}
