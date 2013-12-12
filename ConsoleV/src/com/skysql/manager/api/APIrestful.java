@@ -23,8 +23,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
-import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -36,6 +36,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
@@ -350,26 +351,41 @@ public class APIrestful {
 		random.nextBytes(ivBytes);
 		byte[] data = input.getBytes();
 		byte[] encrypted = null;
-		byte[] keyBytes = new BigInteger(keyCode, 16).toByteArray();
-		SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
-		IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
-		Cipher cipher;
+		byte[] keyBytes;
 		try {
+			keyBytes = keyCode.getBytes("UTF-8");
+			MessageDigest sha;
+			sha = MessageDigest.getInstance("SHA-1");
+			keyBytes = sha.digest(keyBytes);
+			keyBytes = Arrays.copyOf(keyBytes, 16); // use only first 128 bit
+
+			SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
+			IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+			Cipher cipher;
 			cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 			cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
 			encrypted = cipher.doFinal(data);
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
+			return null;
 		} catch (NoSuchPaddingException e) {
 			e.printStackTrace();
+			return null;
 		} catch (InvalidKeyException e) {
 			e.printStackTrace();
+			return null;
 		} catch (IllegalBlockSizeException e) {
 			e.printStackTrace();
+			return null;
 		} catch (BadPaddingException e) {
 			e.printStackTrace();
+			return null;
 		} catch (InvalidAlgorithmParameterException e) {
 			e.printStackTrace();
+			return null;
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return null;
 		}
 
 		byte output[] = null;
