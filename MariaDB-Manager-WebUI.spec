@@ -44,14 +44,14 @@ mkdir -p $RPM_BUILD_ROOT%{install_path}
 cp MariaDBManager.war $RPM_BUILD_ROOT%{install_path}
 
 mkdir -p $RPM_BUILD_ROOT/etc/init.d/
-cp tomcat7 $RPM_BUILD_ROOT/etc/init.d/
+#cp tomcat7 $RPM_BUILD_ROOT/etc/init.d/
 
 %clean
 
 %files
 %defattr(-,root,root)
 %{install_path}MariaDBManager.war
-/etc/init.d/tomcat7
+#/etc/init.d/tomcat7
 
 %changelog
 
