@@ -21,6 +21,7 @@ package com.skysql.manager.ui.components;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.skysql.java.Logging;
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.ClusterComponent.CCType;
 import com.skysql.manager.ManagerUI;
@@ -348,7 +349,8 @@ public class NodesLayout extends HorizontalLayout {
 						break;
 					default:
 						toolTip = "Unknown component type";
-						System.err.println(toolTip);
+//						System.err.println(toolTip);
+						Logging.error(toolTip);
 						break;
 					}
 					button.setDescription(toolTip);

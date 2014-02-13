@@ -21,6 +21,7 @@ package com.skysql.manager;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.skysql.java.Logging;
 import com.vaadin.server.WebBrowser;
 
 public class DateConversion {
@@ -59,8 +60,10 @@ public class DateConversion {
 				Date myDate = sdfInput.parse(timestamp);
 				adjusted = sdfOutput.format(myDate);
 			} catch (Exception e) {
-				System.err.println("Execption parsing timestamp: " + timestamp + " with format: " + format);
-				e.printStackTrace();
+//				System.err.println("Execption parsing timestamp: " + timestamp + " with format: " + format);
+				Logging.error("Execption parsing timestamp: " + timestamp + " with format: " + format);
+//				e.printStackTrace();
+				Logging.error(e.getMessage());
 				adjusted = "Format Error";
 			}
 			return adjusted;

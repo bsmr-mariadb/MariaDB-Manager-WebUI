@@ -18,6 +18,7 @@
 
 package com.skysql.manager.ui;
 
+import com.skysql.java.Logging;
 import com.skysql.manager.api.UserInfo;
 import com.skysql.manager.api.UserObject;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -250,7 +251,8 @@ public class UsersSettings extends VerticalLayout implements Window.CloseListene
 				} catch (EmptyValueException e) {
 					return;
 				} catch (Exception e) {
-					e.printStackTrace();
+//					e.printStackTrace();
+					Logging.error(e.getMessage());
 					return;
 				}
 				secondaryDialog.close();

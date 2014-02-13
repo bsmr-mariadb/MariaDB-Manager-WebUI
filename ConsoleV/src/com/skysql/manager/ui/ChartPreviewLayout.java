@@ -18,6 +18,7 @@
 
 package com.skysql.manager.ui;
 
+import com.skysql.java.Logging;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.UserChart;
 import com.skysql.manager.api.Monitors;
@@ -180,7 +181,8 @@ public class ChartPreviewLayout extends VerticalLayout {
 				chartSelectType.setValue(type);
 			}
 		} catch (IllegalArgumentException e) {
-			System.err.println("unknow ChartType: " + type);
+//			System.err.println("unknow ChartType: " + type);
+			Logging.error("unknow ChartType: " + type);
 		}
 
 		selectCount.setValue(points);

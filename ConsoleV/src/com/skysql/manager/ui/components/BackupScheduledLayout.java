@@ -34,6 +34,7 @@ import net.fortuna.ical4j.model.Period;
 import net.fortuna.ical4j.model.PeriodList;
 import net.fortuna.ical4j.model.component.VEvent;
 
+import com.skysql.java.Logging;
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.DateConversion;
 import com.skysql.manager.ManagerUI;
@@ -240,7 +241,8 @@ public class BackupScheduledLayout extends VerticalLayout {
 							SimpleDateFormat sdfInput = new SimpleDateFormat("E, d MMM y HH:mm:ss Z"); // Mon, 02 Sep 2013 13:08:14 +0000
 							myDate = sdfInput.format(start);
 						} catch (ParseException e) {
-							e.printStackTrace();
+//							e.printStackTrace();
+							Logging.error(e.getMessage());
 						}
 
 						ScheduleRecord scheduleRecord = scheduleList.get(entry.getValue());

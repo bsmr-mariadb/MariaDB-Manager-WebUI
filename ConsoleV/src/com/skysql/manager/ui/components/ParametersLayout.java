@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
+import com.skysql.java.Logging;
 import com.skysql.manager.BackupRecord;
 import com.skysql.manager.Commands;
 import com.skysql.manager.Commands.Command;
@@ -360,7 +361,8 @@ public class ParametersLayout extends HorizontalLayout {
 		} catch (InvalidValueException e) {
 			return false;
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 			return false;
 		}
 

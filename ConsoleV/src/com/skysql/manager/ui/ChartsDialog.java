@@ -20,6 +20,7 @@ package com.skysql.manager.ui;
 
 import java.util.ArrayList;
 
+import com.skysql.java.Logging;
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.UserChart;
@@ -116,7 +117,8 @@ public class ChartsDialog {
 					}
 
 				} catch (Exception e) {
-					e.printStackTrace();
+//					e.printStackTrace();
+					Logging.error(e.getMessage());
 				}
 
 				dialogWindow.close();
