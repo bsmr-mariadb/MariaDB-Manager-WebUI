@@ -191,7 +191,7 @@ public class APIrestful {
 	 */
 	public boolean get(String uri) {
 
-		return call(uri, CallType.GET, null, null);
+		return get(uri, null, null);
 
 	}
 
@@ -204,7 +204,7 @@ public class APIrestful {
 	 */
 	public boolean get(String uri, String value) {
 
-		return call(uri, CallType.GET, value, null);
+		return get(uri, value, null);
 
 	}
 	
@@ -245,6 +245,7 @@ public class APIrestful {
 	/**
 	 * Convenient call for <code>call(uri, type, value, null)</code>.
 	 * It does not set the if-Modified-Since header.
+	 * Avoid calling this method for a GET.
 	 * @param uri			the API uri request
 	 * @param type			the request type (GET, POST, PUT, DELETE)
 	 * @param value			the parameters string

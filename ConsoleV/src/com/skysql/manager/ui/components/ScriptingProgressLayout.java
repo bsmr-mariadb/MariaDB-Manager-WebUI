@@ -138,7 +138,12 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 			setTitle(command);
 		}
 
-		String[] stepIDs = steps.split(",");
+		String[] stepIDs;
+		try {
+			stepIDs = steps.split(",");
+		} catch (NullPointerException npe) {
+			stepIDs = new String[] {};
+		}
 		totalSteps = stepIDs.length;
 		primitives = new String[totalSteps];
 		taskImages = new Embedded[totalSteps];
