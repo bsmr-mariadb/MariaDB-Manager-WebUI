@@ -210,8 +210,12 @@ public class APIrestful {
 		return call(uri, CallType.DELETE, null);
 
 	}
-
+	
 	private boolean call(String uri, CallType type, String value) {
+		return call(uri, type, value, null);
+	}
+
+	private boolean call(String uri, CallType type, String value, String lastModified) {
 
 		HttpURLConnection httpConnection = null;
 		URL url = null;
@@ -239,6 +243,9 @@ public class APIrestful {
 			switch (type) {
 			case GET:
 				//httpConnection.setRequestProperty("Accept-Encoding", "gzip");
+				if (lastModified != null && ! lastModified.isEmpty()) {
+					httpConnection.setRequestProperty("If-Modified-Since", lastModified);
+				}
 				break;
 
 			case PUT:
@@ -275,7 +282,13 @@ public class APIrestful {
 			long estimatedTime = (System.nanoTime() - startTime) / 1000000;
 			ManagerUI.log("Response Time: " + estimatedTime + "ms, inputStream: " + result);
 
-			APIrestful api = getGson().fromJson(result, APIrestful.class);
+			// Massimo Siani, 2014-02-13, to test for If-Modified-Since
+			APIrestful api;
+			if (httpConnection.getResponseCode() == 304) {
+				api = getGson().fromJson("", APIrestful.class);
+			} else {
+				api = getGson().fromJson(result, APIrestful.class);
+			}
 
 			return api.success;
 
