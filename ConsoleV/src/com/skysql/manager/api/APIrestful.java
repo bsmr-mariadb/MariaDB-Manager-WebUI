@@ -181,16 +181,47 @@ public class APIrestful {
 				+ (getErrors() != null ? "Errors: <p class=\"api-response\">" + getErrors() + "</p>" : "");
 	}
 
+	/**
+	 * Convenient call for <code>get(uri, null, null)</code>.
+	 * No parameters will be passed to the API for this
+	 * GET request, and no If-Modified-Since header will
+	 * be set.
+	 * @param uri			the API uri request
+	 * @return
+	 */
 	public boolean get(String uri) {
 
-		return call(uri, CallType.GET, null);
+		return call(uri, CallType.GET, null, null);
 
 	}
 
+	/**
+	 * Convenient call for <code>get(uri, value, null)</code>,
+	 * i.e. no If-Modified-Since header will be set.
+	 * @param uri			the API uri request
+	 * @param value			the parameters string
+	 * @return
+	 */
 	public boolean get(String uri, String value) {
 
-		return call(uri, CallType.GET, value);
+		return call(uri, CallType.GET, value, null);
 
+	}
+	
+	/**
+	 * Issues a GET request to the API, sending some parameter.
+	 * The parameters must be given in the form
+	 * <code>field1=value1&field2=value2</code>, or it can be <code>null</code>.
+	 * A date can also be provided, to set the If-Modified-Since header
+	 * in the rfc-2822 format. If it is null or empty, the header will
+	 * not be set.
+	 * @param uri				the API uri request
+	 * @param value				the parameters string
+	 * @param lastModified		the date of last modified, in rfc-2822 format
+	 * @return
+	 */
+	public boolean get(String uri, String value, String lastModified) {
+		return call(uri, CallType.GET, value, lastModified);
 	}
 
 	public boolean put(String uri, String value) {
@@ -211,6 +242,14 @@ public class APIrestful {
 
 	}
 	
+	/**
+	 * Convenient call for <code>call(uri, type, value, null)</code>.
+	 * It does not set the if-Modified-Since header.
+	 * @param uri			the API uri request
+	 * @param type			the request type (GET, POST, PUT, DELETE)
+	 * @param value			the parameters string
+	 * @return
+	 */
 	private boolean call(String uri, CallType type, String value) {
 		return call(uri, type, value, null);
 	}
