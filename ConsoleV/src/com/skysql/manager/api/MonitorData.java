@@ -27,8 +27,10 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.java.Logging;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.ui.ErrorDialog;
+import com.vaadin.server.VaadinSession;
 
 public class MonitorData {
 
@@ -41,7 +43,17 @@ public class MonitorData {
 	private ArrayList<Number> maxPoints;
 	private ArrayList<Long> timeStamps;
 	private String system, node, timeSpan, method;
-
+	
+	private ThreadLocal<CachedData> lastModified;
+	
+	private CachedData getLastModified() {
+		if (lastModified == null || lastModified.get() == null) {
+			lastModified = new ThreadLocal<CachedData>();
+			lastModified.set(VaadinSession.getCurrent().getAttribute(CachedData.class));
+		}
+		return lastModified.get();
+	}
+	
 	public ArrayList<Number> getAvgPoints() {
 		return avgPoints;
 	}
@@ -135,8 +147,12 @@ public class MonitorData {
 		String uri = "system/" + system + (node.equals(SystemInfo.SYSTEM_NODEID) ? "" : "/node/" + node) + "/monitor/" + monitor.getID() + "/data";
 		String params = "?finish=" + String.valueOf(timeEnd) + "&interval=" + String.valueOf(interval) + "&count=" + count + "&method=" + method;
 
-		if (api.get(uri, params)) {
+		String thisLastModified = getLastModified().getLastModifiedMonitorData(system, node, monitor.getID());
+		if (api.get(uri, params, thisLastModified)) {
+			getLastModified().addLastModifiedMonitorData(system, node, monitor.getID());
 			try {
+				if (api.getResult() == null || api.getResult().isEmpty())
+					Logging.error("If-Modified-Since worked!");
 				MonitorData monitorData = APIrestful.getGson().fromJson(api.getResult(), MonitorData.class);
 				avgPoints = monitorData.avgPoints;
 				minPoints = monitorData.minPoints;

@@ -25,6 +25,7 @@ import org.vaadin.jouni.animator.AnimatorProxy;
 import com.skysql.java.Logging;
 import com.skysql.manager.AppData.Debug;
 import com.skysql.manager.api.APIrestful;
+import com.skysql.manager.api.CachedData;
 import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.api.UserInfo;
 import com.skysql.manager.api.UserObject;
@@ -97,6 +98,8 @@ public class ManagerUI extends UI {
 					break;
 				}
 				session.setAttribute(UserInfo.class, userInfo);
+				
+				session.setAttribute(CachedData.class, new CachedData());
 
 			} while (false);
 

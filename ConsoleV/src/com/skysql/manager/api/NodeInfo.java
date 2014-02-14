@@ -30,12 +30,14 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.java.Logging;
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.Commands;
 import com.skysql.manager.MonitorLatest;
 import com.skysql.manager.TaskRecord;
 import com.skysql.manager.ui.ErrorDialog;
 import com.skysql.manager.ui.RunningTask;
+import com.vaadin.server.VaadinSession;
 
 public class NodeInfo extends ClusterComponent {
 
@@ -49,7 +51,17 @@ public class NodeInfo extends ClusterComponent {
 	private String port;
 	private String instanceID;
 	private RunningTask commandTask;
+	
+	private ThreadLocal<CachedData> lastModified;
 
+	private CachedData getLastModified() {
+		if (lastModified == null || lastModified.get() == null) {
+			lastModified = new ThreadLocal<CachedData>();
+			lastModified.set(VaadinSession.getCurrent().getAttribute(CachedData.class));
+		}
+		return lastModified.get();
+	}
+	
 	public NodeInfo() {
 	}
 
@@ -166,11 +178,17 @@ public class NodeInfo extends ClusterComponent {
 		APIrestful api = new APIrestful();
 		boolean success = false;
 
-		if (api.get("system/" + this.parentID + "/node/" + ID, "?fields=task,state")) {
+		String thisLastModified = getLastModified().getLastModifiedNodeInfo(this.parentID, ID);
+		if (api.get("system/" + this.parentID + "/node/" + ID, "?fields=task,state", thisLastModified)) {
 			try {
-				NodeInfo nodeInfo = APIrestful.getGson().fromJson(api.getResult(), NodeInfo.class);
-				this.state = nodeInfo.state;
-				this.task = nodeInfo.task;
+				if (api.getResult() != null && ! api.getResult().isEmpty()) {
+					NodeInfo nodeInfo = APIrestful.getGson().fromJson(api.getResult(), NodeInfo.class);
+					this.state = nodeInfo.state;
+					this.task = nodeInfo.task;
+				} else {
+					Logging.error("If-Modified-Since succeeded!");
+				}
+				getLastModified().addLastModifiedNodeInfo(this.parentID, ID);
 
 				return true;
 
