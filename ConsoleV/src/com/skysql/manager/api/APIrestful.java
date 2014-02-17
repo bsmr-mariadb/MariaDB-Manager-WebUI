@@ -326,7 +326,7 @@ public class APIrestful {
 			APIrestful api;
 			if (httpConnection.getResponseCode() == 304) {
 				api = getGson().fromJson("", APIrestful.class);
-				api.setSuccess(true);
+				return true;
 			} else {
 				api = getGson().fromJson(result, APIrestful.class);
 			}
