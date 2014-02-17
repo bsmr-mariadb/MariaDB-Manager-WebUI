@@ -151,8 +151,10 @@ public class MonitorData {
 		if (api.get(uri, params, thisLastModified)) {
 			getLastModified().addLastModifiedMonitorData(system, node, monitor.getID());
 			try {
-				if (api.getResult() == null || api.getResult().isEmpty())
+				if (api.getResult() == null || api.getResult().isEmpty()) {
 					Logging.error("If-Modified-Since worked!");
+					return;
+				}
 				MonitorData monitorData = APIrestful.getGson().fromJson(api.getResult(), MonitorData.class);
 				avgPoints = monitorData.avgPoints;
 				minPoints = monitorData.minPoints;
