@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui;
@@ -62,8 +62,6 @@ public class SystemForm extends VerticalLayout {
 		form.setImmediate(false);
 		form.setFooter(null);
 		form.setDescription(description);
-
-		commitButton.setCaption(description);
 
 		String value;
 		if ((value = system.getName()) != null) {

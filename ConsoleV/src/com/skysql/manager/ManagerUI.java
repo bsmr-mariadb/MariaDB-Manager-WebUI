@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager;
@@ -54,7 +54,7 @@ import com.vaadin.ui.VerticalLayout;
 @PreserveOnRefresh
 public class ManagerUI extends UI {
 
-	private static final String GUI_VERSION = "1.1-82";
+	private static final String GUI_VERSION = "1.1-83";
 	private static final String NOT_AVAILABLE = "n/a";
 
 	private ScheduledFuture<?> mainTimerFuture;

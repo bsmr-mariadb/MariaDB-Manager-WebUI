@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui;
@@ -90,6 +90,7 @@ public class SystemDialog implements Window.CloseListener {
 
 	private void saveSystem(final String okButtonCaption) {
 
+		commitButton.setCaption(okButtonCaption);
 		final Button cancelButton = new Button("Cancel");
 		buttonsBar.addComponent(cancelButton);
 		buttonsBar.setComponentAlignment(cancelButton, Alignment.MIDDLE_RIGHT);
