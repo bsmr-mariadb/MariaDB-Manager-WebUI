@@ -128,7 +128,7 @@ public final class RunningTask {
 		scriptingLayout.addComponent(scriptingProgressLayout);
 		scriptingLayout.setComponentAlignment(scriptingProgressLayout, Alignment.MIDDLE_LEFT);
 
-		scriptingProgressLayout.buildProgress(taskRecord, command, nodeInfo.getCommands().getSteps(command));
+		scriptingProgressLayout.buildProgress(taskRecord, command, taskRecord.getSteps());
 
 		if (observerMode) {
 			activateTimer();
