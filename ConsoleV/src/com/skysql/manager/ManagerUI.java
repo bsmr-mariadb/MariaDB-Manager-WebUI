@@ -54,7 +54,7 @@ import com.vaadin.ui.VerticalLayout;
 @PreserveOnRefresh
 public class ManagerUI extends UI {
 
-	private static final String GUI_VERSION = "1.1-84";
+	private static final String GUI_VERSION = "1.1-85";
 	private static final String NOT_AVAILABLE = "n/a";
 
 	private ScheduledFuture<?> mainTimerFuture;
@@ -135,6 +135,9 @@ public class ManagerUI extends UI {
 
 		String systemName = "{ Installation/API name goes here }";
 		String guiVersion = GUI_VERSION;
+		if (Debug.ON) {
+			guiVersion += " DEBUG";
+		}
 		String apiVersion = api.getVersion();
 		Versions monitor = new Versions("monitor");
 		String monitorVersion = (monitor.getVersion() != null ? monitor.getVersion() : NOT_AVAILABLE);
