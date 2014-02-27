@@ -49,8 +49,16 @@ public class DateConversion {
 		return clientTZname;
 	}
 
+	public boolean getAdjust() {
+		return adjust;
+	}
+
 	public void setAdjust(boolean adjust) {
 		this.adjust = adjust;
+	}
+
+	public String getFormat() {
+		return format;
 	}
 
 	public void setFormat(String format) {

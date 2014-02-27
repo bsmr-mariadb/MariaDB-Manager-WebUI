@@ -78,6 +78,8 @@ public class BackupSetsLayout extends HorizontalLayout {
 	class UpdaterThread extends Thread {
 		UpdaterThread oldUpdaterThread;
 		volatile boolean flagged = false;
+		volatile boolean adjust;
+		volatile String format;
 
 		UpdaterThread(UpdaterThread oldUpdaterThread) {
 			this.oldUpdaterThread = oldUpdaterThread;
@@ -132,12 +134,16 @@ public class BackupSetsLayout extends HorizontalLayout {
 
 				ManagerUI.log(this.getClass().getName() + " access run(): ");
 
+				DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
+				boolean adjust = dateConversion.getAdjust();
+				String format = dateConversion.getFormat();
+
 				if (backupsList != null) {
 					int size = backupsList.size();
-					if (oldBackupsCount != size) {
+					if (oldBackupsCount != size || adjust != updaterThread.adjust || !format.equals(updaterThread.format)) {
 						oldBackupsCount = size;
-
-						DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
+						updaterThread.adjust = adjust;
+						updaterThread.format = format;
 
 						backupsTable.removeAllItems();
 						ListIterator<Map.Entry<String, BackupRecord>> iter = new ArrayList<Entry<String, BackupRecord>>(backupsList.entrySet()).listIterator(0);
