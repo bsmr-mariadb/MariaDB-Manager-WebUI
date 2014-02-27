@@ -20,27 +20,36 @@ package com.skysql.manager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.SimpleTimeZone;
+import java.util.TimeZone;
 
 import com.vaadin.server.WebBrowser;
+import com.vaadin.ui.UI;
 
 public class DateConversion {
+	public static String DEFAULT_INPUT_FORMAT = "E, d MMM y HH:mm:ss Z"; // as currently returned by the API: Mon, 02 Sep 2013 13:08:14 +0000
 	public static String DEFAULT_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
 	private boolean adjust = false;
 	private String format = DEFAULT_TIME_FORMAT;
+	private String clientTZname;
+	private SimpleTimeZone clientTimeZone;
 
 	public DateConversion(boolean adjust, String format) {
 		this.adjust = adjust;
 		this.format = (format == null ? DEFAULT_TIME_FORMAT : format);
 
-		WebBrowser webBrowser = new WebBrowser();
-		int tzOffset = webBrowser.getTimezoneOffset();
-		int tzDSOffset = webBrowser.getRawTimezoneOffset();
-		int dstSavings = webBrowser.getDSTSavings();
-
+		WebBrowser webBrowser = UI.getCurrent().getPage().getWebBrowser();
+		int browserOffset = webBrowser.getRawTimezoneOffset();
+		clientTimeZone = new SimpleTimeZone(browserOffset, "Client time zone");
+		clientTZname = clientTimeZone.getDisplayName();
 	}
 
-	public void setAdjuts(boolean adjust) {
+	public String getClientTZname() {
+		return clientTZname;
+	}
+
+	public void setAdjust(boolean adjust) {
 		this.adjust = adjust;
 	}
 
@@ -49,14 +58,19 @@ public class DateConversion {
 	}
 
 	public String adjust(String timestamp) {
-		if (timestamp == null || timestamp.isEmpty() || adjust == false) {
+		if (timestamp == null || timestamp.isEmpty()) {
 			return timestamp;
 		} else {
 			String adjusted = null;
-			SimpleDateFormat sdfInput = new SimpleDateFormat("E, d MMM y HH:mm:ss Z"); // Mon, 02 Sep 2013 13:08:14 +0000
+			SimpleDateFormat sdfInput = new SimpleDateFormat(DEFAULT_INPUT_FORMAT);
 			try {
 				SimpleDateFormat sdfOutput = new SimpleDateFormat(format);
 				Date myDate = sdfInput.parse(timestamp);
+				if (adjust) {
+					sdfOutput.setTimeZone(clientTimeZone);
+				} else {
+					sdfOutput.setTimeZone(TimeZone.getTimeZone("GMT"));
+				}
 				adjusted = sdfOutput.format(myDate);
 			} catch (Exception e) {
 				System.err.println("Execption parsing timestamp: " + timestamp + " with format: " + format);
