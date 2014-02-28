@@ -110,16 +110,16 @@ public final class RunningTask {
 
 		// COLUMN 2. CONTROLS
 		// controls = taskRun.getControls(); this is for when they are server-side driven
-		scriptingControlsLayout = new ScriptingControlsLayout(this, new Controls[] { Controls.run, Controls.stop });
+		scriptingControlsLayout = new ScriptingControlsLayout(this, new Controls[] { Controls.Run, Controls.Stop });
 		scriptingLayout.addComponent(scriptingControlsLayout);
 		scriptingLayout.setComponentAlignment(scriptingControlsLayout, Alignment.MIDDLE_LEFT);
 
 		// TODO: this needs to be done properly
 		if (observerMode) {
-			scriptingControlsLayout.enableControls(true, Controls.stop);
+			scriptingControlsLayout.enableControls(true, Controls.Stop);
 		} else {
 			if (parametersLayout == null || parametersLayout.isParameterReady()) {
-				scriptingControlsLayout.enableControls(true, Controls.run);
+				scriptingControlsLayout.enableControls(true, Controls.Run);
 			}
 		}
 
@@ -163,19 +163,19 @@ public final class RunningTask {
 
 	public void controlClicked(Controls control) {
 		switch (control) {
-		case run:
+		case Run:
 			start();
 			break;
 
-		case schedule:
+		case Schedule:
 			schedule();
 			break;
 
-		case pause:
+		case Pause:
 			pause();
 			break;
 
-		case stop:
+		case Stop:
 			stop();
 			break;
 
@@ -219,7 +219,7 @@ public final class RunningTask {
 		nodeInfo.setTask(taskRun.getTaskRecord());
 		taskRecord = taskRun.getTaskRecord();
 
-		scriptingControlsLayout.enableControls(true, Controls.stop);
+		scriptingControlsLayout.enableControls(true, Controls.Stop);
 
 		activateTimer();
 
@@ -254,7 +254,7 @@ public final class RunningTask {
 		commandSelect.select(null);
 		commandSelect.setEnabled(true);
 
-		scriptingControlsLayout.enableControls(false, Controls.stop);
+		scriptingControlsLayout.enableControls(false, Controls.Stop);
 
 		if (listener != null) {
 			listener.valueChange(null);

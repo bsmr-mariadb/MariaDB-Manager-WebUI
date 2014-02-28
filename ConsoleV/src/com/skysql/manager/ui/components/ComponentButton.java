@@ -56,7 +56,7 @@ public class ComponentButton extends VerticalLayout {
 	private Embedded info, alert;
 	private ThemeResource cancelledResource = new ThemeResource("img/cancelled.png");
 	private ThemeResource errorResource = new ThemeResource("img/alert.png");
-	private ThemeResource runningResource = new ThemeResource("img/running.png");
+	private ThemeResource runningResource = new ThemeResource("img/running.gif");
 
 	public ComponentButton(ClusterComponent componentInfo) {
 		thisButton = this;
