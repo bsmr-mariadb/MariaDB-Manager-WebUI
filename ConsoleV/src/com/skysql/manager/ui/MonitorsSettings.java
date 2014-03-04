@@ -518,8 +518,7 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 					if ((ID = monitor.getID()) == null) {
 						ID = monitorID.getValue();
 						monitor.setID(ID);
-						Monitors.setMonitor(monitor);
-						if (ID != null) {
+						if (Monitors.setMonitor(monitor)) {
 							select.addItem(ID);
 							select.select(ID);
 							Monitors.reloadMonitors();

@@ -18,7 +18,9 @@
 
 package com.skysql.manager.api;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.net.URLEncoder;
 import java.util.LinkedHashMap;
 
 import org.json.JSONException;
@@ -93,7 +95,7 @@ public class Monitors {
 
 	}
 
-	public synchronized static String setMonitor(MonitorRecord monitor) {
+	public synchronized static boolean setMonitor(MonitorRecord monitor) {
 
 		APIrestful api = new APIrestful();
 
@@ -122,15 +124,11 @@ public class Monitors {
 		}
 
 		WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
-		if (writeResponse != null && !writeResponse.getInsertKey().isEmpty()) {
-			String monitorID = writeResponse.getInsertKey();
-			monitor.setID(monitorID);
-			currentList.put(monitorID, monitor);
-			return monitorID;
-		} else if (writeResponse != null && writeResponse.getUpdateCount() > 0) {
-			return monitor.getID();
+		if (writeResponse != null && (!writeResponse.getInsertKey().isEmpty() || writeResponse.getUpdateCount() > 0)) {
+			currentList.put(monitor.getID(), monitor);
+			return true;
 		} else {
-			return null;
+			return false;
 		}
 
 	}
