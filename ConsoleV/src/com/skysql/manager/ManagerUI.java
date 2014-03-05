@@ -54,7 +54,7 @@ import com.vaadin.ui.VerticalLayout;
 @PreserveOnRefresh
 public class ManagerUI extends UI {
 
-	private static final String GUI_VERSION = "1.1-87";
+	private static final String GUI_VERSION = "1.1-88";
 	private static final String NOT_AVAILABLE = "n/a";
 
 	private ScheduledFuture<?> mainTimerFuture;
