@@ -18,10 +18,9 @@
 
 package com.skysql.manager.api;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
-import java.net.URLEncoder;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -116,6 +115,10 @@ public class Monitors {
 			int interval = monitor.getInterval();
 			jsonParam.put("interval", String.valueOf(interval));
 
+			if (monitor.getID() == null) {
+				monitor.setID(createUniqueID(monitor.getName()));
+			}
+
 			success = api.put("monitorclass/" + monitor.getSystemType() + "/key/" + monitor.getID(), jsonParam.toString());
 
 		} catch (JSONException e) {
@@ -131,6 +134,26 @@ public class Monitors {
 			return false;
 		}
 
+	}
+
+	public static boolean isNameUnique(String proposedName) {
+		for (Map.Entry<String, MonitorRecord> entry : currentList.entrySet()) {
+			MonitorRecord monitor = entry.getValue();
+			if (monitor.getName().equals(proposedName)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private synchronized static String createUniqueID(String name) {
+		String ID = name.replaceAll("[^a-zA-Z0-9.-]", "");
+		int i = 0;
+		String uniqueID = ID;
+		while (Monitors.getMonitor(uniqueID) != null) {
+			uniqueID = ID + i++;
+		}
+		return uniqueID;
 	}
 
 	public synchronized static boolean deleteMonitor(MonitorRecord monitor) {

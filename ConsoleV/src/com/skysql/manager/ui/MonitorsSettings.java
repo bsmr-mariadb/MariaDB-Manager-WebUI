@@ -31,10 +31,12 @@ import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.RunSQL;
 import com.skysql.manager.api.SettingsValues;
 import com.skysql.manager.api.SystemInfo;
+import com.skysql.manager.validators.MonitorNameValidator;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.EmptyValueException;
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.event.LayoutEvents.LayoutClickEvent;
 import com.vaadin.event.LayoutEvents.LayoutClickListener;
 import com.vaadin.server.ThemeResource;
@@ -333,7 +335,6 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 	}
 
 	public void monitorForm(final MonitorRecord monitor, String title, String description, String button) {
-		final TextField monitorID = new TextField("Monitor ID");
 		final TextField monitorName = new TextField("Monitor Name");
 		final TextField monitorDescription = new TextField("Description");
 		final TextField monitorUnit = new TextField("Measurement Unit");
@@ -360,24 +361,15 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 
 		String value;
 
-		if ((value = monitor.getID()) != null) {
-			monitorID.setValue(value);
-			monitorID.setEnabled(false);
-		}
-		form.addField("monitorID", monitorID);
-		form.getField("monitorID").setRequired(true);
-		form.getField("monitorID").setRequiredError("Monitor ID is missing");
-		monitorID.focus();
-
 		if ((value = monitor.getName()) != null) {
 			monitorName.setValue(value);
 		}
 		form.addField("monitorName", monitorName);
 		form.getField("monitorName").setRequired(true);
 		form.getField("monitorName").setRequiredError("Monitor Name is missing");
-		if (monitor.getID() != null) {
-			monitorName.focus();
-		}
+		monitorName.focus();
+		monitorName.setImmediate(true);
+		monitorName.addValidator(new MonitorNameValidator(monitor.getName()));
 
 		if ((value = monitor.getDescription()) != null) {
 			monitorDescription.setValue(value);
@@ -516,9 +508,8 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 					monitor.setChartType((String) monitorChartType.getValue());
 					String ID;
 					if ((ID = monitor.getID()) == null) {
-						ID = monitorID.getValue();
-						monitor.setID(ID);
 						if (Monitors.setMonitor(monitor)) {
+							ID = monitor.getID();
 							select.addItem(ID);
 							select.select(ID);
 							Monitors.reloadMonitors();
@@ -535,6 +526,8 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 					}
 
 				} catch (EmptyValueException e) {
+					return;
+				} catch (InvalidValueException e) {
 					return;
 				} catch (Exception e) {
 					e.printStackTrace();

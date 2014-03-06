@@ -43,7 +43,7 @@ import com.vaadin.ui.themes.Runo;
 @SuppressWarnings("serial")
 public class OverviewPanel extends Panel {
 
-	public static float PANEL_HEIGHT = ComponentButton.COMPONENT_HEIGHT + 35;
+	public static float PANEL_HEIGHT = ComponentButton.COMPONENT_HEIGHT + 40;
 
 	private SystemInfo systemInfo;
 	private SystemRecord systemRecord;

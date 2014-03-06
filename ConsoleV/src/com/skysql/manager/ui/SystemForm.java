@@ -21,6 +21,7 @@ package com.skysql.manager.ui;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.SystemTypes;
 import com.skysql.manager.validators.Password2Validator;
+import com.skysql.manager.validators.SystemNameValidator;
 import com.skysql.manager.validators.UserDifferentValidator;
 import com.skysql.manager.validators.UserNotRootValidator;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -69,6 +70,8 @@ public class SystemForm extends VerticalLayout {
 		}
 		form.addField("name", name);
 		name.focus();
+		name.setImmediate(true);
+		name.addValidator(new SystemNameValidator(system.getName()));
 
 		for (String systemType : SystemTypes.getList().keySet()) {
 			this.systemType.addItem(systemType);
