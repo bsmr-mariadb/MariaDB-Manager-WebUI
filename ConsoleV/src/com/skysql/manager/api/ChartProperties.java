@@ -41,6 +41,7 @@ public class ChartProperties implements Serializable {
 	protected LinkedHashMap<String, ArrayList<ChartMappings>> chartsMap;
 	protected int timeSpan;
 	protected String theme;
+	private boolean isDirty;
 	private UserObject userObject;
 
 	public ChartProperties() {
@@ -98,13 +99,28 @@ public class ChartProperties implements Serializable {
 		this.chartsMap = chartsMap;
 	}
 
-	public ArrayList<ChartMappings> getChartMappings(String key) {
-		return chartsMap.get(key);
+	public ArrayList<ChartMappings> getChartMappings(String systemType) {
+		return chartsMap.get(systemType);
 	}
 
 	public void setChartMappings(String key, ArrayList<ChartMappings> value) {
 		chartsMap.put(key, value);
 		save();
+	}
+
+	public ArrayList<String> findChartsforMonitor(String systemType, String monitorID) {
+
+		ArrayList<String> chartNames = new ArrayList<String>();
+
+		ArrayList<ChartMappings> chartMappings = getChartMappings(systemType);
+		for (ChartMappings chart : chartMappings) {
+			if (chart.getMonitorIDs().contains(monitorID)) {
+				chartNames.add(chart.getName());
+			}
+		}
+
+		return chartNames;
+
 	}
 
 	// {"chartProperties":[{"systemtype":"aws","mappings":[{...},...]},{"systemid":"1","mappings":[{...},...]}]}
@@ -140,6 +156,14 @@ public class ChartProperties implements Serializable {
 		//		int compressedDataLength = compresser.deflate(output);
 		//		userObject.setProperty(UserObject.PROPERTY_CHART_MAPPINGS, ChartMappings.toString(new String(output, 0, compressedDataLength)));
 
+	}
+
+	public boolean isDirty() {
+		return isDirty;
+	}
+
+	public void isDirty(boolean isDirty) {
+		this.isDirty = isDirty;
 	}
 
 	public int getTimeSpan() {

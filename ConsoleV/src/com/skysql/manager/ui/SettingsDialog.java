@@ -88,7 +88,7 @@ public class SettingsDialog implements Window.CloseListener {
 				systemType = systemInfo.getCurrentSystem().getSystemType();
 			}
 			if (systemType != null) {
-				MonitorsSettings monitorsTab = new MonitorsSettings(systemID, systemType);
+				MonitorsSettings monitorsTab = new MonitorsSettings(settingsDialog, systemID, systemType);
 				tab = tabsheet.addTab(monitorsTab, "Monitors");
 				if (selectedTab != null && selectedTab.equals("Monitors")) {
 					tabsheet.setSelectedTab(tab);

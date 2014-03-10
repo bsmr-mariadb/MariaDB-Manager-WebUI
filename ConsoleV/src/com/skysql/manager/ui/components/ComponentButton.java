@@ -27,6 +27,7 @@ import com.skysql.manager.TaskRecord;
 import com.skysql.manager.api.CommandStates;
 import com.skysql.manager.api.NodeStates;
 import com.skysql.manager.ui.ComponentDialog;
+import com.skysql.manager.ui.WarningWindow;
 import com.vaadin.event.MouseEvents;
 import com.vaadin.event.MouseEvents.ClickEvent;
 import com.vaadin.server.ThemeResource;
@@ -37,7 +38,6 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 
 public class ComponentButton extends VerticalLayout {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
@@ -54,6 +54,7 @@ public class ComponentButton extends VerticalLayout {
 	private ClusterComponent componentInfo;
 	private ComponentButton thisButton;
 	private Embedded info, alert;
+	private ClusterComponent clusterComponent;
 	private ThemeResource cancelledResource = new ThemeResource("img/cancelled.png");
 	private ThemeResource errorResource = new ThemeResource("img/alert.png");
 	private ThemeResource runningResource = new ThemeResource("img/running.gif");
@@ -279,107 +280,64 @@ public class ComponentButton extends VerticalLayout {
 
 	public void deleteComponent(final ClusterComponent clusterComponent) {
 
-		final Window dialogWindow = new DialogWindow("Delete: " + clusterComponent.getName());
-		UI.getCurrent().addWindow(dialogWindow);
+		this.clusterComponent = clusterComponent;
 
-		HorizontalLayout wrapper = new HorizontalLayout();
-		wrapper.setWidth("100%");
-		wrapper.setMargin(true);
-		VerticalLayout iconLayout = new VerticalLayout();
-		iconLayout.setWidth("100px");
-		wrapper.addComponent(iconLayout);
-		Embedded image = new Embedded(null, new ThemeResource("img/warning.png"));
-		iconLayout.addComponent(image);
-		VerticalLayout textLayout = new VerticalLayout();
-		textLayout.setSizeFull();
-		wrapper.addComponent(textLayout);
-		wrapper.setExpandRatio(textLayout, 1.0f);
-		Label label = new Label("Delete this component?");
-		label.addStyleName("warning");
-		textLayout.addComponent(label);
-		textLayout.setComponentAlignment(label, Alignment.MIDDLE_CENTER);
+		String msg;
+		switch (clusterComponent.getType()) {
+		case system:
+			msg = "Deleting a system removes record of it and all its contained nodes from MariaDB Manager. No action is taken on the cluster, its servers and data, which will continue to operate undisturbed and independently of MariaDB Manager. The cluster can be brought back under control of MariaDB Manager by creating a new system.";
+			break;
 
-		HorizontalLayout buttonsBar = new HorizontalLayout();
-		buttonsBar.setStyleName("buttonsBar");
-		buttonsBar.setSizeFull();
-		buttonsBar.setSpacing(true);
-		buttonsBar.setMargin(true);
-		buttonsBar.setHeight("49px");
+		case node:
+			msg = "Deleting a node removes record of it from MariaDB Manager. No action is taken on the server, which will continue to operate undisturbed and independently of MariaDB Manager. The server can be brought back under control of MariaDB Manage by creating a new node.";
+			break;
 
-		Label filler = new Label();
-		buttonsBar.addComponent(filler);
-		buttonsBar.setExpandRatio(filler, 1.0f);
+		default:
+			msg = "Delete this component?";
+			break;
+		}
 
-		Button cancelButton = new Button("Cancel");
-		buttonsBar.addComponent(cancelButton);
-		buttonsBar.setComponentAlignment(cancelButton, Alignment.MIDDLE_RIGHT);
+		secondaryDialog = new WarningWindow("Delete: " + clusterComponent.getName(), msg, "Delete", okListener);
+		UI.getCurrent().addWindow(secondaryDialog);
 
-		cancelButton.addClickListener(new Button.ClickListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
+	}
 
-			public void buttonClick(Button.ClickEvent event) {
-				dialogWindow.close();
+	private WarningWindow secondaryDialog;
+
+	private Button.ClickListener okListener = new Button.ClickListener() {
+		private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+		public void buttonClick(Button.ClickEvent event) {
+			boolean success = false;
+			switch (clusterComponent.getType()) {
+			case system:
+				success = ((SystemRecord) clusterComponent).delete();
+				break;
+			case node:
+				success = ((com.skysql.manager.api.NodeInfo) clusterComponent).delete();
+				break;
 			}
-		});
-
-		Button okButton = new Button("Delete");
-		okButton.addClickListener(new Button.ClickListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-			public void buttonClick(Button.ClickEvent event) {
-				boolean success = false;
+			if (success) {
+				secondaryDialog.close();
+				removeComponent(deleteButton);
+				removeComponent(editButton);
 				switch (clusterComponent.getType()) {
 				case system:
-					success = ((SystemRecord) clusterComponent).delete();
-					break;
-				case node:
-					success = ((com.skysql.manager.api.NodeInfo) clusterComponent).delete();
-					break;
-				}
-				if (success) {
-					dialogWindow.close();
-					removeComponent(deleteButton);
-					removeComponent(editButton);
-					switch (clusterComponent.getType()) {
-					case system:
-						if (thisButton.getParent() instanceof NodesLayout) {
-							NodesLayout nodesLayout = (NodesLayout) thisButton.getParent();
-							nodesLayout.deleteComponent(thisButton);
-						} else {
-							SystemLayout systemLayout = (SystemLayout) thisButton.getParent().getParent();
-							systemLayout.deleteComponent(thisButton);
-						}
-						break;
-					case node:
+					if (thisButton.getParent() instanceof NodesLayout) {
 						NodesLayout nodesLayout = (NodesLayout) thisButton.getParent();
 						nodesLayout.deleteComponent(thisButton);
-						break;
+					} else {
+						SystemLayout systemLayout = (SystemLayout) thisButton.getParent().getParent();
+						systemLayout.deleteComponent(thisButton);
 					}
+					break;
+				case node:
+					NodesLayout nodesLayout = (NodesLayout) thisButton.getParent();
+					nodesLayout.deleteComponent(thisButton);
+					break;
 				}
 			}
-		});
-		buttonsBar.addComponent(okButton);
-		buttonsBar.setComponentAlignment(okButton, Alignment.MIDDLE_RIGHT);
+		}
+	};
 
-		VerticalLayout windowLayout = (VerticalLayout) dialogWindow.getContent();
-		windowLayout.setSpacing(false);
-		windowLayout.setMargin(false);
-		windowLayout.addComponent(wrapper);
-		windowLayout.addComponent(buttonsBar);
-
-	}
-}
-
-class DialogWindow extends Window {
-	private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-	public DialogWindow(String caption) {
-		setModal(true);
-		center();
-		setCaption(caption);
-		VerticalLayout layout = new VerticalLayout();
-		setContent(layout);
-		layout.setSpacing(true);
-		layout.setMargin(true);
-	}
 }
