@@ -19,8 +19,10 @@
 package com.skysql.manager.ui.components;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import com.skysql.manager.BackupRecord;
 import com.skysql.manager.Commands;
@@ -62,6 +64,14 @@ public class ParametersLayout extends HorizontalLayout {
 
 	private static final String NOT_AVAILABLE = "n/a";
 
+	public static final String PARAM_CONNECT_ROOTPASSWORD = "xparam-rootpassword";
+	public static final String PARAM_CONNECT_SSHKEY = "xparam-sshkey";
+	private static final String PARAM_BACKUP_TYPE = "param-type";
+	private static final String PARAM_BACKUP_TYPE_FULL = "1";
+	private static final String PARAM_BACKUP_TYPE_INCREMENTAL = "2";
+	private static final String PARAM_BACKUP_PARENT = "param-parent";
+	private static final String PARAM_BACKUP_ID = "param-id";
+
 	private OptionGroup backupLevel;
 	private HorizontalLayout prevBackupsLayout;
 	private ListSelect selectPrevBackup;
@@ -70,6 +80,7 @@ public class ParametersLayout extends HorizontalLayout {
 	//private Link backupLogLink;
 	private RunningTask runningTask;
 	private LinkedHashMap<String, BackupRecord> backupsList;
+	private Map<String, String> params;
 	private VerticalLayout backupInfoLayout;
 	private boolean isParameterReady = false;
 	final Form form = new Form();
@@ -88,12 +99,17 @@ public class ParametersLayout extends HorizontalLayout {
 		setSpacing(true);
 		setMargin(true);
 
+		params = new HashMap<String, String>();
+		runningTask.selectParameter(params);
+
 		switch (commandEnum) {
 		case backup:
 			backupLevel = new OptionGroup("Backup Level");
 			backupLevel.setImmediate(true);
-			backupLevel.addItem("Full");
-			backupLevel.addItem("Incremental");
+			backupLevel.addItem(PARAM_BACKUP_TYPE_FULL);
+			backupLevel.setItemCaption(PARAM_BACKUP_TYPE_FULL, "Full");
+			backupLevel.addItem(PARAM_BACKUP_TYPE_INCREMENTAL);
+			backupLevel.setItemCaption(PARAM_BACKUP_TYPE_INCREMENTAL, "Incremental");
 			addComponent(backupLevel);
 			setComponentAlignment(backupLevel, Alignment.MIDDLE_LEFT);
 			backupLevel.addValueChangeListener(new ValueChangeListener() {
@@ -101,11 +117,10 @@ public class ParametersLayout extends HorizontalLayout {
 
 				public void valueChange(ValueChangeEvent event) {
 					String level = (String) event.getProperty().getValue();
-					runningTask.selectParameter(level);
-					if (level.equalsIgnoreCase("Incremental")) {
+					params.put(PARAM_BACKUP_TYPE, level);
+					if (level.equals(PARAM_BACKUP_TYPE_INCREMENTAL)) {
 						addComponent(prevBackupsLayout);
 						selectPrevBackup.select(firstItem);
-
 					} else {
 						if (getComponentIndex(prevBackupsLayout) != -1) {
 							removeComponent(prevBackupsLayout);
@@ -214,9 +229,11 @@ public class ParametersLayout extends HorizontalLayout {
 						BackupRecord backupRecord = backupsList.get(backupID);
 						displayBackupInfo(backupInfoLayout, backupRecord);
 						if (backupLevel != null) {
-							runningTask.selectParameter("Incremental " + backupRecord.getID());
+							// we're doing a backup
+							params.put(PARAM_BACKUP_PARENT, backupRecord.getID());
 						} else {
-							runningTask.selectParameter(backupRecord.getID());
+							// we're doing a restore
+							params.put(PARAM_BACKUP_ID, backupRecord.getID());
 						}
 						isParameterReady = true;
 						ScriptingControlsLayout controlsLayout = runningTask.getControlsLayout();
@@ -338,8 +355,11 @@ public class ParametersLayout extends HorizontalLayout {
 				String sshkey = connectKey.getValue();
 				if (!password.isEmpty() || !sshkey.isEmpty()) {
 					APIrestful api = new APIrestful();
-					String params = usePassword ? "rootpassword=" + api.encryptAES(password) : "sshkey=" + api.encryptAES(sshkey);
-					runningTask.selectParameter(params);
+					if (usePassword) {
+						params.put(PARAM_CONNECT_ROOTPASSWORD, api.encryptAES(password));
+					} else {
+						params.put(PARAM_CONNECT_SSHKEY, api.encryptAES(sshkey));
+					}
 					isParameterReady = true;
 				}
 			}
