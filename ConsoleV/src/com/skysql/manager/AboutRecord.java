@@ -18,6 +18,9 @@
 
 package com.skysql.manager;
 
+/**
+ * The Class AboutRecord stores the versions for know system components.
+ */
 public class AboutRecord {
 
 	private String installationName;
@@ -25,22 +28,50 @@ public class AboutRecord {
 	private String versionAPI;
 	private String versionMonitor;
 
+	/**
+	 * Gets the installation name.
+	 *
+	 * @return the installation name
+	 */
 	public String getInstallationName() {
 		return installationName;
 	}
 
+	/**
+	 * Gets the version gui.
+	 *
+	 * @return the version gui
+	 */
 	public String getVersionGUI() {
 		return versionGUI;
 	}
 
+	/**
+	 * Gets the version api.
+	 *
+	 * @return the version api
+	 */
 	public String getVersionAPI() {
 		return versionAPI;
 	}
 
+	/**
+	 * Gets the version monitor.
+	 *
+	 * @return the version monitor
+	 */
 	public String getVersionMonitor() {
 		return versionMonitor;
 	}
 
+	/**
+	 * Instantiates a new about record.
+	 *
+	 * @param installationName the installation name
+	 * @param versionGUI the GUI version
+	 * @param versionAPI the API version
+	 * @param versionMonitor the monitor version
+	 */
 	public AboutRecord(String installationName, String versionGUI, String versionAPI, String versionMonitor) {
 		this.installationName = installationName;
 		this.versionGUI = versionGUI;

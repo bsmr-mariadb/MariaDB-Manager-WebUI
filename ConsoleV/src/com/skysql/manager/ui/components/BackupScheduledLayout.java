@@ -133,7 +133,7 @@ public class BackupScheduledLayout extends VerticalLayout {
 			ScheduleRecord scheduleRecord = entry.getValue();
 
 			String iCalString = scheduleRecord.getICal();
-			VEvent vEvent = iCalSupport.readiEvent(iCalString);
+			VEvent vEvent = iCalSupport.readVEvent(iCalString);
 			addEventsToMap(eventsTree, scheduleRecord.getID(), vEvent);
 
 		}

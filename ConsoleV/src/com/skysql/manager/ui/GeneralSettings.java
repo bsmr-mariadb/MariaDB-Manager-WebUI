@@ -290,7 +290,7 @@ public class GeneralSettings extends HorizontalLayout {
 			@Override
 			public void valueChange(final ValueChangeEvent event) {
 				boolean value = (Boolean) event.getProperty().getValue();
-				dateConversion.setAdjust(value);
+				dateConversion.setAdjustedToLocal(value);
 				userObject.setProperty(UserObject.PROPERTY_TIME_ADJUST, String.valueOf(value));
 				settingsDialog.setRefresh(true);
 				if (value == false) {

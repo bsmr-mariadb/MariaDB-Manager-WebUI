@@ -33,11 +33,19 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class AppData. It loads the application initial configuration, consisting of the API uri and keys.
+ */
 public class AppData {
 
 	public static String configPATH = "/usr/local/skysql/config/manager.json";
 	private static AppData appData;
 
+	/**
+	 * New instance.
+	 *
+	 * @return the app data
+	 */
 	public static AppData newInstance() {
 		appData = new AppData(null);
 		if (appData.apiURI != null) {
@@ -50,25 +58,53 @@ public class AppData {
 	private String apiURI;
 	private Hashtable<String, String> apiKeys;
 
+	/**
+	 * Gets the api uri.
+	 *
+	 * @return the api uri
+	 */
 	public String getApiURI() {
 		return apiURI;
 	}
 
+	/**
+	 * Sets the api uri.
+	 *
+	 * @param apiURI the new api uri
+	 */
 	protected void setApiURI(String apiURI) {
 		this.apiURI = apiURI;
 	}
 
+	/**
+	 * Gets the api keys.
+	 *
+	 * @return the api keys
+	 */
 	public Hashtable<String, String> getApiKeys() {
 		return apiKeys;
 	}
 
+	/**
+	 * Sets the api keys.
+	 *
+	 * @param apiKeys the api keys
+	 */
 	protected void setApiKeys(Hashtable<String, String> apiKeys) {
 		this.apiKeys = apiKeys;
 	}
 
+	/**
+	 * Instantiates a new app data.
+	 */
 	protected AppData() {
 	}
 
+	/**
+	 * Instantiates a new app data.
+	 *
+	 * @param dummy a dummy parameter
+	 */
 	private AppData(String dummy) {
 		File file = new File(configPATH);
 		try {
@@ -90,11 +126,20 @@ public class AppData {
 
 	}
 
+	/**
+	 * Convert stream to string.
+	 *
+	 * @param is the input stream
+	 * @return the string
+	 */
 	public static String convertStreamToString(java.io.InputStream is) {
 		java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
 		return s.hasNext() ? s.next() : "";
 	}
 
+	/**
+	 * The Class Debug is used to toggle extra debugging info.
+	 */
 	public final class Debug {
 		//set to false to allow compiler to identify and eliminate unreachable code
 		public static final boolean ON = false;
@@ -102,6 +147,9 @@ public class AppData {
 
 }
 
+/**
+ * The Class AppDataDeserializer reads the JSON into the AppData class
+ */
 class AppDataDeserializer implements JsonDeserializer<AppData> {
 	public AppData deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 

@@ -51,7 +51,7 @@ public class AboutSettings extends VerticalLayout implements Window.CloseListene
 		addComponent(new Label(""));
 		addComponent(new Label(""));
 
-		Label copyright = new Label("\u00A9 SkySQL Corporation Ab, 2013.");
+		Label copyright = new Label("\u00A9 SkySQL Corporation Ab, 2014.");
 		copyright.setSizeUndefined();
 		addComponent(copyright);
 		setComponentAlignment(copyright, Alignment.MIDDLE_CENTER);

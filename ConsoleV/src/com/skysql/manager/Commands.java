@@ -20,6 +20,9 @@ package com.skysql.manager;
 
 import java.util.LinkedHashMap;
 
+/**
+ * The Class Commands. Maps a command to its description and set of steps. 
+ */
 public class Commands {
 
 	public enum Command {
@@ -30,28 +33,59 @@ public class Commands {
 	private LinkedHashMap<String, String> names;
 	private LinkedHashMap<String, String> steps;
 
+	/**
+	 * Gets the map of descriptions.
+	 *
+	 * @return the descriptions
+	 */
 	public LinkedHashMap<String, String> getDescriptions() {
 		return descriptions;
 	}
 
+	/**
+	 * Gets the map of names.
+	 *
+	 * @return the names
+	 */
 	public LinkedHashMap<String, String> getNames() {
 		return names;
 	}
 
+	/**
+	 * Gets the steps.
+	 *
+	 * @param command the command
+	 * @return the steps
+	 */
 	public String getSteps(String command) {
 		return steps.get(command);
 	}
 
-	public void setDescriptions(LinkedHashMap<String, String> pairs) {
-		descriptions = pairs;
+	/**
+	 * Sets the descriptions.
+	 *
+	 * @param descriptions the descriptions
+	 */
+	public void setDescriptions(LinkedHashMap<String, String> descriptions) {
+		this.descriptions = descriptions;
 	}
 
-	public void setNames(LinkedHashMap<String, String> pairs) {
-		names = pairs;
+	/**
+	 * Sets the names.
+	 *
+	 * @param names the names
+	 */
+	public void setNames(LinkedHashMap<String, String> names) {
+		this.names = names;
 	}
 
-	public void setSteps(LinkedHashMap<String, String> pairs) {
-		steps = pairs;
+	/**
+	 * Sets the steps.
+	 *
+	 * @param pairs the pairs
+	 */
+	public void setSteps(LinkedHashMap<String, String> steps) {
+		this.steps = steps;
 	}
 
 }

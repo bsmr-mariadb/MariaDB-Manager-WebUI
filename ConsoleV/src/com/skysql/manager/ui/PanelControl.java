@@ -230,7 +230,7 @@ public class PanelControl extends VerticalLayout {
 				RunningTask runningTask = nodeInfo.getCommandTask();
 
 				DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
-				boolean adjust = dateConversion.getAdjust();
+				boolean adjust = dateConversion.isAdjustedToLocal();
 				String format = dateConversion.getFormat();
 
 				if (!newNodeID.equals(lastNodeID) || (tasksList != null && tasksList.size() != oldTasksCount) || adjust != updaterThread.adjust

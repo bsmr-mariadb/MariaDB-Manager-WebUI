@@ -233,7 +233,7 @@ public class CalendarDialog implements Window.CloseListener {
 			ScheduleRecord scheduleRecord = entry.getValue();
 
 			String iCalString = scheduleRecord.getICal();
-			VEvent vEvent = iCalSupport.readiEvent(iCalString);
+			VEvent vEvent = iCalSupport.readVEvent(iCalString);
 			addEventsToMap(scheduleRecord.getID(), vEvent, scheduleRecord.getNodeID());
 
 		}
@@ -704,7 +704,7 @@ public class CalendarDialog implements Window.CloseListener {
 			ScheduleRecord scheduleRecord = entry.getValue();
 
 			String iCalString = scheduleRecord.getICal();
-			VEvent vEvent = iCalSupport.readiEvent(iCalString);
+			VEvent vEvent = iCalSupport.readVEvent(iCalString);
 			addEventsToMap(scheduleRecord.getID(), vEvent, scheduleRecord.getNodeID());
 
 		}
@@ -743,7 +743,7 @@ public class CalendarDialog implements Window.CloseListener {
 			ScheduleRecord scheduleRecord = entry.getValue();
 
 			String iCalString = scheduleRecord.getICal();
-			VEvent vEvent = iCalSupport.readiEvent(iCalString);
+			VEvent vEvent = iCalSupport.readVEvent(iCalString);
 			addEventsToMap(scheduleRecord.getID(), vEvent, scheduleRecord.getNodeID());
 
 		}
@@ -1192,7 +1192,7 @@ public class CalendarDialog implements Window.CloseListener {
 			public void buttonClick(ClickEvent dummy) {
 				String scheduleID = (String) event.getData();
 				ScheduleRecord scheduleRecord = schedule.getScheduleList().get(scheduleID);
-				VEvent vEvent = iCalSupport.readiEvent(scheduleRecord.getICal());
+				VEvent vEvent = iCalSupport.readVEvent(scheduleRecord.getICal());
 				ManagerUI.log("before Delete All Future Events\n" + vEvent);
 				iCalSupport.deleteAllFuture(vEvent, event.getStart());
 				ManagerUI.log("after Delete All Future Events\n" + vEvent);
@@ -1229,7 +1229,7 @@ public class CalendarDialog implements Window.CloseListener {
 			public void buttonClick(ClickEvent dummy) {
 				String scheduleID = (String) event.getData();
 				ScheduleRecord scheduleRecord = schedule.getScheduleList().get(scheduleID);
-				VEvent vEvent = iCalSupport.readiEvent(scheduleRecord.getICal());
+				VEvent vEvent = iCalSupport.readVEvent(scheduleRecord.getICal());
 				ManagerUI.log("before Exclude\n" + vEvent);
 				iCalSupport.addExcludedDate(vEvent, event.getStart());
 				ManagerUI.log("after Exclude\n" + vEvent);
@@ -1303,7 +1303,7 @@ public class CalendarDialog implements Window.CloseListener {
 	private void commitCalendarEvent() {
 		scheduleEventForm.commit();
 		CalendarCustomEvent event = (CalendarCustomEvent) getFormCalendarEvent();
-		VEvent vEvent = iCalSupport.createiEvent(event);
+		VEvent vEvent = iCalSupport.createVEvent(event);
 		ManagerUI.log("" + vEvent);
 		String scheduleID = (String) event.getData();
 		ScheduleRecord scheduleRecord;

@@ -135,7 +135,7 @@ public class BackupSetsLayout extends HorizontalLayout {
 				ManagerUI.log(this.getClass().getName() + " access run(): ");
 
 				DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
-				boolean adjust = dateConversion.getAdjust();
+				boolean adjust = dateConversion.isAdjustedToLocal();
 				String format = dateConversion.getFormat();
 
 				if (backupsList != null) {
@@ -170,7 +170,7 @@ public class BackupSetsLayout extends HorizontalLayout {
 							***/
 
 							backupsTable.addItem(
-									new Object[] { dateConversion.adjust(backupRecord.getStarted()), dateConversion.adjust(backupRecord.getUpdated()),
+									new Object[] { dateConversion.adjust(backupRecord.getStarted()), dateConversion.adjust(backupRecord.getCompleted()),
 											dateConversion.adjust(backupRecord.getRestored()), backupRecord.getLevel(), backupRecord.getNode(),
 											backupRecord.getSize(), backupRecord.getStorage(), BackupStates.getDescriptions().get(backupRecord.getState()),
 											backupLogLink }, backupRecord.getID());

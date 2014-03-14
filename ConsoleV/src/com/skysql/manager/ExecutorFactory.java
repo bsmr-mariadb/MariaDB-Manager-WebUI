@@ -24,6 +24,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A factory for creating Executor objects. Used for main polling (UI refresh) and short polling (running command)
+ */
 public class ExecutorFactory {
 
 	private static final int NUM_THREADS = 24;
@@ -31,6 +34,13 @@ public class ExecutorFactory {
 	private static final boolean MAY_INTERRUPT_IF_RUNNING = true;
 	private static int runningTimers = 0;
 
+	/**
+	 * Adds the timer.
+	 *
+	 * @param timerTask the timer task
+	 * @param fDelayBetweenRuns the delay between runs
+	 * @return the scheduled future
+	 */
 	public static ScheduledFuture<?> addTimer(Runnable timerTask, long fDelayBetweenRuns) {
 
 		if (runningTimers == 0) {
@@ -50,6 +60,11 @@ public class ExecutorFactory {
 
 	}
 
+	/**
+	 * Removes the timer.
+	 *
+	 * @param timerHandle the timer handle
+	 */
 	public static void removeTimer(ScheduledFuture<?> timerHandle) {
 		if (timerHandle != null) {
 			timerHandle.cancel(MAY_INTERRUPT_IF_RUNNING);
@@ -66,6 +81,13 @@ public class ExecutorFactory {
 		}
 	}
 
+	/**
+	 * Adds the one timer.
+	 *
+	 * @param timerTask the timer task
+	 * @param fDelay the delay
+	 * @return the scheduled future
+	 */
 	public static ScheduledFuture<?> addOneTimer(Runnable timerTask, long fDelay) {
 
 		if (runningTimers == 0) {

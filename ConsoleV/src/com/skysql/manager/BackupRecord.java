@@ -18,12 +18,15 @@
 
 package com.skysql.manager;
 
+/**
+ * The Class BackupRecord stores information about a backup.
+ */
 public class BackupRecord {
 
 	private String ID;
 	private String state;
 	private String started;
-	private String updated;
+	private String completed;
 	private String level;
 	private String node;
 	private String size;
@@ -32,60 +35,133 @@ public class BackupRecord {
 	private String log;
 	private String parent;
 
+	/**
+	 * Gets the backup id.
+	 *
+	 * @return the id
+	 */
 	public String getID() {
 		return ID;
 	}
 
+	/**
+	 * Gets the backup state.
+	 *
+	 * @return the state
+	 */
 	public String getState() {
 		return state;
 	}
 
+	/**
+	 * Gets the time the backup started.
+	 *
+	 * @return the time started
+	 */
 	public String getStarted() {
 		return started;
 	}
 
-	public String getUpdated() {
-		return updated;
+	/**
+	 * Gets the time the backup was completed
+	 *
+	 * @return the time completed
+	 */
+	public String getCompleted() {
+		return completed;
 	}
 
+	/**
+	 * Gets the backup level.
+	 *
+	 * @return the level
+	 */
 	public String getLevel() {
 		return level;
 	}
 
+	/**
+	 * Gets the backup source node.
+	 *
+	 * @return the node
+	 */
 	public String getNode() {
 		return node;
 	}
 
+	/**
+	 * Gets the backup size.
+	 *
+	 * @return the size
+	 */
 	public String getSize() {
 		return size;
 	}
 
+	/**
+	 * Gets the storage used for the backup.
+	 *
+	 * @return the storage
+	 */
 	public String getStorage() {
 		return storage;
 	}
 
+	/**
+	 * Gets the last time the backup was restored.
+	 *
+	 * @return the time restored
+	 */
 	public String getRestored() {
 		return restored;
 	}
 
+	/**
+	 * Gets the backup log.
+	 *
+	 * @return the log
+	 */
 	public String getLog() {
 		return log;
 	}
 
+	/**
+	 * Gets the backup parent.
+	 *
+	 * @return the parent
+	 */
 	public String getParent() {
 		return parent;
 	}
 
+	/**
+	 * Instantiates a new backup record.
+	 */
 	public BackupRecord() {
 
 	}
 
-	public BackupRecord(String ID, String state, String started, String updated, String level, String node, String size, String storage, String restored,
+	/**
+	 * Instantiates a new backup record.
+	 *
+	 * @param ID the backup id
+	 * @param state the backup state
+	 * @param started the time backup was started
+	 * @param completed the time backup was completed
+	 * @param level the backup level
+	 * @param node the source node
+	 * @param size the backup size
+	 * @param storage the storage used
+	 * @param restored the time last restored
+	 * @param log the backup log
+	 * @param parent the backup parent
+	 */
+	public BackupRecord(String ID, String state, String started, String completed, String level, String node, String size, String storage, String restored,
 			String log, String parent) {
 		this.ID = ID;
 		this.state = state;
 		this.started = started;
-		this.updated = updated;
+		this.completed = completed;
 		this.level = level;
 		this.node = node;
 		this.size = size;
