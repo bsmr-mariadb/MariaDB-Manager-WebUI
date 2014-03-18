@@ -406,7 +406,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 			}
 			chartsArray = chartsArrayLayout;
 			chartsPanel.setContent(chartsArray);
-			chartProperties.isDirty(false);
+			chartProperties.setDirty(false);
 
 		}
 

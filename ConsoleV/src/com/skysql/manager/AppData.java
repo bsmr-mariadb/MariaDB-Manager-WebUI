@@ -39,6 +39,8 @@ import com.skysql.manager.ui.ErrorDialog;
 public class AppData {
 
 	public static String configPATH = "/usr/local/skysql/config/manager.json";
+	public static String appID = "1";
+
 	private static AppData appData;
 
 	/**

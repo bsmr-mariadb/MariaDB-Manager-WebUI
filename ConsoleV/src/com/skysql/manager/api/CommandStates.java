@@ -31,8 +31,14 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class CommandStates.
+ */
 public class CommandStates {
 
+	/**
+	 * Possible command states as per the API; some of these may be obsolete already or not yet implemented.
+	 */
 	public enum States {
 		running, paused, stopped, done, error, cancelled, missing;
 	}
@@ -40,16 +46,29 @@ public class CommandStates {
 	private static CommandStates commandStates;
 	private static LinkedHashMap<String, String> descriptions;
 
+	/**
+	 * Gets the descriptions.
+	 *
+	 * @return the descriptions
+	 */
 	public static LinkedHashMap<String, String> getDescriptions() {
 		GetCommandStates();
 		return CommandStates.descriptions;
 	}
 
+	/**
+	 * Attempts to load the command states and returns true if successful
+	 *
+	 * @return true, if successful
+	 */
 	public static boolean load() {
 		GetCommandStates();
 		return (commandStates != null);
 	}
 
+	/**
+	 * Gets the command states from the API.
+	 */
 	private static void GetCommandStates() {
 		if (commandStates == null) {
 			APIrestful api = new APIrestful();
@@ -69,6 +88,11 @@ public class CommandStates {
 		}
 	}
 
+	/**
+	 * Sets the descriptions.
+	 *
+	 * @param pairs the pairs
+	 */
 	protected void setDescriptions(LinkedHashMap<String, String> pairs) {
 		CommandStates.descriptions = pairs;
 	}

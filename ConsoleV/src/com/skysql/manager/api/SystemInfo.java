@@ -35,47 +35,97 @@ import com.skysql.manager.MonitorLatest;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class SystemInfo is used to retrieve  systems data from the API.
+ */
 public class SystemInfo {
 
+	/** This is used to ask the API for System info, a special case where nodeID = 0. */
 	public static final String SYSTEM_NODEID = "0";
+
 	public static final String SYSTEM_ROOT = "0";
 
+	/** This was used for AWS Elastic IP */
 	public static final String PROPERTY_EIP = "EIP";
+
+	/** This was used for MONyog */
 	public static final String PROPERTY_MONYOG = "MONyog";
+
+	/** This was used for phpMyAdmin. */
 	public static final String PROPERTY_PHPMYADMIN = "phpMyAdmin";
+
 	public static final String PROPERTY_DEFAULTMONITORINTERVAL = "MonitorInterval";
 	public static final String PROPERTY_DEFAULTMAXBACKUPCOUNT = "maxBackupCount";
 	public static final String PROPERTY_DEFAULTMAXBACKUPSIZE = "maxBackupSize";
 	public static final String PROPERTY_VERSION = "VERSION";
+
+	/** This is used for skipping login while debugging */
 	public static final String PROPERTY_SKIPLOGIN = "SKIPLOGIN";
 
 	private LinkedHashMap<String, SystemRecord> systemsMap;
 	private String currentID = SYSTEM_ROOT;
 
+	/**
+	 * Gets the systems map.
+	 *
+	 * @return the systems map
+	 */
 	public LinkedHashMap<String, SystemRecord> getSystemsMap() {
 		return systemsMap;
 	}
 
+	/**
+	 * Sets the systems map.
+	 *
+	 * @param systemsMap the systems map
+	 */
 	protected void setSystemsMap(LinkedHashMap<String, SystemRecord> systemsMap) {
 		this.systemsMap = systemsMap;
 	}
 
+	/**
+	 * Gets the current id.
+	 *
+	 * @return the current id
+	 */
 	public String getCurrentID() {
 		return currentID;
 	}
 
+	/**
+	 * Gets the system record.
+	 *
+	 * @param key the key
+	 * @return the system record
+	 */
 	public SystemRecord getSystemRecord(String key) {
 		return systemsMap.get(key);
 	}
 
+	/**
+	 * Gets the current system.
+	 *
+	 * @return the current system
+	 */
 	public SystemRecord getCurrentSystem() {
 		return systemsMap.get(currentID);
 	}
 
+	/**
+	 * Sets the current system.
+	 *
+	 * @param systemID the new current system
+	 */
 	public void setCurrentSystem(String systemID) {
 		this.currentID = systemID;
 	}
 
+	/**
+	 * Update system.
+	 *
+	 * @param systemID the system id
+	 * @return the system record
+	 */
 	public SystemRecord updateSystem(String systemID) {
 		SystemInfo newSystemInfo = new SystemInfo(systemID);
 		SystemRecord systemRecord = newSystemInfo.getSystemRecord(systemID);
@@ -91,6 +141,13 @@ public class SystemInfo {
 		return (systemRecord);
 	}
 
+	/**
+	 * Sets a property.
+	 *
+	 * @param property the property
+	 * @param value the value
+	 * @return true, if successful
+	 */
 	public boolean setProperty(String property, String value) {
 		APIrestful api = new APIrestful();
 
@@ -111,6 +168,12 @@ public class SystemInfo {
 		return false;
 	}
 
+	/**
+	 * Delete a property.
+	 *
+	 * @param property the property
+	 * @return true, if successful
+	 */
 	public boolean deleteProperty(String property) {
 		APIrestful api = new APIrestful();
 		if (api.delete("system/" + currentID + "/property/" + property)) {
@@ -123,10 +186,18 @@ public class SystemInfo {
 
 	}
 
+	/**
+	 * Instantiates a new system info.
+	 */
 	public SystemInfo() {
 
 	}
 
+	/**
+	 * Instantiates a new system info.
+	 *
+	 * @param systemID the system id
+	 */
 	public SystemInfo(String systemID) {
 
 		APIrestful api = new APIrestful();
@@ -150,6 +221,12 @@ public class SystemInfo {
 
 	}
 
+	/**
+	 * Checks if is name unique.
+	 *
+	 * @param proposedName the proposed name
+	 * @return true, if is name unique
+	 */
 	public boolean isNameUnique(String proposedName) {
 		for (Map.Entry<String, SystemRecord> entry : systemsMap.entrySet()) {
 			SystemRecord system = entry.getValue();
@@ -164,6 +241,9 @@ public class SystemInfo {
 
 // {"system":{"systemid":"1","systemtype":"aws","name":"sistema1","started":"Wed, 31 Jul 2013 18:48:41 +0000","lastaccess":"Wed, 31 Jul 2013 18:48:41 +0000","state":"running","nodes":["1"],"lastbackup":null,"properties":{},"monitorlatest":{"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null}},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
 
+/**
+ * The Class SystemInfoDeserializer.
+ */
 class SystemInfoDeserializer implements JsonDeserializer<SystemInfo> {
 	public SystemInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		SystemInfo systemInfo = new SystemInfo();

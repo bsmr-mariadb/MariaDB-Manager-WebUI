@@ -26,25 +26,57 @@ import com.google.gson.JsonParseException;
 import com.skysql.manager.TaskRecord;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class TaskRun.
+ */
 public class TaskRun {
+
 	private TaskRecord taskRecord;
 	private String error;
 
+	/**
+	 * Gets the task record.
+	 *
+	 * @return the task record
+	 */
 	public TaskRecord getTaskRecord() {
 		return taskRecord;
 	}
 
+	/**
+	 * Gets the error.
+	 *
+	 * @return the error
+	 */
 	public String getError() {
 		return error;
 	}
 
+	/**
+	 * Sets the task record.
+	 *
+	 * @param taskRecord the new task record
+	 */
 	protected void setTaskRecord(TaskRecord taskRecord) {
 		this.taskRecord = taskRecord;
 	}
 
+	/**
+	 * Instantiates a new task run.
+	 */
 	public TaskRun() {
 	}
 
+	/**
+	 * Creates (runs) a task (command) in the API.
+	 *
+	 * @param systemID the system id
+	 * @param nodeID the node id
+	 * @param userID the user id
+	 * @param command the command
+	 * @param params the params
+	 * @param state the state
+	 */
 	public TaskRun(String systemID, String nodeID, String userID, String command, String params, String state) {
 
 		APIrestful api = new APIrestful();
@@ -87,6 +119,12 @@ public class TaskRun {
 		}
 	}
 
+	/**
+	 * Delete a task from the API.
+	 *
+	 * @param ID the id
+	 * @return true, if successful
+	 */
 	public static boolean delete(String ID) {
 
 		APIrestful api = new APIrestful();

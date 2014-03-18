@@ -24,26 +24,54 @@ import com.google.gson.JsonParseException;
 import com.skysql.manager.TaskRecord;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class TaskInfo.
+ */
 public class TaskInfo {
 
-	ArrayList<TaskRecord> tasksList;
+	private ArrayList<TaskRecord> tasksList;
 	private String error;
 
+	/**
+	 * Gets the tasks list.
+	 *
+	 * @return the tasks list
+	 */
 	public ArrayList<TaskRecord> getTasksList() {
 		return tasksList;
 	}
 
+	/**
+	 * Gets the error.
+	 *
+	 * @return the error
+	 */
 	public String getError() {
 		return error;
 	}
 
+	/**
+	 * Sets the tasks list.
+	 *
+	 * @param tasksList the new tasks list
+	 */
 	public void setTasksList(ArrayList<TaskRecord> tasksList) {
 		this.tasksList = tasksList;
 	}
 
+	/**
+	 * Instantiates a new task info.
+	 */
 	public TaskInfo() {
 	}
 
+	/**
+	 * Instantiates a new task info by reading it from the API.
+	 *
+	 * @param taskID the task id
+	 * @param systemID the system id
+	 * @param nodeID the node id
+	 */
 	public TaskInfo(String taskID, String systemID, String nodeID) {
 
 		APIrestful api = new APIrestful();

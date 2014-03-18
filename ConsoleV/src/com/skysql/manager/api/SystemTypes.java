@@ -30,8 +30,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class SystemTypes.
+ */
 public class SystemTypes {
 
+	/**
+	 * System types supported by the API.
+	 */
 	public enum Type {
 		aws, galera;
 	}
@@ -41,20 +47,38 @@ public class SystemTypes {
 	private static SystemTypes systemTypes;
 	private static LinkedHashMap<String, String> typesList;
 
+	/**
+	 * Gets the list.
+	 *
+	 * @return the list
+	 */
 	public static LinkedHashMap<String, String> getList() {
 		GetSystemTypes();
 		return SystemTypes.typesList;
 	}
 
+	/**
+	 * Sets the list.
+	 *
+	 * @param typesList the types list
+	 */
 	protected void setList(LinkedHashMap<String, String> typesList) {
 		SystemTypes.typesList = typesList;
 	}
 
+	/**
+	 * Attempts to load system types and returns true if successful.
+	 *
+	 * @return true, if successful
+	 */
 	public static boolean load() {
 		GetSystemTypes();
 		return (systemTypes != null);
 	}
 
+	/**
+	 * Gets the system types from the API.
+	 */
 	private static void GetSystemTypes() {
 		if (systemTypes == null) {
 			APIrestful api = new APIrestful();
@@ -76,6 +100,9 @@ public class SystemTypes {
 
 // {"systemtypes":{"aws":"Amazon AWS based System","galera":"Galera multi-master System"},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
 
+/**
+ * The Class SystemTypesDeserializer.
+ */
 class SystemTypesDeserializer implements JsonDeserializer<SystemTypes> {
 	public SystemTypes deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 

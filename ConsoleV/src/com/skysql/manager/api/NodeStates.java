@@ -34,9 +34,14 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class NodeStates.
+ */
 public class NodeStates {
+
 	private static String INVALID_ICON = "invalid";
 
+	/** The aws icons mappings (state => stylesheet). */
 	private static final Map<String, String> awsIcons;
 	static {
 		awsIcons = new HashMap<String, String>();
@@ -54,6 +59,8 @@ public class NodeStates {
 		awsIcons.put("error", "error");
 		awsIcons.put("standalone", "standalone");
 	}
+
+	/** The galera icons mappings (state => stylesheet). */
 	private static final Map<String, String> galeraIcons;
 	static {
 		galeraIcons = new HashMap<String, String>();
@@ -77,6 +84,7 @@ public class NodeStates {
 		galeraIcons.put("down", "down");
 	}
 
+	/** Map of the two (aws, galera) sets of states. */
 	public static final Map<String, Map<String, String>> states;
 	static {
 		states = new HashMap<String, Map<String, String>>();
@@ -85,8 +93,16 @@ public class NodeStates {
 	}
 
 	private static LinkedHashMap<String, NodeStates> nodeStateRecords;
+
 	private LinkedHashMap<String, String> nodeStatesDescriptions;
 
+	/**
+	 * Gets the node icon.
+	 *
+	 * @param systemType the system type
+	 * @param state the node state
+	 * @return the node icon
+	 */
 	public static String getNodeIcon(String systemType, String state) {
 		String icon = null;
 		if (systemType.equals("aws")) {
@@ -103,6 +119,13 @@ public class NodeStates {
 		return icon;
 	}
 
+	/**
+	 * Gets the description.
+	 *
+	 * @param systemType the system type
+	 * @param state the state
+	 * @return the description
+	 */
 	public static String getDescription(String systemType, String state) {
 		GetNodeStates();
 		NodeStates nodeStates = NodeStates.nodeStateRecords.get(systemType);
@@ -110,11 +133,19 @@ public class NodeStates {
 		return (description == null ? "Invalid" : description);
 	}
 
+	/**
+	 * Attempts to load the node states and returns true if successful.
+	 *
+	 * @return true, if successful
+	 */
 	public static boolean load() {
 		GetNodeStates();
 		return (nodeStateRecords != null);
 	}
 
+	/**
+	 * Gets the node states.
+	 */
 	private synchronized static void GetNodeStates() {
 		if (nodeStateRecords == null) {
 			APIrestful api = new APIrestful();
@@ -132,16 +163,30 @@ public class NodeStates {
 		}
 	}
 
+	/**
+	 * Sets the node states.
+	 *
+	 * @param nodeStates the node states
+	 */
 	protected static void setNodeStates(LinkedHashMap<String, NodeStates> nodeStates) {
 		NodeStates.nodeStateRecords = nodeStates;
 	}
 
+	/**
+	 * Sets the node states descriptions.
+	 *
+	 * @param pairs the pairs
+	 */
 	protected void setNodeStatesDescriptions(LinkedHashMap<String, String> pairs) {
 		nodeStatesDescriptions = pairs;
 	}
 }
 
 // {"nodestates":{"aws":[{"state":"provisioned","stateid":10001,"description":"Has agent, scripts, database"},{"state":"master","stateid":1,"description":"Master"},{"state":"slave","stateid":2,"description":"Slave Online"},{"state":"offline","stateid":3,"description":"Slave Offline"},{"state":"stopped","stateid":5,"description":"Slave Stopped"},{"state":"error","stateid":13,"description":"Slave Error"},{"state":"standalone","stateid":18,"description":"Standalone Database"}],"galera":[{"state":"provisioned","stateid":10001,"description":"Has agent, scripts, database"},{"state":"down","stateid":100,"description":"Down"},{"state":"open","stateid":101,"description":"Open"},{"state":"primary","stateid":102,"description":"Primary"},{"state":"joiner","stateid":103,"description":"Joiner"},{"state":"joined","stateid":104,"description":"Joined"},{"state":"synced","stateid":105,"description":"Synced"},{"state":"donor","stateid":106,"description":"Donor"},{"state":"isolated","stateid":99,"description":"Isolated"}]}
+
+/**
+ * The Class NodeStatesDeserializer.
+ */
 class NodeStatesDeserializer implements JsonDeserializer<NodeStates> {
 
 	public NodeStates deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {

@@ -284,7 +284,7 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 				select.removeItem(monitor.getID());
 				monitorsAll = Monitors.getMonitorsList(systemType);
 				ChartProperties chartProperties = getSession().getAttribute(ChartProperties.class);
-				chartProperties.isDirty(true);
+				chartProperties.setDirty(true);
 				settingsDialog.setRefresh(true);
 				secondaryDialog.close();
 			}
@@ -485,7 +485,7 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 					} else {
 						Monitors.setMonitor(monitor);
 						ChartProperties chartProperties = getSession().getAttribute(ChartProperties.class);
-						chartProperties.isDirty(true);
+						chartProperties.setDirty(true);
 						settingsDialog.setRefresh(true);
 					}
 

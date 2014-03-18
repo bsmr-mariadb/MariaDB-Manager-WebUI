@@ -37,22 +37,40 @@ import com.skysql.manager.TaskRecord;
 import com.skysql.manager.ui.ErrorDialog;
 import com.skysql.manager.ui.RunningTask;
 
+/**
+ * The Class NodeInfo.
+ */
 public class NodeInfo extends ClusterComponent {
 
 	private static final String NOT_AVAILABLE = "n/a";
 
+	/** The valid commands for this node. */
 	private Commands commands;
+
+	/** The last task running or run on this node. */
 	private TaskRecord task;
+
 	private String hostname;
 	private String privateIP;
 	private String publicIP;
 	private String port;
 	private String instanceID;
+
+	/** The GUI's command task associated with this node */
 	private RunningTask commandTask;
 
+	/**
+	 * Instantiates a new node info.
+	 */
 	public NodeInfo() {
 	}
 
+	/**
+	 * Instantiates a new node info.
+	 *
+	 * @param systemID the system id
+	 * @param systemType the system type
+	 */
 	public NodeInfo(String systemID, String systemType) {
 		this.type = CCType.node;
 		this.parentID = systemID;
@@ -60,6 +78,13 @@ public class NodeInfo extends ClusterComponent {
 		this.state = "placeholder";
 	}
 
+	/**
+	 * Instantiates a new node info.
+	 *
+	 * @param systemID the system id
+	 * @param systemType the system type
+	 * @param nodeID the node id
+	 */
 	public NodeInfo(String systemID, String systemType, String nodeID) {
 
 		APIrestful api = new APIrestful();
@@ -97,70 +122,155 @@ public class NodeInfo extends ClusterComponent {
 
 	}
 
+	/**
+	 * Gets the commands.
+	 *
+	 * @return the commands
+	 */
 	public Commands getCommands() {
 		return commands;
 	}
 
+	/**
+	 * Sets the commands.
+	 *
+	 * @param commands the new commands
+	 */
 	protected void setCommands(Commands commands) {
 		this.commands = commands;
 	}
 
+	/**
+	 * Gets the task.
+	 *
+	 * @return the task
+	 */
 	public TaskRecord getTask() {
 		return task;
 	}
 
+	/**
+	 * Sets the task.
+	 *
+	 * @param task the new task
+	 */
 	public void setTask(TaskRecord task) {
 		this.task = task;
 	}
 
+	/**
+	 * Gets the hostname.
+	 *
+	 * @return the hostname
+	 */
 	public String getHostname() {
 		return hostname;
 	}
 
+	/**
+	 * Sets the hostname.
+	 *
+	 * @param hostname the new hostname
+	 */
 	public void setHostname(String hostname) {
 		this.hostname = hostname;
 	}
 
+	/**
+	 * Gets the public ip.
+	 *
+	 * @return the public ip
+	 */
 	public String getPublicIP() {
 		return publicIP;
 	}
 
+	/**
+	 * Sets the public ip.
+	 *
+	 * @param publicIP the new public ip
+	 */
 	public void setPublicIP(String publicIP) {
 		this.publicIP = publicIP;
 	}
 
+	/**
+	 * Gets the private ip.
+	 *
+	 * @return the private ip
+	 */
 	public String getPrivateIP() {
 		return privateIP;
 	}
 
+	/**
+	 * Sets the private ip.
+	 *
+	 * @param privateIP the new private ip
+	 */
 	public void setPrivateIP(String privateIP) {
 		this.privateIP = privateIP;
 	}
 
+	/**
+	 * Gets the port.
+	 *
+	 * @return the port
+	 */
 	public String getPort() {
 		return port;
 	}
 
+	/**
+	 * Sets the port.
+	 *
+	 * @param port the new port
+	 */
 	public void setPort(String port) {
 		this.port = port;
 	}
 
+	/**
+	 * Gets the instance id.
+	 *
+	 * @return the instance id
+	 */
 	public String getInstanceID() {
 		return instanceID;
 	}
 
+	/**
+	 * Sets the instance id.
+	 *
+	 * @param instanceID the new instance id
+	 */
 	public void setInstanceID(String instanceID) {
 		this.instanceID = instanceID;
 	}
 
+	/**
+	 * Gets the command task.
+	 *
+	 * @return the command task
+	 */
 	public RunningTask getCommandTask() {
 		return commandTask;
 	}
 
+	/**
+	 * Sets the command task.
+	 *
+	 * @param commandTask the new command task
+	 */
 	public void setCommandTask(RunningTask commandTask) {
 		this.commandTask = commandTask;
 	}
 
+	/**
+	 * Get updated task record and state associated with node from API.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean updateTask() {
 
 		APIrestful api = new APIrestful();
@@ -188,6 +298,11 @@ public class NodeInfo extends ClusterComponent {
 
 	}
 
+	/**
+	 * Save node info to API.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean save() {
 
 		APIrestful api = new APIrestful();
@@ -258,6 +373,11 @@ public class NodeInfo extends ClusterComponent {
 
 	}
 
+	/**
+	 * Delete node from API.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean delete() {
 
 		APIrestful api = new APIrestful();
@@ -270,6 +390,11 @@ public class NodeInfo extends ClusterComponent {
 		return false;
 	}
 
+	/**
+	 * Tool tip for node.
+	 *
+	 * @return the string
+	 */
 	public String ToolTip() {
 
 		return "<h2>Node</h2>" + "<ul>" + "<li><b>State:</b> "
@@ -287,6 +412,9 @@ public class NodeInfo extends ClusterComponent {
 
 // {"node":{"systemid":"1","nodeid":"1","name":"node1","state":"joined","updated":"Thu, 26 Sep 2013 13:21:30 +0000","hostname":"","publicip":"","privateip":"10.0.1.1","port":"0","instanceid":"","dbusername":"","dbpassword":"","repusername":"","reppassword":"","commands":[{"command":"stop","description":"Stop Node when Joined","steps":"stop"},{"command":"restart","description":"Restart Node when Joined","steps":"stop,start"},{"command":"isolate","description":"Take Joined Node out of Replication","steps":"isolate"},{"command":"recover","description":"Recover Joined Node","steps":"recover"},{"command":"backup","description":"Backup Joined Node","steps":"isolate,backup,recover"}],"monitorlatest":{"connections":"11","traffic":null,"availability":null,"capacity":null,"hoststate":null,"nodestate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null},"task":{"taskid":"1","systemid":"1","nodeid":"1","privateip":"10.0.1.1","username":"admin","command":"restart","parameters":"","steps":"stop,start","started":"Thu, 26 Sep 2013 13:29:16 +0000","pid":"2360","updated":"Thu, 26 Sep 2013 13:29:16 +0000","completed":"Thu, 26 Sep 2013 13:29:16 +0000","stepindex":"1","state":"done"}},"warnings":["Configuration at \/etc\/skysqlmgr\/api.ini does not specify a logging directory","Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
 
+/**
+ * The Class NodeInfoDeserializer.
+ */
 class NodeInfoDeserializer implements JsonDeserializer<NodeInfo> {
 	public NodeInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		NodeInfo nodeInfo = new NodeInfo();

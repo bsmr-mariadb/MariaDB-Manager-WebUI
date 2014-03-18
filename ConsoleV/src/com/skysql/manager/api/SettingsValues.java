@@ -28,8 +28,12 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.manager.AppData;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class SettingsValues reads application properties from the API.
+ */
 public class SettingsValues {
 
 	public static final String SETTINGS_MAX_BACKUP_SIZE = "maxBackupSize";
@@ -38,10 +42,20 @@ public class SettingsValues {
 
 	private String[] values;
 
+	/**
+	 * Gets the values.
+	 *
+	 * @return the values
+	 */
 	public String[] getValues() {
 		return values;
 	}
 
+	/**
+	 * Sets the values.
+	 *
+	 * @param values the new values
+	 */
 	protected void setValues(String[] values) {
 		this.values = values;
 	}
@@ -49,9 +63,14 @@ public class SettingsValues {
 	public SettingsValues() {
 	}
 
+	/**
+	 * Instantiates a new settings values by reading it from the API.
+	 *
+	 * @param property the property
+	 */
 	public SettingsValues(String property) {
 		APIrestful api = new APIrestful();
-		if (api.get("application/1/property/" + property)) {
+		if (api.get("application/" + AppData.appID + "/property/" + property)) {
 			try {
 				SettingsValues settingsValues = APIrestful.getGson().fromJson(api.getResult(), SettingsValues.class);
 				this.values = settingsValues.values;
@@ -64,9 +83,11 @@ public class SettingsValues {
 			}
 		}
 	}
-
 }
 
+/**
+ * The Class SettingsValuesDeserializer.
+ */
 class SettingsValuesDeserializer implements JsonDeserializer<SettingsValues> {
 	public SettingsValues deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		SettingsValues settingsValues = new SettingsValues();

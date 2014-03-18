@@ -27,31 +27,62 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class Versions.
+ */
 public class Versions {
 
 	private String name;
 	private String version;
 
+	/**
+	 * Gets the name.
+	 *
+	 * @return the name
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Sets the name.
+	 *
+	 * @param name the new name
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	/**
+	 * Gets the version.
+	 *
+	 * @return the version
+	 */
 	public String getVersion() {
 		return version;
 	}
 
+	/**
+	 * Sets the version.
+	 *
+	 * @param version the new version
+	 */
 	public void setVersion(String version) {
 		this.version = version;
 	}
 
+	/**
+	 * Instantiates a new versions.
+	 */
 	public Versions() {
 
 	}
 
+	/**
+	 * Gets version information for a component from the API.
+	 *
+	 * @param component the component
+	 */
 	public Versions(String component) {
 
 		APIrestful api = new APIrestful();
@@ -72,6 +103,9 @@ public class Versions {
 
 }
 
+/**
+ * The Class VersionsDeserializer.
+ */
 class VersionsDeserializer implements JsonDeserializer<Versions> {
 	public Versions deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 
