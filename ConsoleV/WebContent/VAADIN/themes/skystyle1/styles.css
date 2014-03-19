@@ -459,27 +459,3 @@ textarea.v-textarea-sshkey {
 	padding-top: 50px;
 }
 
-.v-nativebutton-run {
-    outline: none;
-    border: none;
-    background: transparent url(img/controls/start.png) no-repeat;
-    width: 32px;
-    height: 32px;
-}    
-
-.v-nativebutton-stop {
-    outline: none;
-    border: none;
-    background: transparent url(img/controls/stop.png) no-repeat;
-    width: 32px;
-    height: 32px;
-}    
-
-.v-nativebutton-schedule {
-    outline: none;
-    border: none;
-    background: transparent url(img/controls/schedule.png) no-repeat;
-    width: 41px;
-    height: 48px;
-}    
-

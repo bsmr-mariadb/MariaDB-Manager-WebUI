@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui;
@@ -43,7 +43,7 @@ import com.vaadin.ui.themes.Runo;
 @SuppressWarnings("serial")
 public class OverviewPanel extends Panel {
 
-	public static float PANEL_HEIGHT = ComponentButton.COMPONENT_HEIGHT + 35;
+	public static float PANEL_HEIGHT = ComponentButton.COMPONENT_HEIGHT + 40;
 
 	private SystemInfo systemInfo;
 	private SystemRecord systemRecord;

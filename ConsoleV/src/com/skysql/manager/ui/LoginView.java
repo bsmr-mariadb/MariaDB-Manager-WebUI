@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui;
@@ -36,7 +36,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
@@ -68,11 +67,9 @@ public class LoginView extends VerticalLayout {
 					ManagerUI current = (ManagerUI) UI.getCurrent();
 					current.refreshContentBasedOnSessionData();
 				} else {
-					Notification.show("Login failed");
 					userName.focus();
 				}
 			} else {
-				Notification.show("Login failed");
 				userName.focus();
 			}
 		}

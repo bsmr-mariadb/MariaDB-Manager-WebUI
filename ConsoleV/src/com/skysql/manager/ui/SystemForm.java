@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui;
@@ -21,6 +21,7 @@ package com.skysql.manager.ui;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.SystemTypes;
 import com.skysql.manager.validators.Password2Validator;
+import com.skysql.manager.validators.SystemNameValidator;
 import com.skysql.manager.validators.UserDifferentValidator;
 import com.skysql.manager.validators.UserNotRootValidator;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -63,14 +64,14 @@ public class SystemForm extends VerticalLayout {
 		form.setFooter(null);
 		form.setDescription(description);
 
-		commitButton.setCaption(description);
-
 		String value;
 		if ((value = system.getName()) != null) {
 			name.setValue(value);
 		}
 		form.addField("name", name);
 		name.focus();
+		name.setImmediate(true);
+		name.addValidator(new SystemNameValidator(system.getName()));
 
 		for (String systemType : SystemTypes.getList().keySet()) {
 			this.systemType.addItem(systemType);

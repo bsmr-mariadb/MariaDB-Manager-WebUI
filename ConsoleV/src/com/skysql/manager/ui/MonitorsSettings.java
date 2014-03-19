@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui;
@@ -21,23 +21,26 @@ package com.skysql.manager.ui;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.UserChart;
+import com.skysql.manager.api.ChartProperties;
 import com.skysql.manager.api.Monitors;
 import com.skysql.manager.api.Monitors.EditableMonitorType;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.RunSQL;
 import com.skysql.manager.api.SettingsValues;
 import com.skysql.manager.api.SystemInfo;
+import com.skysql.manager.validators.MonitorNameValidator;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.EmptyValueException;
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.event.LayoutEvents.LayoutClickEvent;
 import com.vaadin.event.LayoutEvents.LayoutClickListener;
-import com.vaadin.server.ThemeResource;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
@@ -45,7 +48,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Form;
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.HorizontalLayout;
@@ -64,6 +66,7 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private Window secondaryDialog;
+	private SettingsDialog settingsDialog;
 	private String systemID, nodeID, systemType;
 	private boolean validateSQL;
 	private Button editMonitor, deleteMonitor;
@@ -73,7 +76,8 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 	private Label id = new Label(), name = new Label(), description = new Label(), unit = new Label(), delta = new Label(), average = new Label(),
 			chartType = new Label(), interval = new Label(), sql = new Label();
 
-	MonitorsSettings(String systemID, String systemType) {
+	MonitorsSettings(SettingsDialog settingsDialog, String systemID, String systemType) {
+		this.settingsDialog = settingsDialog;
 		this.systemID = systemID;
 		this.systemType = systemType;
 
@@ -254,74 +258,39 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 
 	}
 
+	private MonitorRecord monitor;
+
 	public void deleteMonitor(final MonitorRecord monitor) {
-		secondaryDialog = new ModalWindow("Delete Monitor: " + monitor.getName(), null);
+
+		this.monitor = monitor;
+
+		ChartProperties chartProperties = getSession().getAttribute(ChartProperties.class);
+		List<String> chartNames = chartProperties.findChartsforMonitor(monitor.getSystemType(), monitor.getID());
+
+		String msg = "Deleting this monitor will permanently remove it from the system"
+				+ (chartNames.isEmpty() ? "." : " and the following charts: " + chartNames.toString())
+				+ ". Data collected in the past will be unavailable from the API but will still be retained in its internal database.";
+
+		secondaryDialog = new WarningWindow("Delete: " + monitor.getName(), msg, "Delete", deleteListener);
 		UI.getCurrent().addWindow(secondaryDialog);
-		secondaryDialog.addCloseListener(this);
-
-		HorizontalLayout wrapper = new HorizontalLayout();
-		wrapper.setWidth("100%");
-		wrapper.setMargin(true);
-		VerticalLayout iconLayout = new VerticalLayout();
-		iconLayout.setWidth("100px");
-		wrapper.addComponent(iconLayout);
-		Embedded image = new Embedded(null, new ThemeResource("img/warning.png"));
-		iconLayout.addComponent(image);
-		VerticalLayout textLayout = new VerticalLayout();
-		textLayout.setSizeFull();
-		wrapper.addComponent(textLayout);
-		wrapper.setExpandRatio(textLayout, 1.0f);
-		Label label = new Label("WARNING: if you delete this monitor, all its related data will be deleted as well.");
-		label.addStyleName("warning");
-		textLayout.addComponent(label);
-		textLayout.setComponentAlignment(label, Alignment.MIDDLE_CENTER);
-
-		HorizontalLayout buttonsBar = new HorizontalLayout();
-		buttonsBar.setStyleName("buttonsBar");
-		buttonsBar.setSizeFull();
-		buttonsBar.setSpacing(true);
-		buttonsBar.setMargin(true);
-		buttonsBar.setHeight("49px");
-
-		Label filler = new Label();
-		buttonsBar.addComponent(filler);
-		buttonsBar.setExpandRatio(filler, 1.0f);
-
-		Button cancelButton = new Button("Cancel");
-		buttonsBar.addComponent(cancelButton);
-		buttonsBar.setComponentAlignment(cancelButton, Alignment.MIDDLE_RIGHT);
-
-		cancelButton.addClickListener(new Button.ClickListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-			public void buttonClick(ClickEvent event) {
-				secondaryDialog.close();
-			}
-		});
-
-		Button okButton = new Button("Delete Monitor");
-		okButton.addClickListener(new Button.ClickListener() {
-			private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-			public void buttonClick(ClickEvent event) {
-				if (Monitors.deleteMonitor(monitor)) {
-					select.removeItem(monitor.getID());
-					monitorsAll = Monitors.getMonitorsList(systemType);
-					secondaryDialog.close();
-				}
-
-			}
-		});
-		buttonsBar.addComponent(okButton);
-		buttonsBar.setComponentAlignment(okButton, Alignment.MIDDLE_RIGHT);
-
-		VerticalLayout windowLayout = (VerticalLayout) secondaryDialog.getContent();
-		windowLayout.setSpacing(false);
-		windowLayout.setMargin(false);
-		windowLayout.addComponent(wrapper);
-		windowLayout.addComponent(buttonsBar);
 
 	}
+
+	private Button.ClickListener deleteListener = new Button.ClickListener() {
+		private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+		public void buttonClick(ClickEvent event) {
+			if (Monitors.deleteMonitor(monitor)) {
+				select.removeItem(monitor.getID());
+				monitorsAll = Monitors.getMonitorsList(systemType);
+				ChartProperties chartProperties = getSession().getAttribute(ChartProperties.class);
+				chartProperties.isDirty(true);
+				settingsDialog.setRefresh(true);
+				secondaryDialog.close();
+			}
+
+		}
+	};
 
 	public void editMonitor(MonitorRecord monitor) {
 		monitorForm(monitor, "Edit Monitor: " + monitor.getName(), "Edit SQL Monitor for Nodes and System", "Save Changes");
@@ -333,7 +302,6 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 	}
 
 	public void monitorForm(final MonitorRecord monitor, String title, String description, String button) {
-		final TextField monitorID = new TextField("Monitor ID");
 		final TextField monitorName = new TextField("Monitor Name");
 		final TextField monitorDescription = new TextField("Description");
 		final TextField monitorUnit = new TextField("Measurement Unit");
@@ -360,24 +328,15 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 
 		String value;
 
-		if ((value = monitor.getID()) != null) {
-			monitorID.setValue(value);
-			monitorID.setEnabled(false);
-		}
-		form.addField("monitorID", monitorID);
-		form.getField("monitorID").setRequired(true);
-		form.getField("monitorID").setRequiredError("Monitor ID is missing");
-		monitorID.focus();
-
 		if ((value = monitor.getName()) != null) {
 			monitorName.setValue(value);
 		}
 		form.addField("monitorName", monitorName);
 		form.getField("monitorName").setRequired(true);
 		form.getField("monitorName").setRequiredError("Monitor Name is missing");
-		if (monitor.getID() != null) {
-			monitorName.focus();
-		}
+		monitorName.focus();
+		monitorName.setImmediate(true);
+		monitorName.addValidator(new MonitorNameValidator(monitor.getName()));
 
 		if ((value = monitor.getDescription()) != null) {
 			monitorDescription.setValue(value);
@@ -516,10 +475,8 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 					monitor.setChartType((String) monitorChartType.getValue());
 					String ID;
 					if ((ID = monitor.getID()) == null) {
-						ID = monitorID.getValue();
-						monitor.setID(ID);
-						Monitors.setMonitor(monitor);
-						if (ID != null) {
+						if (Monitors.setMonitor(monitor)) {
+							ID = monitor.getID();
 							select.addItem(ID);
 							select.select(ID);
 							Monitors.reloadMonitors();
@@ -527,6 +484,9 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 						}
 					} else {
 						Monitors.setMonitor(monitor);
+						ChartProperties chartProperties = getSession().getAttribute(ChartProperties.class);
+						chartProperties.isDirty(true);
+						settingsDialog.setRefresh(true);
 					}
 
 					if (ID != null) {
@@ -536,6 +496,8 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 					}
 
 				} catch (EmptyValueException e) {
+					return;
+				} catch (InvalidValueException e) {
 					return;
 				} catch (Exception e) {
 					e.printStackTrace();

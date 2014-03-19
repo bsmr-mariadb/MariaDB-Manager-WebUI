@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui.components;
@@ -138,7 +138,12 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 			setTitle(command);
 		}
 
-		String[] stepIDs = steps.split(",");
+		String[] stepIDs;
+		try {
+			stepIDs = steps.split(",");
+		} catch (NullPointerException npe) {
+			stepIDs = new String[] {};
+		}
 		totalSteps = stepIDs.length;
 		primitives = new String[totalSteps];
 		taskImages = new Embedded[totalSteps];

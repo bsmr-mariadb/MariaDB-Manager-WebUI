@@ -13,13 +13,14 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.api;
 
 import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -148,6 +149,17 @@ public class SystemInfo {
 		}
 
 	}
+
+	public boolean isNameUnique(String proposedName) {
+		for (Map.Entry<String, SystemRecord> entry : systemsMap.entrySet()) {
+			SystemRecord system = entry.getValue();
+			if (system.getName().equals(proposedName)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 }
 
 // {"system":{"systemid":"1","systemtype":"aws","name":"sistema1","started":"Wed, 31 Jul 2013 18:48:41 +0000","lastaccess":"Wed, 31 Jul 2013 18:48:41 +0000","state":"running","nodes":["1"],"lastbackup":null,"properties":{},"monitorlatest":{"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null}},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}

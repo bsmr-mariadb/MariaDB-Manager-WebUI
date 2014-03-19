@@ -13,13 +13,14 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui;
 
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemTypes;
+import com.skysql.manager.validators.NodeNameValidator;
 import com.skysql.manager.validators.Password2Validator;
 import com.skysql.manager.validators.UserNotRootValidator;
 import com.vaadin.data.Property;
@@ -83,9 +84,11 @@ public class NodeForm extends VerticalLayout {
 		String value;
 		if ((value = node.getName()) != null) {
 			name.setValue(value);
-			name.focus();
 		}
 		form.addField("name", name);
+		name.focus();
+		name.setImmediate(true);
+		name.addValidator(new NodeNameValidator(node.getName()));
 
 		if ((value = node.getHostname()) != null) {
 			hostname.setValue(value);

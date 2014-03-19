@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui;
@@ -352,7 +352,11 @@ public class PanelInfo extends HorizontalSplitPanel {
 		String parentID = componentInfo.getParentID();
 		String ID = componentInfo.getID();
 
-		if (lastComponent == null || (parentID != null && !parentID.equals(lastComponent.getParentID())) || (ID != null && !ID.equals(lastComponent.getID()))) {
+		boolean isDirty = (lastComponent == null) || (parentID != null && !parentID.equals(lastComponent.getParentID()))
+				|| (ID != null && !ID.equals(lastComponent.getID()));
+		chartProperties = getSession().getAttribute(ChartProperties.class);
+		isDirty |= (chartProperties != null && chartProperties.isDirty());
+		if (isDirty) {
 
 			// if we have not attached a component yet...
 			if (lastComponent == null) {
@@ -388,8 +392,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 				//chartsArrayLayout.hideCharts();
 			}
 
-			// fetch user-based chart properties once per session
-			chartProperties = getSession().getAttribute(ChartProperties.class);
+			// fetch user-based chart properties
 			if (chartProperties == null) {
 				chartProperties = new ChartProperties(null);
 				getSession().setAttribute(ChartProperties.class, chartProperties);
@@ -398,9 +401,12 @@ public class PanelInfo extends HorizontalSplitPanel {
 			chartControls.selectTheme(chartProperties.getTheme());
 
 			chartsArrayLayout = new ChartsLayout(false, chartTime, chartInterval);
-			chartsArrayLayout.initializeCharts(chartProperties, componentInfo.getSystemType());
+			if (chartsArrayLayout.initializeCharts(chartProperties, componentInfo.getSystemType())) {
+				getSession().setAttribute(ChartProperties.class, chartProperties);
+			}
 			chartsArray = chartsArrayLayout;
 			chartsPanel.setContent(chartsArray);
+			chartProperties.isDirty(false);
 
 		}
 

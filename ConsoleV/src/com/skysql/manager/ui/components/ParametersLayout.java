@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui.components;
@@ -163,12 +163,12 @@ public class ParametersLayout extends HorizontalLayout {
 									selectPrevBackup.select(firstItem);
 								}
 							}
-							runningTask.getControlsLayout().enableControls(true, Controls.run);
+							runningTask.getControlsLayout().enableControls(true, Controls.Run);
 						} else {
 							if (backupInfoLayout != null) {
 								displayBackupInfo(backupInfoLayout, new BackupRecord());
 							}
-							runningTask.getControlsLayout().enableControls(false, Controls.run);
+							runningTask.getControlsLayout().enableControls(false, Controls.Run);
 						}
 					}
 				});
@@ -208,7 +208,7 @@ public class ParametersLayout extends HorizontalLayout {
 						String backupID = (String) event.getProperty().getValue();
 						if (backupID == null) {
 							isParameterReady = false;
-							runningTask.getControlsLayout().enableControls(isParameterReady, Controls.run);
+							runningTask.getControlsLayout().enableControls(isParameterReady, Controls.Run);
 							return;
 						}
 						BackupRecord backupRecord = backupsList.get(backupID);
@@ -221,7 +221,7 @@ public class ParametersLayout extends HorizontalLayout {
 						isParameterReady = true;
 						ScriptingControlsLayout controlsLayout = runningTask.getControlsLayout();
 						if (controlsLayout != null) {
-							controlsLayout.enableControls(isParameterReady, Controls.run);
+							controlsLayout.enableControls(isParameterReady, Controls.Run);
 						}
 					}
 				});
@@ -285,7 +285,7 @@ public class ParametersLayout extends HorizontalLayout {
 						} else {
 							form.setComponentError(null);
 							form.setValidationVisible(false);
-							runningTask.getControlsLayout().enableControls(false, Controls.run);
+							runningTask.getControlsLayout().enableControls(false, Controls.Run);
 						}
 					}
 				}
@@ -343,7 +343,7 @@ public class ParametersLayout extends HorizontalLayout {
 					isParameterReady = true;
 				}
 			}
-			runningTask.getControlsLayout().enableControls(isParameterReady, Controls.run);
+			runningTask.getControlsLayout().enableControls(isParameterReady, Controls.Run);
 		}
 	};
 

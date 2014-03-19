@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui;
@@ -88,7 +88,7 @@ public class SettingsDialog implements Window.CloseListener {
 				systemType = systemInfo.getCurrentSystem().getSystemType();
 			}
 			if (systemType != null) {
-				MonitorsSettings monitorsTab = new MonitorsSettings(systemID, systemType);
+				MonitorsSettings monitorsTab = new MonitorsSettings(settingsDialog, systemID, systemType);
 				tab = tabsheet.addTab(monitorsTab, "Monitors");
 				if (selectedTab != null && selectedTab.equals("Monitors")) {
 					tabsheet.setSelectedTab(tab);

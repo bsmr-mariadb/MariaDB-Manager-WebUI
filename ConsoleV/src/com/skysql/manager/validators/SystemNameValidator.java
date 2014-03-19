@@ -18,31 +18,36 @@
 
 package com.skysql.manager.validators;
 
+import com.skysql.manager.api.SystemInfo;
 import com.vaadin.data.Validator;
+import com.vaadin.server.VaadinSession;
 
-public class UserNotRootValidator implements Validator {
+public class SystemNameValidator implements Validator {
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	private String label;
+	private String ourName;
 
-	public UserNotRootValidator(String label) {
+	public SystemNameValidator(String ourName) {
 		super();
-		this.label = label;
+		this.ourName = ourName;
 	}
 
 	public boolean isValid(Object value) {
 		if (value == null || !(value instanceof String)) {
 			return false;
-		} else {
-			boolean isRoot = "root".equalsIgnoreCase((String) value);
-			return !isRoot;
 		}
+		return (true);
 	}
 
 	// Upon failure, the validate() method throws an exception
 	public void validate(Object value) throws InvalidValueException {
 		if (!isValid(value)) {
-			throw new InvalidValueException(label + " cannot be root.");
+			throw new InvalidValueException("Name is invalid");
+		} else {
+			SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
+			if (!systemInfo.isNameUnique((String) value) && !value.equals(ourName)) {
+				throw new InvalidValueException("Name already exists");
+			}
 		}
 	}
 }

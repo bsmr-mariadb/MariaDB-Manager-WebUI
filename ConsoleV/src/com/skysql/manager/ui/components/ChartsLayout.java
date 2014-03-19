@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui.components;
@@ -96,20 +96,45 @@ public class ChartsLayout extends DDCssLayout {
 		return interval;
 	}
 
-	public void initializeCharts(ChartProperties chartProperties, String systemType) {
+	public boolean initializeCharts(ChartProperties chartProperties, String systemType) {
 		this.chartProperties = chartProperties;
 		this.systemType = systemType;
 
 		ArrayList<ChartMappings> chartMappings = chartProperties.getChartMappings(systemType);
 		if (chartMappings != null) {
-			for (ChartMappings chartMapping : chartMappings) {
-				UserChart userChart = new UserChart(chartMapping);
-				ChartButton chartButton = new ChartButton(userChart);
-				chartButton.setChartsLayout(this);
-				addComponent(chartButton);
+			boolean isDirty = false;
+			for (ChartMappings chartMapping : chartMappings.toArray(new ChartMappings[chartMappings.size()])) {
+				isDirty |= stripMissingMonitors(chartMapping);
+				if (!chartMapping.getMonitorIDs().isEmpty()) {
+					UserChart userChart = new UserChart(chartMapping);
+					ChartButton chartButton = new ChartButton(userChart);
+					chartButton.setChartsLayout(this);
+					addComponent(chartButton);
+				} else {
+					chartMappings.remove(chartMapping);
+				}
+			}
+			if (isDirty) {
+				chartProperties.setChartMappings(systemType, chartMappings);
+			}
+			return isDirty;
+		}
+
+		return false;
+
+	}
+
+	private boolean stripMissingMonitors(ChartMappings chartMapping) {
+		boolean isDirty = false;
+		ArrayList<String> monitorIDs = chartMapping.getMonitorIDs();
+		for (String monitorID : monitorIDs.toArray(new String[monitorIDs.size()])) {
+			if (!Monitors.getMonitorsList().containsKey(monitorID)) {
+				monitorIDs.remove(monitorID);
+				isDirty |= true;
 			}
 		}
 
+		return isDirty;
 	}
 
 	private void saveChartsToProperties() {

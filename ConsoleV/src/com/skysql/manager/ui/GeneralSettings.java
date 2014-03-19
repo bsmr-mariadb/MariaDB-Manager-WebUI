@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui;
@@ -29,12 +29,14 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.InvalidValueException;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.server.UserError;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Form;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -143,20 +145,129 @@ public class GeneralSettings extends HorizontalLayout {
 		layout.setSpacing(true);
 		layout.setMargin(new MarginInfo(false, true, false, true));
 
+		HorizontalLayout titleLayout = new HorizontalLayout();
+		titleLayout.setSpacing(true);
+		layout.addComponent(titleLayout);
+
 		final Label title = new Label("<h3>Date & Time Presentation</h3>", ContentMode.HTML);
 		title.setSizeUndefined();
-		layout.addComponent(title);
+		titleLayout.addComponent(title);
 
-		final Label explanation = new Label(
-				"Determines if date & time stamps are displayed in the originally recorded format or adjusted to the local timezone.");
-		explanation.setSizeFull();
-		layout.addComponent(explanation);
+		Embedded info = new Embedded(null, new ThemeResource("img/info.png"));
+		info.addStyleName("infoButton");
+		info.setDescription("Determines if date & time stamps are displayed in the originally recorded format or adjusted to the local timezone.<br/>The format can be customized by using the following Java 6 SimpleDateFormat patterns:"
+				+ "</blockquote>"
+				+ " <table border=0 cellspacing=3 cellpadding=0 summary=\"Chart shows pattern letters, date/time component, presentation, and examples.\">\n"
+				+ "     <tr bgcolor=\"#ccccff\">\n"
+				+ "         <th align=left>Letter\n"
+				+ "         <th align=left>Date or Time Component\n"
+				+ "         <th align=left>Presentation\n"
+				+ "         <th align=left>Examples\n"
+				+ "     <tr>\n"
+				+ "         <td><code>G</code>\n"
+				+ "         <td>Era designator\n"
+				+ "         <td><a href=\"#text\">Text</a>\n"
+				+ "         <td><code>AD</code>\n"
+				+ "     <tr bgcolor=\"#eeeeff\">\n"
+				+ "         <td><code>y</code>\n"
+				+ "         <td>Year\n"
+				+ "         <td><a href=\"#year\">Year</a>\n"
+				+ "         <td><code>1996</code>; <code>96</code>\n"
+				+ "     <tr>\n"
+				+ "         <td><code>M</code>\n"
+				+ "         <td>Month in year\n"
+				+ "         <td><a href=\"#month\">Month</a>\n"
+				+ "         <td><code>July</code>; <code>Jul</code>; <code>07</code>\n"
+				+ "     <tr bgcolor=\"#eeeeff\">\n"
+				+ "         <td><code>w</code>\n"
+				+ "         <td>Week in year\n"
+				+ "         <td><a href=\"#number\">Number</a>\n"
+				+ "         <td><code>27</code>\n"
+				+ "     <tr>\n"
+				+ "         <td><code>W</code>\n"
+				+ "         <td>Week in month\n"
+				+ "         <td><a href=\"#number\">Number</a>\n"
+				+ "         <td><code>2</code>\n"
+				+ "     <tr bgcolor=\"#eeeeff\">\n"
+				+ "         <td><code>D</code>\n"
+				+ "         <td>Day in year\n"
+				+ "         <td><a href=\"#number\">Number</a>\n"
+				+ "         <td><code>189</code>\n"
+				+ "     <tr>\n"
+				+ "         <td><code>d</code>\n"
+				+ "         <td>Day in month\n"
+				+ "         <td><a href=\"#number\">Number</a>\n"
+				+ "         <td><code>10</code>\n"
+				+ "     <tr bgcolor=\"#eeeeff\">\n"
+				+ "         <td><code>F</code>\n"
+				+ "         <td>Day of week in month\n"
+				+ "         <td><a href=\"#number\">Number</a>\n"
+				+ "         <td><code>2</code>\n"
+				+ "     <tr>\n"
+				+ "         <td><code>E</code>\n"
+				+ "         <td>Day in week\n"
+				+ "         <td><a href=\"#text\">Text</a>\n"
+				+ "         <td><code>Tuesday</code>; <code>Tue</code>\n"
+				+ "     <tr bgcolor=\"#eeeeff\">\n"
+				+ "         <td><code>a</code>\n"
+				+ "         <td>Am/pm marker\n"
+				+ "         <td><a href=\"#text\">Text</a>\n"
+				+ "         <td><code>PM</code>\n"
+				+ "     <tr>\n"
+				+ "         <td><code>H</code>\n"
+				+ "         <td>Hour in day (0-23)\n"
+				+ "         <td><a href=\"#number\">Number</a>\n"
+				+ "         <td><code>0</code>\n"
+				+ "     <tr bgcolor=\"#eeeeff\">\n"
+				+ "         <td><code>k</code>\n"
+				+ "         <td>Hour in day (1-24)\n"
+				+ "         <td><a href=\"#number\">Number</a>\n"
+				+ "         <td><code>24</code>\n"
+				+ "     <tr>\n"
+				+ "         <td><code>K</code>\n"
+				+ "         <td>Hour in am/pm (0-11)\n"
+				+ "         <td><a href=\"#number\">Number</a>\n"
+				+ "         <td><code>0</code>\n"
+				+ "     <tr bgcolor=\"#eeeeff\">\n"
+				+ "         <td><code>h</code>\n"
+				+ "         <td>Hour in am/pm (1-12)\n"
+				+ "         <td><a href=\"#number\">Number</a>\n"
+				+ "         <td><code>12</code>\n"
+				+ "     <tr>\n"
+				+ "         <td><code>m</code>\n"
+				+ "         <td>Minute in hour\n"
+				+ "         <td><a href=\"#number\">Number</a>\n"
+				+ "         <td><code>30</code>\n"
+				+ "     <tr bgcolor=\"#eeeeff\">\n"
+				+ "         <td><code>s</code>\n"
+				+ "         <td>Second in minute\n"
+				+ "         <td><a href=\"#number\">Number</a>\n"
+				+ "         <td><code>55</code>\n"
+				+ "     <tr>\n"
+				+ "         <td><code>S</code>\n"
+				+ "         <td>Millisecond\n"
+				+ "         <td><a href=\"#number\">Number</a>\n"
+				+ "         <td><code>978</code>\n"
+				+ "     <tr bgcolor=\"#eeeeff\">\n"
+				+ "         <td><code>z</code>\n"
+				+ "         <td>Time zone\n"
+				+ "         <td><a href=\"#timezone\">General time zone</a>\n"
+				+ "         <td><code>Pacific Standard Time</code>; <code>PST</code>; <code>GMT-08:00</code>\n"
+				+ "     <tr>\n"
+				+ "         <td><code>Z</code>\n"
+				+ "         <td>Time zone\n"
+				+ "         <td><a href=\"#rfc822timezone\">RFC 822 time zone</a>\n"
+				+ "         <td><code>-0800</code>\n" + " </table>\n" + " </blockquote>\n" + "");
+		titleLayout.addComponent(info);
+		titleLayout.setComponentAlignment(info, Alignment.MIDDLE_CENTER);
 
-		OptionGroup option = new OptionGroup("Select an option");
+		final DateConversion dateConversion = VaadinSession.getCurrent().getAttribute(DateConversion.class);
+
+		OptionGroup option = new OptionGroup("Display options");
 		option.addItem(false);
-		option.setItemCaption(false, "Show original time");
+		option.setItemCaption(false, "Show time in UTC/GMT");
 		option.addItem(true);
-		option.setItemCaption(true, "Adjust to local timezone and customize format");
+		option.setItemCaption(true, "Adjust to local timezone (" + dateConversion.getClientTZname() + ")");
 
 		String propertyTimeAdjust = userObject.getProperty(UserObject.PROPERTY_TIME_ADJUST);
 		option.select(propertyTimeAdjust == null ? DEFAULT_TIME_ADJUST : Boolean.valueOf(propertyTimeAdjust));
@@ -175,15 +286,12 @@ public class GeneralSettings extends HorizontalLayout {
 		form.addField("timeFormat", timeFormat);
 		defaultLayout.addComponent(form);
 
-		final DateConversion dateConversion = VaadinSession.getCurrent().getAttribute(DateConversion.class);
-
 		option.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(final ValueChangeEvent event) {
 				boolean value = (Boolean) event.getProperty().getValue();
-				dateConversion.setAdjuts(value);
+				dateConversion.setAdjust(value);
 				userObject.setProperty(UserObject.PROPERTY_TIME_ADJUST, String.valueOf(value));
-				timeFormat.setEnabled(value);
 				settingsDialog.setRefresh(true);
 				if (value == false) {
 					timeFormat.removeAllValidators();
@@ -207,11 +315,7 @@ public class GeneralSettings extends HorizontalLayout {
 		timeFormat.setImmediate(true);
 		timeFormat.setRequired(true);
 		timeFormat.setRequiredError("Format cannot be empty.");
-		if (option.isSelected(false)) {
-			timeFormat.setEnabled(false);
-		} else {
-			timeFormat.addValidator(new TimeFormatValidator());
-		}
+		timeFormat.addValidator(new TimeFormatValidator());
 
 		timeFormat.addValueChangeListener(new ValueChangeListener() {
 			@Override

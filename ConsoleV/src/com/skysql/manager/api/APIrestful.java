@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.api;
@@ -76,7 +76,7 @@ public class APIrestful {
 	private static APIrestful api;
 
 	protected boolean success;
-	private int errorCode = 200;
+	private int responseCode = 200;
 	private String lastCall;
 	private String result;
 	private String errors;
@@ -175,7 +175,7 @@ public class APIrestful {
 	}
 
 	public String errorString() {
-		return "<p class=\"api-response\">" + getCall() + "</p>" + "HTTP " + errorCode + " - "
+		return "<p class=\"api-response\">" + getCall() + "</p>" + "HTTP " + responseCode + " - "
 				+ (getResult() != null ? "Response: <p class=\"api-response\">" + getResult() + "</p>" : "")
 				+ (getErrors() != null ? "Errors: <p class=\"api-response\">" + getErrors() + "</p>" : "");
 	}
@@ -233,7 +233,9 @@ public class APIrestful {
 			sc.setRequestProperty("Authorization", "api-auth-" + keyID + "-" + sb.toString());
 			sc.setRequestProperty("Date", date);
 			sc.setRequestProperty("Accept", "application/json");
-			sc.setRequestProperty("X-SkySQL-API-Version", "1");
+			sc.setRequestProperty("X-SkySQL-API-Version", "1.1");
+
+			OutputStreamWriter out;
 
 			switch (type) {
 			case GET:
@@ -241,6 +243,18 @@ public class APIrestful {
 				break;
 
 			case PUT:
+				httpConnection.setDoOutput(true);
+				httpConnection.setRequestProperty("Content-Type", "application/json");
+				httpConnection.setRequestProperty("charset", "utf-8");
+				String length = Integer.toString(value.getBytes().length);
+				httpConnection.setRequestProperty("Content-Length", "" + length);
+				httpConnection.setUseCaches(false);
+				httpConnection.setRequestMethod(type.toString());
+				out = new OutputStreamWriter(httpConnection.getOutputStream(), "UTF-8");
+				out.write(value);
+				out.close();
+				break;
+
 			case POST:
 				httpConnection.setDoOutput(true);
 				httpConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -248,7 +262,7 @@ public class APIrestful {
 				httpConnection.setRequestProperty("Content-Length", "" + Integer.toString(value.getBytes().length));
 				httpConnection.setUseCaches(false);
 				httpConnection.setRequestMethod(type.toString());
-				OutputStreamWriter out = new OutputStreamWriter(httpConnection.getOutputStream());
+				out = new OutputStreamWriter(httpConnection.getOutputStream());
 				out.write(value);
 				out.close();
 				break;
@@ -258,25 +272,51 @@ public class APIrestful {
 				break;
 			}
 
-			int timeout = httpConnection.getConnectTimeout();
-			httpConnection.setConnectTimeout(timeout);
-
-			BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
-			result = in.readLine();
-
 			if (api.version == null) {
 				Map<String, List<String>> headers = httpConnection.getHeaderFields();
 				List<String> version = headers.get("X-SkySQL-API-Version");
 				api.version = version.get(0);
 			}
-			in.close();
 
+			responseCode = httpConnection.getResponseCode();
 			long estimatedTime = (System.nanoTime() - startTime) / 1000000;
-			ManagerUI.log("Response Time: " + estimatedTime + "ms, inputStream: " + result);
 
-			APIrestful api = getGson().fromJson(result, APIrestful.class);
+			if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+				BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
+				result = in.readLine();
+				in.close();
+				ManagerUI.log("Response Time: " + estimatedTime + "ms, inputStream: " + result);
 
-			return api.success;
+				APIrestful api = getGson().fromJson(result, APIrestful.class);
+				return api.success;
+
+			} else {
+				BufferedReader in = new BufferedReader(new InputStreamReader(httpConnection.getErrorStream()));
+				errors = in.readLine();
+				in.close();
+
+				if (Debug.ON) {
+					ManagerUI.log("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
+				} else {
+					System.err.println("API " + lastCall);
+					System.err.println("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
+				}
+
+				APIrestful api = getGson().fromJson(errors, APIrestful.class);
+				errors = api.getErrors();
+
+				switch (responseCode) {
+				case HttpURLConnection.HTTP_BAD_REQUEST:
+				case HttpURLConnection.HTTP_NOT_FOUND:
+				case HttpURLConnection.HTTP_CONFLICT:
+					Notification.show(errors, Notification.Type.ERROR_MESSAGE);
+					return false;
+
+				default:
+					return false;
+				}
+
+			}
 
 		} catch (NoSuchAlgorithmException e) {
 			new ErrorDialog(e, "Could not use MD5 to encode HTTP request header");
@@ -291,51 +331,10 @@ public class APIrestful {
 			new ErrorDialog(e, "API did not return JSON for: " + api.errorString());
 			throw new RuntimeException("MalformedJson inputStream");
 		} catch (IOException e) {
-			try {
-				errorCode = httpConnection.getResponseCode();
-
-				BufferedReader in = new BufferedReader(new InputStreamReader(httpConnection.getErrorStream()));
-				errors = in.readLine();
-				in.close();
-
-				long estimatedTime = (System.nanoTime() - startTime) / 1000000;
-				if (Debug.ON) {
-					ManagerUI.log("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
-				} else {
-					System.err.println("API " + lastCall);
-					System.err.println("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
-				}
-
-				APIrestful api = getGson().fromJson(errors, APIrestful.class);
-				errors = api.getErrors();
-
-			} catch (JsonSyntaxException f) {
-				new ErrorDialog(f, "API did not return JSON for:" + errorString());
-				throw new RuntimeException("JsonSyntax errorStream");
-			} catch (MalformedJsonException f) {
-				new ErrorDialog(f, "API did not return JSON for:" + errorString());
-				throw new RuntimeException("MalformedJson errorStream");
-			} catch (Exception f) {
-				System.err.println("API call: " + url.toString() + " returned: " + errors);
-				new ErrorDialog(f, "API call: " + url.toString());
-				throw new RuntimeException("Exception errorStream");
-			}
-
-			switch (errorCode) {
-			case 400:
-			case 404:
-			case 409:
-				Notification.show(errors, Notification.Type.WARNING_MESSAGE);
-				return false;
-
-			default:
-				break;
-			}
-			new ErrorDialog(e, "API returned an error for:" + errorString());
-			throw new RuntimeException("API Error");
-
+			new ErrorDialog(e, "IOException while calling the API" + errorString());
+			throw new RuntimeException("IOException");
 		} catch (JsonSyntaxException e) {
-			new ErrorDialog(e, "API did not return HTTP error nor valid JSON for:" + api.errorString());
+			new ErrorDialog(e, "API did not return valid JSON for:" + api.errorString());
 			throw new RuntimeException("JsonSyntax inputStream");
 		} catch (Exception e) {
 			new ErrorDialog(e, "API call: " + url.toString());

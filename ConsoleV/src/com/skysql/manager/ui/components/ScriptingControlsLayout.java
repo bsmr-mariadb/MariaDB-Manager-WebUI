@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui.components;
@@ -25,17 +25,16 @@ import com.skysql.manager.ui.RunningTask;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.VerticalLayout;
 
 @SuppressWarnings("serial")
 public class ScriptingControlsLayout extends VerticalLayout {
 
 	public enum Controls {
-		run, schedule, stop, pause;
+		Run, Schedule, Stop, Pause;
 	}
 
-	private LinkedHashMap<String, NativeButton> ctrlButtons = new LinkedHashMap<String, NativeButton>();
+	private LinkedHashMap<String, Button> ctrlButtons = new LinkedHashMap<String, Button>();
 	private UpdaterThread updaterThread;
 
 	public ScriptingControlsLayout(final RunningTask runningTask, Controls[] controls) {
@@ -46,12 +45,9 @@ public class ScriptingControlsLayout extends VerticalLayout {
 		setMargin(true);
 
 		for (Controls control : controls) {
-			final NativeButton button = new NativeButton();
-			button.addStyleName(control.name());
+			final Button button = new Button(control.name());
 			button.setImmediate(true);
 			button.setEnabled(false);
-			//button.setCaption(control);	// needs cleaning up of styles+layouts
-			//button.setDescription(control); // this should be a proper description
 			button.setData(control);
 			addComponent(button);
 			setComponentAlignment(button, Alignment.MIDDLE_CENTER);
@@ -74,7 +70,7 @@ public class ScriptingControlsLayout extends VerticalLayout {
 
 	public void enableControls(boolean enable, Controls control) {
 		String key = control.name();
-		NativeButton button = ctrlButtons.get(key);
+		Button button = ctrlButtons.get(key);
 		button.setEnabled(enable);
 	}
 

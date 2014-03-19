@@ -13,7 +13,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.ui;
@@ -175,6 +175,8 @@ public class PanelControl extends VerticalLayout {
 	class UpdaterThread extends Thread {
 		UpdaterThread oldUpdaterThread;
 		volatile boolean flagged = false;
+		volatile boolean adjust;
+		volatile String format;
 
 		UpdaterThread(UpdaterThread oldUpdaterThread) {
 			this.oldUpdaterThread = oldUpdaterThread;
@@ -228,8 +230,14 @@ public class PanelControl extends VerticalLayout {
 				RunningTask runningTask = nodeInfo.getCommandTask();
 
 				DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
+				boolean adjust = dateConversion.getAdjust();
+				String format = dateConversion.getFormat();
 
-				if (!newNodeID.equals(lastNodeID) || (tasksList != null && tasksList.size() != oldTasksCount)) {
+				if (!newNodeID.equals(lastNodeID) || (tasksList != null && tasksList.size() != oldTasksCount) || adjust != updaterThread.adjust
+						|| !format.equals(updaterThread.format)) {
+
+					updaterThread.adjust = adjust;
+					updaterThread.format = format;
 
 					logsTable.removeAllItems();
 

@@ -13,13 +13,14 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012-2014 SkySQL Ab
+ * Copyright 2012-2014 SkySQL Corporation Ab
  */
 
 package com.skysql.manager.api;
 
 import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -93,7 +94,7 @@ public class Monitors {
 
 	}
 
-	public synchronized static String setMonitor(MonitorRecord monitor) {
+	public synchronized static boolean setMonitor(MonitorRecord monitor) {
 
 		APIrestful api = new APIrestful();
 
@@ -114,6 +115,10 @@ public class Monitors {
 			int interval = monitor.getInterval();
 			jsonParam.put("interval", String.valueOf(interval));
 
+			if (monitor.getID() == null) {
+				monitor.setID(createUniqueID(monitor.getName()));
+			}
+
 			success = api.put("monitorclass/" + monitor.getSystemType() + "/key/" + monitor.getID(), jsonParam.toString());
 
 		} catch (JSONException e) {
@@ -122,17 +127,33 @@ public class Monitors {
 		}
 
 		WriteResponse writeResponse = APIrestful.getGson().fromJson(api.getResult(), WriteResponse.class);
-		if (writeResponse != null && !writeResponse.getInsertKey().isEmpty()) {
-			String monitorID = writeResponse.getInsertKey();
-			monitor.setID(monitorID);
-			currentList.put(monitorID, monitor);
-			return monitorID;
-		} else if (writeResponse != null && writeResponse.getUpdateCount() > 0) {
-			return monitor.getID();
+		if (writeResponse != null && (!writeResponse.getInsertKey().isEmpty() || writeResponse.getUpdateCount() > 0)) {
+			currentList.put(monitor.getID(), monitor);
+			return true;
 		} else {
-			return null;
+			return false;
 		}
 
+	}
+
+	public static boolean isNameUnique(String proposedName) {
+		for (Map.Entry<String, MonitorRecord> entry : currentList.entrySet()) {
+			MonitorRecord monitor = entry.getValue();
+			if (monitor.getName().equals(proposedName)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private synchronized static String createUniqueID(String name) {
+		String ID = name.replaceAll("[^a-zA-Z0-9.-]", "");
+		int i = 0;
+		String uniqueID = ID;
+		while (Monitors.getMonitor(uniqueID) != null) {
+			uniqueID = ID + i++;
+		}
+		return uniqueID;
 	}
 
 	public synchronized static boolean deleteMonitor(MonitorRecord monitor) {
