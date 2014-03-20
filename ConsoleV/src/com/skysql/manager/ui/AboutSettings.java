@@ -29,9 +29,16 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
+/**
+ * The Class AboutSettings is used for the About panel of the Settings dialog.
+ */
 public class AboutSettings extends VerticalLayout implements Window.CloseListener {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
+	/**
+	 * Reads the AboutRecord from the session and populates the panel layout.
+	 */
 	AboutSettings() {
 		addStyleName("aboutTab");
 		setSizeFull();
@@ -63,6 +70,9 @@ public class AboutSettings extends VerticalLayout implements Window.CloseListene
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.Window.CloseListener#windowClose(com.vaadin.ui.Window.CloseEvent)
+	 */
 	public void windowClose(CloseEvent e) {
 
 	}

@@ -90,8 +90,11 @@ import com.vaadin.ui.components.calendar.event.CalendarEvent;
 import com.vaadin.ui.components.calendar.handler.BasicDateClickHandler;
 import com.vaadin.ui.components.calendar.handler.BasicWeekClickHandler;
 
-/** Calendar component test application */
+/**
+ *  Calendar component test application.
+ */
 public class CalendarDialog implements Window.CloseListener {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private static final String DEFAULT_ITEMID = "DEFAULT";
@@ -137,7 +140,6 @@ public class CalendarDialog implements Window.CloseListener {
 	private Integer lastDay;
 	private boolean showWeeklyView;
 	private boolean useSecondResolution;
-
 	private Window dialogWindow;
 	private NativeSelect repeatSelectField;
 	private NativeSelect untilSelectField;
@@ -149,6 +151,12 @@ public class CalendarDialog implements Window.CloseListener {
 	private BackupScheduledLayout bsLayout;
 	private LinkedHashMap<String, ArrayList> eventsMap;
 
+	/**
+	 * Instantiates a new calendar dialog.
+	 *
+	 * @param schedule the schedule
+	 * @param bsLayout the bs layout
+	 */
 	public CalendarDialog(Schedule schedule, BackupScheduledLayout bsLayout) {
 		this.schedule = schedule;
 		this.bsLayout = bsLayout;
@@ -162,28 +170,49 @@ public class CalendarDialog implements Window.CloseListener {
 
 	}
 
+	/**
+	 * Instantiates a new calendar dialog.
+	 *
+	 * @param mode the mode
+	 */
 	public CalendarDialog(String mode) {
 
 		// mode: month, week, day
 
 	}
 
-	/** Handle Close button click and close the window. */
+	/**
+	 *  Handle Close button click and close the window.
+	 *
+	 * @param event the event
+	 */
 	public void closeButtonClick(Button.ClickEvent event) {
 		/* Windows are managed by the application object. */
 		dialogWindow.close();
 	}
 
-	/** In case the window is closed otherwise. */
+	/**
+	 *  In case the window is closed otherwise.
+	 *
+	 * @param e the event
+	 */
 	public void windowClose(CloseEvent e) {
 		// anything special goes here
 		bsLayout.refresh();
 	}
 
+	/**
+	 * Sets the locale.
+	 *
+	 * @param locale the new locale
+	 */
 	private void setLocale(Locale locale) {
 		UI.getCurrent().setLocale(locale);
 	}
 
+	/**
+	 * Inits the content.
+	 */
 	public void initContent() {
 		OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
 		nodes = overviewPanel.getNodes();
@@ -219,6 +248,9 @@ public class CalendarDialog implements Window.CloseListener {
 		addInitialEvents();
 	}
 
+	/**
+	 * Adds the initial events.
+	 */
 	private void addInitialEvents() {
 		Date originalDate = calendar.getTime();
 
@@ -241,6 +273,13 @@ public class CalendarDialog implements Window.CloseListener {
 		calendar.setTime(originalDate);
 	}
 
+	/**
+	 * Adds the events to map.
+	 *
+	 * @param eventID the event id
+	 * @param vEvent the vEvent
+	 * @param nodeID the node id
+	 */
 	private void addEventsToMap(String eventID, VEvent vEvent, String nodeID) {
 
 		String summary = vEvent.getSummary().getValue();
@@ -278,6 +317,9 @@ public class CalendarDialog implements Window.CloseListener {
 
 	}
 
+	/**
+	 * Inits the layout content.
+	 */
 	private void initLayoutContent() {
 		initNavigationButtons();
 		initAddNewEventButton();
@@ -326,6 +368,9 @@ public class CalendarDialog implements Window.CloseListener {
 		layout.setExpandRatio(calendarComponent, 1);
 	}
 
+	/**
+	 * Inits the navigation buttons.
+	 */
 	private void initNavigationButtons() {
 		monthButton = new Button("Month view", new ClickListener() {
 
@@ -364,6 +409,9 @@ public class CalendarDialog implements Window.CloseListener {
 		});
 	}
 
+	/**
+	 * Inits the hide weekend button.
+	 */
 	private void initHideWeekEndButton() {
 		hideWeekendsButton = new CheckBox("Hide weekends");
 		hideWeekendsButton.setImmediate(true);
@@ -376,6 +424,11 @@ public class CalendarDialog implements Window.CloseListener {
 		});
 	}
 
+	/**
+	 * Sets the weekends hidden.
+	 *
+	 * @param weekendsHidden the new weekends hidden
+	 */
 	private void setWeekendsHidden(boolean weekendsHidden) {
 		if (weekendsHidden) {
 			//int firstToShow = (GregorianCalendar.MONDAY - calendar.getFirstDayOfWeek()) % 7;
@@ -390,6 +443,9 @@ public class CalendarDialog implements Window.CloseListener {
 
 	}
 
+	/**
+	 * Inits the all schedule button.
+	 */
 	private void initAllScheduleButton() {
 		allScheduleButton = new CheckBox("All Scheduled Commands");
 		allScheduleButton.setImmediate(true);
@@ -402,6 +458,9 @@ public class CalendarDialog implements Window.CloseListener {
 		});
 	}
 
+	/**
+	 * Inits the add new event button.
+	 */
 	public void initAddNewEventButton() {
 		addNewEvent = new Button("Add Backup");
 		addNewEvent.addClickListener(new Button.ClickListener() {
@@ -414,6 +473,9 @@ public class CalendarDialog implements Window.CloseListener {
 		});
 	}
 
+	/**
+	 * Inits the calendar.
+	 */
 	private void initCalendar() {
 		dataSource = new BasicEventProvider();
 
@@ -465,10 +527,18 @@ public class CalendarDialog implements Window.CloseListener {
 		addCalendarEventListeners();
 	}
 
+	/**
+	 * Gets today.
+	 *
+	 * @return today
+	 */
 	private Date getToday() {
 		return new Date();
 	}
 
+	/**
+	 * Adds the calendar event listeners.
+	 */
 	@SuppressWarnings("serial")
 	private void addCalendarEventListeners() {
 		// Register week clicks by changing the schedules start and end dates.
@@ -510,6 +580,11 @@ public class CalendarDialog implements Window.CloseListener {
 		});
 	}
 
+	/**
+	 * Creates the time zone select.
+	 *
+	 * @return the select
+	 */
 	@SuppressWarnings("deprecation")
 	private Select createTimeZoneSelect() {
 		Select s = new Select("Timezone");
@@ -542,6 +617,11 @@ public class CalendarDialog implements Window.CloseListener {
 		return s;
 	}
 
+	/**
+	 * Creates the calendar format select.
+	 *
+	 * @return the select
+	 */
 	@SuppressWarnings("deprecation")
 	private Select createCalendarFormatSelect() {
 		Select s = new Select("Calendar format");
@@ -569,6 +649,11 @@ public class CalendarDialog implements Window.CloseListener {
 		return s;
 	}
 
+	/**
+	 * Creates the locale select.
+	 *
+	 * @return the select
+	 */
 	@SuppressWarnings("deprecation")
 	private Select createLocaleSelect() {
 		Select s = new Select("Locale");
@@ -597,6 +682,11 @@ public class CalendarDialog implements Window.CloseListener {
 		return s;
 	}
 
+	/**
+	 * Update calendar time zone.
+	 *
+	 * @param timezoneId the timezone id
+	 */
 	private void updateCalendarTimeZone(Object timezoneId) {
 		TimeZone tz = null;
 		if (!DEFAULT_ITEMID.equals(timezoneId)) {
@@ -623,6 +713,11 @@ public class CalendarDialog implements Window.CloseListener {
 
 	}
 
+	/**
+	 * Update calendar format.
+	 *
+	 * @param format the format
+	 */
 	private void updateCalendarFormat(Object format) {
 		TimeFormat calFormat = null;
 		if (format instanceof TimeFormat) {
@@ -632,6 +727,12 @@ public class CalendarDialog implements Window.CloseListener {
 		calendarComponent.setTimeFormat(calFormat);
 	}
 
+	/**
+	 * Gets the locale item caption.
+	 *
+	 * @param l the locale
+	 * @return the locale item caption
+	 */
 	private String getLocaleItemCaption(Locale l) {
 		String country = l.getDisplayCountry(UI.getCurrent().getLocale());
 		String language = l.getDisplayLanguage(UI.getCurrent().getLocale());
@@ -643,6 +744,11 @@ public class CalendarDialog implements Window.CloseListener {
 		return caption.toString();
 	}
 
+	/**
+	 * Update calendar locale.
+	 *
+	 * @param l the locale
+	 */
 	private void updateCalendarLocale(Locale l) {
 		int oldFirstDayOfWeek = calendar.getFirstDayOfWeek();
 		setLocale(l);
@@ -672,6 +778,9 @@ public class CalendarDialog implements Window.CloseListener {
 
 	}
 
+	/**
+	 * Handle next button click.
+	 */
 	private void handleNextButtonClick() {
 		switch (viewMode) {
 		case MONTH:
@@ -711,6 +820,9 @@ public class CalendarDialog implements Window.CloseListener {
 
 	}
 
+	/**
+	 * Handle previous button click.
+	 */
 	private void handlePreviousButtonClick() {
 		switch (viewMode) {
 		case MONTH:
@@ -750,6 +862,11 @@ public class CalendarDialog implements Window.CloseListener {
 
 	}
 
+	/**
+	 * Handle range select.
+	 *
+	 * @param event the event
+	 */
 	private void handleRangeSelect(RangeSelectEvent event) {
 		Date start = event.getStart();
 		Date end = event.getEnd();
@@ -766,6 +883,12 @@ public class CalendarDialog implements Window.CloseListener {
 		showEventPopup(getNewEvent("Backup", "New backup event", start), true);
 	}
 
+	/**
+	 * Show event popup.
+	 *
+	 * @param event the event
+	 * @param newEvent the new event
+	 */
 	private void showEventPopup(CalendarEvent event, boolean newEvent) {
 		if (event == null) {
 			return;
@@ -779,7 +902,12 @@ public class CalendarDialog implements Window.CloseListener {
 		}
 	}
 
-	/* Initializes a modal window to edit schedule event. */
+	/**
+	 * Initializes a modal window to edit schedule event.
+	 *
+	 * @param event the event
+	 * @param newEvent the new event
+	 */
 	private void createCalendarEventPopup(CalendarCustomEvent event, boolean newEvent) {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setMargin(true);
@@ -876,6 +1004,12 @@ public class CalendarDialog implements Window.CloseListener {
 		layout.setComponentAlignment(buttons, Alignment.BOTTOM_RIGHT);
 	}
 
+	/**
+	 * Update calendar event popup.
+	 *
+	 * @param event the event
+	 * @param newEvent the new event
+	 */
 	private void updateCalendarEventPopup(CalendarCustomEvent event, boolean newEvent) {
 		createCalendarEventPopup(event, newEvent);
 
@@ -891,6 +1025,11 @@ public class CalendarDialog implements Window.CloseListener {
 		applyEventButton.setEnabled(!calendarComponent.isReadOnly() && event.getOccurrence() == null);
 	}
 
+	/**
+	 * Update calendar event form.
+	 *
+	 * @param event the event
+	 */
 	@SuppressWarnings("deprecation")
 	private void updateCalendarEventForm(CalendarEvent event) {
 		// Lets create a CalendarEvent BeanItem and pass it to the form's data
@@ -1121,6 +1260,11 @@ public class CalendarDialog implements Window.CloseListener {
 		}
 	}
 
+	/**
+	 * Sets the form date resolution.
+	 *
+	 * @param resolution the new form date resolution
+	 */
 	private void setFormDateResolution(Resolution resolution) {
 		if (scheduleEventForm.getField("start") != null && scheduleEventForm.getField("end") != null) {
 			((DateField) scheduleEventForm.getField("start")).setResolution(resolution);
@@ -1130,6 +1274,11 @@ public class CalendarDialog implements Window.CloseListener {
 		}
 	}
 
+	/**
+	 * Show delete popup.
+	 *
+	 * @param event the event
+	 */
 	private void showDeletePopup(final CalendarCustomEvent event) {
 		if (event == null) {
 			return;
@@ -1276,7 +1425,9 @@ public class CalendarDialog implements Window.CloseListener {
 		}
 	}
 
-	/* Removes the event from the data source and fires change event. */
+	/**
+	 * Removes the event from the data source and fires change event.
+	 */
 	private void deleteCalendarEvent() {
 		CalendarCustomEvent event = (CalendarCustomEvent) getFormCalendarEvent();
 
@@ -1299,7 +1450,9 @@ public class CalendarDialog implements Window.CloseListener {
 		}
 	}
 
-	/* Adds/updates the event in the data source and fires change event. */
+	/**
+	 * Adds/updates the event in the data source and fires change event.
+	 */
 	private void commitCalendarEvent() {
 		scheduleEventForm.commit();
 		CalendarCustomEvent event = (CalendarCustomEvent) getFormCalendarEvent();
@@ -1352,11 +1505,19 @@ public class CalendarDialog implements Window.CloseListener {
 		UI.getCurrent().removeWindow(scheduleEventPopup);
 	}
 
+	/**
+	 * Discard calendar event.
+	 */
 	private void discardCalendarEvent() {
 		scheduleEventForm.discard();
 		UI.getCurrent().removeWindow(scheduleEventPopup);
 	}
 
+	/**
+	 * Gets the form calendar event.
+	 *
+	 * @return the form calendar event
+	 */
 	@SuppressWarnings("unchecked")
 	private BasicEvent getFormCalendarEvent() {
 		BeanItem<CalendarEvent> item = (BeanItem<CalendarEvent>) scheduleEventForm.getItemDataSource();
@@ -1364,30 +1525,53 @@ public class CalendarDialog implements Window.CloseListener {
 		return (BasicEvent) event;
 	}
 
+	/**
+	 * Next month.
+	 */
 	private void nextMonth() {
 		rollMonth(1);
 	}
 
+	/**
+	 * Previous month.
+	 */
 	private void previousMonth() {
 		rollMonth(-1);
 	}
 
+	/**
+	 * Next week.
+	 */
 	private void nextWeek() {
 		rollWeek(1);
 	}
 
+	/**
+	 * Previous week.
+	 */
 	private void previousWeek() {
 		rollWeek(-1);
 	}
 
+	/**
+	 * Next day.
+	 */
 	private void nextDay() {
 		rollDate(1);
 	}
 
+	/**
+	 * Previous day.
+	 */
 	private void previousDay() {
 		rollDate(-1);
 	}
 
+	/**
+	 * Roll month.
+	 *
+	 * @param direction the direction
+	 */
 	private void rollMonth(int direction) {
 		calendar.setTime(currentMonthsFirstDate);
 		calendar.add(GregorianCalendar.MONTH, direction);
@@ -1401,6 +1585,11 @@ public class CalendarDialog implements Window.CloseListener {
 		resetCalendarTime(true);
 	}
 
+	/**
+	 * Roll week.
+	 *
+	 * @param direction the direction
+	 */
 	private void rollWeek(int direction) {
 		calendar.add(GregorianCalendar.WEEK_OF_YEAR, direction);
 		calendar.set(GregorianCalendar.DAY_OF_WEEK, calendar.getFirstDayOfWeek());
@@ -1410,22 +1599,49 @@ public class CalendarDialog implements Window.CloseListener {
 		calendarComponent.setEndDate(calendar.getTime());
 	}
 
+	/**
+	 * Roll date.
+	 *
+	 * @param direction the direction
+	 */
 	private void rollDate(int direction) {
 		calendar.add(GregorianCalendar.DATE, direction);
 		resetCalendarTime(false);
 		resetCalendarTime(true);
 	}
 
+	/**
+	 * Update caption label.
+	 */
 	private void updateCaptionLabel() {
 		DateFormatSymbols s = new DateFormatSymbols(UI.getCurrent().getLocale());
 		String month = s.getShortMonths()[calendar.get(GregorianCalendar.MONTH)];
 		captionLabel.setValue(month + " " + calendar.get(GregorianCalendar.YEAR));
 	}
 
+	/**
+	 * Gets the new event.
+	 *
+	 * @param caption the caption
+	 * @param description the description
+	 * @param start the start
+	 * @return the new event
+	 */
 	private CalendarCustomEvent getNewEvent(String caption, String description, Date start) {
 		return getNewEvent(caption, description, start, null, null, nodes.get(0).getID());
 	}
 
+	/**
+	 * Gets the new event.
+	 *
+	 * @param caption the caption
+	 * @param description the description
+	 * @param start the start
+	 * @param end the end
+	 * @param repeat the repeat
+	 * @param node the node
+	 * @return the new event
+	 */
 	private CalendarCustomEvent getNewEvent(String caption, String description, Date start, Date end, String repeat, String node) {
 		CalendarCustomEvent event = new CalendarCustomEvent();
 		event.setCaption(caption);
@@ -1444,7 +1660,7 @@ public class CalendarDialog implements Window.CloseListener {
 		return event;
 	}
 
-	/*
+	/**
 	 * Switch the view to week view.
 	 */
 	public void switchToWeekView() {
@@ -1453,7 +1669,7 @@ public class CalendarDialog implements Window.CloseListener {
 		monthButton.setVisible(true);
 	}
 
-	/*
+	/**
 	 * Switch the Calendar component's start and end date range to the target
 	 * month only. (sample range: 01.01.2010 00:00.000 - 31.01.2010 23:59.999)
 	 */
@@ -1472,7 +1688,7 @@ public class CalendarDialog implements Window.CloseListener {
 
 	}
 
-	/*
+	/**
 	 * Switch to day view (week view with a single day visible).
 	 */
 	public void switchToDayView() {
@@ -1481,6 +1697,11 @@ public class CalendarDialog implements Window.CloseListener {
 		weekButton.setVisible(true);
 	}
 
+	/**
+	 * Reset calendar time.
+	 *
+	 * @param resetEndTime the reset end time
+	 */
 	private void resetCalendarTime(boolean resetEndTime) {
 		Date first = calendarComponent.getStartDate();
 		Date last = calendarComponent.getEndDate();
@@ -1493,9 +1714,11 @@ public class CalendarDialog implements Window.CloseListener {
 		}
 	}
 
-	/*
+	/**
 	 * Resets the calendar time (hour, minute second and millisecond) either to
 	 * zero or maximum value.
+	 *
+	 * @param max the max value
 	 */
 	private void resetTime(boolean max) {
 		if (max) {

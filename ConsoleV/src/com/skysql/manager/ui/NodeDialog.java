@@ -35,16 +35,25 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
+/**
+ * The Class NodeDialog is used for the create/edit node dialog.
+ */
 public class NodeDialog implements Window.CloseListener {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private Window dialogWindow;
-	private HorizontalLayout wrapper;
 	private HorizontalLayout buttonsBar;
 	private NodeInfo nodeInfo;
 	private final NodeForm nodeForm;
 	private final ComponentButton button;
 
+	/**
+	 * Instantiates a new node dialog.
+	 *
+	 * @param nodeInfo the node info
+	 * @param button the button
+	 */
 	public NodeDialog(NodeInfo nodeInfo, ComponentButton button) {
 		this.button = button;
 
@@ -83,6 +92,11 @@ public class NodeDialog implements Window.CloseListener {
 
 	}
 
+	/**
+	 * Save node.
+	 *
+	 * @param okButtonCaption the ok button caption
+	 */
 	private void saveNode(final String okButtonCaption) {
 
 		final Button okButton = new Button(okButtonCaption);
@@ -139,6 +153,9 @@ public class NodeDialog implements Window.CloseListener {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.Window.CloseListener#windowClose(com.vaadin.ui.Window.CloseEvent)
+	 */
 	public void windowClose(CloseEvent e) {
 		dialogWindow.close();
 	}

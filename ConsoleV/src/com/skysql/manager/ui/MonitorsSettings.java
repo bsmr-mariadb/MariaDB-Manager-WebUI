@@ -61,8 +61,12 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
+/**
+ * The Class MonitorsSettings is used for the Monitors panel of the Settings dialog.
+ */
 @SuppressWarnings("deprecation")
 public class MonitorsSettings extends VerticalLayout implements Window.CloseListener {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private Window secondaryDialog;
@@ -76,6 +80,13 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 	private Label id = new Label(), name = new Label(), description = new Label(), unit = new Label(), delta = new Label(), average = new Label(),
 			chartType = new Label(), interval = new Label(), sql = new Label();
 
+	/**
+	 * Instantiates a new monitors settings.
+	 *
+	 * @param settingsDialog the settings dialog
+	 * @param systemID the system id
+	 * @param systemType the system type
+	 */
 	MonitorsSettings(SettingsDialog settingsDialog, String systemID, String systemType) {
 		this.settingsDialog = settingsDialog;
 		this.systemID = systemID;
@@ -220,10 +231,18 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.Window.CloseListener#windowClose(com.vaadin.ui.Window.CloseEvent)
+	 */
 	public void windowClose(CloseEvent e) {
 
 	}
 
+	/**
+	 * Display monitor record.
+	 *
+	 * @param monitorId the monitor id
+	 */
 	private void displayMonitorRecord(String monitorId) {
 
 		if (monitorId != null) {
@@ -258,8 +277,14 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 
 	}
 
+	/** The monitor. */
 	private MonitorRecord monitor;
 
+	/**
+	 * Delete monitor.
+	 *
+	 * @param monitor the monitor
+	 */
 	public void deleteMonitor(final MonitorRecord monitor) {
 
 		this.monitor = monitor;
@@ -276,6 +301,7 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 
 	}
 
+	/** The delete listener. */
 	private Button.ClickListener deleteListener = new Button.ClickListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -292,15 +318,31 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 		}
 	};
 
+	/**
+	 * Edits the monitor.
+	 *
+	 * @param monitor the monitor
+	 */
 	public void editMonitor(MonitorRecord monitor) {
 		monitorForm(monitor, "Edit Monitor: " + monitor.getName(), "Edit SQL Monitor for Nodes and System", "Save Changes");
 	}
 
+	/**
+	 * Adds the monitor.
+	 */
 	public void addMonitor() {
 		MonitorRecord monitor = new MonitorRecord(systemType);
 		monitorForm(monitor, "Add Monitor", "Add a new SQL Monitor for Nodes and System", "Add Monitor");
 	}
 
+	/**
+	 * Monitor form.
+	 *
+	 * @param monitor the monitor
+	 * @param title the title
+	 * @param description the description
+	 * @param button the button
+	 */
 	public void monitorForm(final MonitorRecord monitor, String title, String description, String button) {
 		final TextField monitorName = new TextField("Monitor Name");
 		final TextField monitorDescription = new TextField("Description");
@@ -516,10 +558,23 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 
 	}
 
+	/**
+	 * The Class SQLValidator.
+	 */
 	class SQLValidator implements Validator {
+
+		/** The Constant serialVersionUID. */
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
+
+		/** The error. */
 		private String error;
 
+		/**
+		 * Checks if is valid.
+		 *
+		 * @param value the value
+		 * @return true, if is valid
+		 */
 		public boolean isValid(Object value) {
 			// ignore an empty field
 			if (!validateSQL || value == null || (value != null && value.toString().isEmpty())) {
@@ -533,6 +588,9 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 		}
 
 		// Upon failure, the validate() method throws an exception
+		/* (non-Javadoc)
+		 * @see com.vaadin.data.Validator#validate(java.lang.Object)
+		 */
 		public void validate(Object value) throws InvalidValueException {
 			if (!isValid(value)) {
 				throw new InvalidValueException(error);

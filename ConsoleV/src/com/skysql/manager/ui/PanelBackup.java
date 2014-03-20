@@ -24,13 +24,26 @@ import com.skysql.manager.ui.components.BackupSetsLayout;
 import com.skysql.manager.ui.components.BackupStrategiesLayout;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class PanelBackup.
+ */
 public class PanelBackup extends VerticalLayout {
+
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
+	/** The backup strategies layout. */
 	private BackupStrategiesLayout backupStrategiesLayout;
+
+	/** The backup scheduled layout. */
 	private BackupScheduledLayout backupScheduledLayout;
+
+	/** The backup sets layout. */
 	private BackupSetsLayout backupSetsLayout;
 
+	/**
+	 * Instantiates a new panel backup.
+	 */
 	PanelBackup() {
 
 		setSizeFull();
@@ -46,6 +59,9 @@ public class PanelBackup extends VerticalLayout {
 
 	}
 
+	/**
+	 * Refresh.
+	 */
 	public void refresh() {
 
 		ManagerUI.log("PanelBackup refresh()");

@@ -38,6 +38,9 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
+/**
+ * The Class ChartsDialog.
+ */
 public class ChartsDialog {
 
 	Window dialogWindow;
@@ -47,6 +50,12 @@ public class ChartsDialog {
 	final ChartButton chartButton;
 	final ChartsLayout chartsLayout;
 
+	/**
+	 * Instantiates a new charts dialog.
+	 *
+	 * @param chartsLayout the charts layout
+	 * @param chartButton the chart button
+	 */
 	public ChartsDialog(final ChartsLayout chartsLayout, final ChartButton chartButton) {
 
 		this.chartButton = chartButton;
@@ -133,6 +142,11 @@ public class ChartsDialog {
 
 	}
 
+	/**
+	 * New user chart.
+	 *
+	 * @return the user chart
+	 */
 	public UserChart newUserChart() {
 
 		ClusterComponent clusterComponent = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);

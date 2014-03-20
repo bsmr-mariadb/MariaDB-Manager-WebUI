@@ -33,7 +33,11 @@ import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class ChartPreviewLayout.
+ */
 public class ChartPreviewLayout extends VerticalLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private ChartsLayout chartLayout;
@@ -43,6 +47,13 @@ public class ChartPreviewLayout extends VerticalLayout {
 	private boolean blockRefresh = false;
 	private String time, interval;
 
+	/**
+	 * Instantiates a new chart preview layout.
+	 *
+	 * @param userChart the user chart
+	 * @param time the time
+	 * @param interval the interval
+	 */
 	public ChartPreviewLayout(final UserChart userChart, String time, String interval) {
 		this.userChart = userChart;
 		this.time = time;
@@ -162,6 +173,15 @@ public class ChartPreviewLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Update chart info.
+	 *
+	 * @param name the name
+	 * @param description the description
+	 * @param unit the unit
+	 * @param type the type
+	 * @param points the points
+	 */
 	private void updateChartInfo(String name, String description, String unit, String type, int points) {
 		blockRefresh = true;
 
@@ -189,6 +209,11 @@ public class ChartPreviewLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Draw chart.
+	 *
+	 * @return the charts layout
+	 */
 	private ChartsLayout drawChart() {
 		ChartsLayout newChartsLayout = new ChartsLayout(true, time, interval);
 		newChartsLayout.addStyleName("chartPreview");
@@ -200,6 +225,9 @@ public class ChartPreviewLayout extends VerticalLayout {
 		return newChartsLayout;
 	}
 
+	/**
+	 * Refresh chart.
+	 */
 	public void refreshChart() {
 		if (blockRefresh == false) {
 			ChartsLayout newChartLayout = drawChart();
@@ -208,6 +236,9 @@ public class ChartPreviewLayout extends VerticalLayout {
 		}
 	}
 
+	/**
+	 * Refresh user chart.
+	 */
 	public void refreshUserChart() {
 		if (userChart.getMonitorIDs().size() == 1) {
 			// update chart fields from selection of Monitor only when it's the first and only monitor mapped to chart

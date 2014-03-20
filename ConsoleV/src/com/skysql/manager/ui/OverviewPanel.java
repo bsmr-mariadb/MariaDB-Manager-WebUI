@@ -40,14 +40,17 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.Runo;
 
+/**
+ * The Class OverviewPanel is used to render the Navigation panel across the top of the screen. "Button" is used to mean custom layout representing a system or node.
+ */
 @SuppressWarnings("serial")
 public class OverviewPanel extends Panel {
 
 	public static float PANEL_HEIGHT = ComponentButton.COMPONENT_HEIGHT + 40;
 
+	public ComponentButton selectedButton;
 	private SystemInfo systemInfo;
 	private SystemRecord systemRecord;
-	public ComponentButton selectedButton;
 	private NodesLayout nodesLayout;
 	private SystemLayout systemLayout;
 	private UpdaterThread updaterThread;
@@ -55,6 +58,9 @@ public class OverviewPanel extends Panel {
 	private Button addSystemButton, addNodeButton;
 	final Label nodesLabel;
 
+	/**
+	 * Instantiates a new overview panel.
+	 */
 	public OverviewPanel() {
 
 		HorizontalLayout overviewContainer = new HorizontalLayout();
@@ -164,32 +170,71 @@ public class OverviewPanel extends Panel {
 
 	}
 
+	/**
+	 * Update button.
+	 *
+	 * @param button the button
+	 * @param state the state
+	 * @param taskRecord the task record
+	 * @param capacity the capacity
+	 */
 	public void updateButton(ComponentButton button, String state, TaskRecord taskRecord, String capacity) {
 		button.setIcon("node", state, capacity);
 		button.setCommandLabel(taskRecord);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.AbstractComponent#setEnabled(boolean)
+	 */
 	public void setEnabled(boolean enabled) {
 		systemLayout.setEnabled(enabled);
 		nodesLayout.setEnabled(enabled);
 	}
 
+	/**
+	 * Gets the nodes.
+	 *
+	 * @return the nodes
+	 */
 	public ArrayList<NodeInfo> getNodes() {
 		return nodesLayout.getNodes();
 	}
 
+	/**
+	 * Gets the node button.
+	 *
+	 * @param nodeID the node id
+	 * @return the node button
+	 */
 	public ComponentButton getNodeButton(String nodeID) {
 		return nodesLayout.getButton(systemRecord.getID(), nodeID);
 	}
 
+	/**
+	 * Click component button.
+	 *
+	 * @param buttonIndex the button index
+	 * @param isManual the is manual
+	 */
 	public void clickComponentButton(final int buttonIndex, boolean isManual) {
 		clickLayout(nodesLayout.getButton(buttonIndex), isManual);
 	}
 
+	/**
+	 * Click system button.
+	 *
+	 * @param isManual the is manual
+	 */
 	public void clickSystemButton(boolean isManual) {
 		clickLayout(systemLayout.getButton(), isManual);
 	}
 
+	/**
+	 * Click layout.
+	 *
+	 * @param button_node the button_node
+	 * @param isManual the is manual
+	 */
 	public void clickLayout(final ComponentButton button_node, boolean isManual) {
 		ManagerUI.log("clickLayout: " + button_node);
 
@@ -218,6 +263,11 @@ public class OverviewPanel extends Panel {
 
 	}
 
+	/**
+	 * Select current button.
+	 *
+	 * @param systemRecord the system record
+	 */
 	public void selectCurrentButton(SystemRecord systemRecord) {
 		if (systemRecord == null) {
 			return;
@@ -230,6 +280,9 @@ public class OverviewPanel extends Panel {
 		}
 	}
 
+	/**
+	 * Refresh.
+	 */
 	public void refresh() {
 
 		ManagerUI.log("OverviewPanel refresh()");
@@ -238,14 +291,29 @@ public class OverviewPanel extends Panel {
 
 	}
 
+	/**
+	 * The Class UpdaterThread.
+	 */
 	public class UpdaterThread extends Thread {
+
+		/** The old updater thread. */
 		UpdaterThread oldUpdaterThread;
+
+		/** The flagged. */
 		public volatile boolean flagged = false;
 
+		/**
+		 * Instantiates a new updater thread.
+		 *
+		 * @param oldUpdaterThread the old updater thread
+		 */
 		UpdaterThread(UpdaterThread oldUpdaterThread) {
 			this.oldUpdaterThread = oldUpdaterThread;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Thread#run()
+		 */
 		@Override
 		public void run() {
 			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
@@ -269,6 +337,11 @@ public class OverviewPanel extends Panel {
 		}
 	}
 
+	/**
+	 * Asynch refresh.
+	 *
+	 * @param updaterThread the updater thread
+	 */
 	private void asynchRefresh(UpdaterThread updaterThread) {
 
 		VaadinSession session = getSession();
