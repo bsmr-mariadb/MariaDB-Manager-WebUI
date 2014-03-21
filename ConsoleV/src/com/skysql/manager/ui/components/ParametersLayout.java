@@ -129,7 +129,7 @@ public class ParametersLayout extends HorizontalLayout {
 				}
 			});
 
-			backupLevel.setValue("Full");
+			backupLevel.setValue(PARAM_BACKUP_TYPE_FULL);
 			isParameterReady = true;
 
 		case restore:
