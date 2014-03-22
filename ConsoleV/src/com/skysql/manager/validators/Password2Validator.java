@@ -15,22 +15,37 @@
  *
  * Copyright 2012-2014 SkySQL Corporation Ab
  */
- 
+
 package com.skysql.manager.validators;
 
 import com.vaadin.data.Validator;
 import com.vaadin.ui.PasswordField;
 
+/**
+ * The Class Password2Validator.
+ */
 public class Password2Validator implements Validator {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private PasswordField otherPassword;
 
+	/**
+	 * Instantiates a new password2 validator.
+	 *
+	 * @param otherPassword the other password
+	 */
 	public Password2Validator(PasswordField otherPassword) {
 		super();
 		this.otherPassword = otherPassword;
 	}
 
+	/**
+	 * Checks if is valid.
+	 *
+	 * @param value the value
+	 * @return true, if is valid
+	 */
 	public boolean isValid(Object value) {
 		if (value == null || !(value instanceof String)) {
 			return false;
@@ -41,6 +56,9 @@ public class Password2Validator implements Validator {
 	}
 
 	// Upon failure, the validate() method throws an exception
+	/* (non-Javadoc)
+	 * @see com.vaadin.data.Validator#validate(java.lang.Object)
+	 */
 	public void validate(Object value) throws InvalidValueException {
 		if (!isValid(value)) {
 			throw new InvalidValueException(otherPassword.getCaption() + " mismatch.");

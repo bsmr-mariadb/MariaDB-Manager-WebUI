@@ -23,16 +23,31 @@ import com.skysql.manager.ui.OverviewPanel;
 import com.vaadin.data.Validator;
 import com.vaadin.server.VaadinSession;
 
+/**
+ * The Class NodeNameValidator.
+ */
 public class NodeNameValidator implements Validator {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private String ourName;
 
+	/**
+	 * Instantiates a new node name validator.
+	 *
+	 * @param ourName this object's pre-existing name
+	 */
 	public NodeNameValidator(String ourName) {
 		super();
 		this.ourName = ourName;
 	}
 
+	/**
+	 * Checks if is valid.
+	 *
+	 * @param value the value
+	 * @return true, if is valid
+	 */
 	public boolean isValid(Object value) {
 		if (value == null || !(value instanceof String)) {
 			return false;
@@ -41,6 +56,9 @@ public class NodeNameValidator implements Validator {
 	}
 
 	// Upon failure, the validate() method throws an exception
+	/* (non-Javadoc)
+	 * @see com.vaadin.data.Validator#validate(java.lang.Object)
+	 */
 	public void validate(Object value) throws InvalidValueException {
 		if (!isValid(value)) {
 			throw new InvalidValueException("Name is invalid");

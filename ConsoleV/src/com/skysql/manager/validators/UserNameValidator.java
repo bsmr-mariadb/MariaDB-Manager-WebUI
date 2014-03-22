@@ -21,16 +21,31 @@ package com.skysql.manager.validators;
 import com.skysql.manager.api.UserInfo;
 import com.vaadin.data.Validator;
 
+/**
+ * The Class UserNameValidator.
+ */
 public class UserNameValidator implements Validator {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private UserInfo userInfo;
 
+	/**
+	 * Instantiates a new user name validator.
+	 *
+	 * @param userInfo the user info
+	 */
 	public UserNameValidator(UserInfo userInfo) {
 		super();
 		this.userInfo = userInfo;
 	}
 
+	/**
+	 * Checks if is valid.
+	 *
+	 * @param value the value
+	 * @return true, if is valid
+	 */
 	public boolean isValid(Object value) {
 		if (value == null || !(value instanceof String)) {
 			return false;
@@ -39,6 +54,9 @@ public class UserNameValidator implements Validator {
 	}
 
 	// Upon failure, the validate() method throws an exception
+	/* (non-Javadoc)
+	 * @see com.vaadin.data.Validator#validate(java.lang.Object)
+	 */
 	public void validate(Object value) throws InvalidValueException {
 		if (!isValid(value)) {
 			throw new InvalidValueException("Username invalid");

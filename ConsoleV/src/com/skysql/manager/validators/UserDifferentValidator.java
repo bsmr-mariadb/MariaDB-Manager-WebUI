@@ -15,22 +15,37 @@
  *
  * Copyright 2012-2014 SkySQL Corporation Ab
  */
- 
+
 package com.skysql.manager.validators;
 
 import com.vaadin.data.Validator;
 import com.vaadin.ui.TextField;
 
+/**
+ * The Class UserDifferentValidator.
+ */
 public class UserDifferentValidator implements Validator {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private TextField otherUser;
 
+	/**
+	 * Instantiates a new user different validator.
+	 *
+	 * @param otherUser the other user
+	 */
 	public UserDifferentValidator(TextField otherUser) {
 		super();
 		this.otherUser = otherUser;
 	}
 
+	/**
+	 * Checks if is valid.
+	 *
+	 * @param value the value
+	 * @return true, if is valid
+	 */
 	public boolean isValid(Object value) {
 		if (value == null || !(value instanceof String)) {
 			return false;
@@ -41,6 +56,9 @@ public class UserDifferentValidator implements Validator {
 	}
 
 	// Upon failure, the validate() method throws an exception
+	/* (non-Javadoc)
+	 * @see com.vaadin.data.Validator#validate(java.lang.Object)
+	 */
 	public void validate(Object value) throws InvalidValueException {
 		if (!isValid(value)) {
 			throw new InvalidValueException("Database User and Replication User must be different.");

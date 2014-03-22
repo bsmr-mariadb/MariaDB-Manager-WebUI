@@ -21,16 +21,31 @@ package com.skysql.manager.validators;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.PasswordField;
 
+/**
+ * The Class PasswordOrKeyValidator.
+ */
 public class PasswordOrKeyValidator implements Validator {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private PasswordField passwordField;
 
+	/**
+	 * Instantiates a new password or key validator.
+	 *
+	 * @param passwordField the password field
+	 */
 	public PasswordOrKeyValidator(PasswordField passwordField) {
 		super();
 		this.passwordField = passwordField;
 	}
 
+	/**
+	 * Checks if is valid.
+	 *
+	 * @param value the value
+	 * @return true, if is valid
+	 */
 	public boolean isValid(Object value) {
 		if (value == null || !(value instanceof String)) {
 			return false;
@@ -42,6 +57,9 @@ public class PasswordOrKeyValidator implements Validator {
 	}
 
 	// Upon failure, the validate() method throws an exception
+	/* (non-Javadoc)
+	 * @see com.vaadin.data.Validator#validate(java.lang.Object)
+	 */
 	public void validate(Object value) throws InvalidValueException {
 		if (!isValid(value)) {
 			throw new InvalidValueException("Either Root Password or SSH Key must be provided.");
