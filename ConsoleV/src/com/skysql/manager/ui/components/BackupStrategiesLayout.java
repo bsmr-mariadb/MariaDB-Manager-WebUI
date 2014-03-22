@@ -25,9 +25,15 @@ import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class BackupStrategiesLayout.
+ */
 @SuppressWarnings("serial")
 public class BackupStrategiesLayout extends VerticalLayout {
 
+	/**
+	 * The Enum Strategies.
+	 */
 	private enum Strategies {
 		None, Good, Better, Best;
 	}
@@ -35,6 +41,9 @@ public class BackupStrategiesLayout extends VerticalLayout {
 	private UpdaterThread updaterThread;
 	private NativeSelect selectStrategy;
 
+	/**
+	 * Instantiates a new backup strategies layout.
+	 */
 	public BackupStrategiesLayout() {
 
 		addStyleName("strategiesLayout");
@@ -92,6 +101,9 @@ public class BackupStrategiesLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Refresh.
+	 */
 	public void refresh() {
 
 		ManagerUI.log(this.getClass().getName() + " refresh()");
@@ -100,14 +112,29 @@ public class BackupStrategiesLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * The Class UpdaterThread.
+	 */
 	class UpdaterThread extends Thread {
+
+		/** The old updater thread. */
 		UpdaterThread oldUpdaterThread;
+
+		/** The flagged. */
 		volatile boolean flagged = false;
 
+		/**
+		 * Instantiates a new updater thread.
+		 *
+		 * @param oldUpdaterThread the old updater thread
+		 */
 		UpdaterThread(UpdaterThread oldUpdaterThread) {
 			this.oldUpdaterThread = oldUpdaterThread;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Thread#run()
+		 */
 		@Override
 		public void run() {
 			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
@@ -130,6 +157,11 @@ public class BackupStrategiesLayout extends VerticalLayout {
 		}
 	}
 
+	/**
+	 * Asynch refresh.
+	 *
+	 * @param updaterThread the updater thread
+	 */
 	private void asynchRefresh(final UpdaterThread updaterThread) {
 
 		ManagerUI managerUI = getSession().getAttribute(ManagerUI.class);

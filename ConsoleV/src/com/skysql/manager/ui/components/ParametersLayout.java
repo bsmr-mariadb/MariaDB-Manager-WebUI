@@ -34,7 +34,6 @@ import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.ui.RunningTask;
 import com.skysql.manager.ui.components.ScriptingControlsLayout.Controls;
 import com.skysql.manager.validators.Password2Validator;
-import com.skysql.manager.validators.PasswordOrKeyValidator;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -57,6 +56,9 @@ import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class ParametersLayout.
+ */
 @SuppressWarnings("serial")
 public class ParametersLayout extends HorizontalLayout {
 
@@ -72,14 +74,22 @@ public class ParametersLayout extends HorizontalLayout {
 	private LinkedHashMap<String, BackupRecord> backupsList;
 	private VerticalLayout backupInfoLayout;
 	private boolean isParameterReady = false;
-	final Form form = new Form();
-	final PasswordField connectPassword = new PasswordField("Root Password");
-	final PasswordField connectPassword2 = new PasswordField("Confirm Password");
-	final TextArea connectKey = new TextArea("SSH Key");
-	final Validator connectValidator = new PasswordOrKeyValidator(connectPassword);
-	final OptionGroup passwordOption = new OptionGroup();
-	public boolean usePassword = false;
+	private boolean usePassword = false;
 
+	private final Form form = new Form();
+	private final PasswordField connectPassword = new PasswordField("Root Password");
+	private final PasswordField connectPassword2 = new PasswordField("Confirm Password");
+	private final TextArea connectKey = new TextArea("SSH Key");
+	//private final Validator connectValidator = new PasswordOrKeyValidator(connectPassword);
+	private final OptionGroup passwordOption = new OptionGroup();
+
+	/**
+	 * Instantiates a new parameters layout.
+	 *
+	 * @param runningTask the running task
+	 * @param nodeInfo the node info
+	 * @param commandEnum the command enum
+	 */
 	public ParametersLayout(final RunningTask runningTask, final NodeInfo nodeInfo, Commands.Command commandEnum) {
 		this.runningTask = runningTask;
 
@@ -324,10 +334,16 @@ public class ParametersLayout extends HorizontalLayout {
 
 	}
 
+	/**
+	 * Checks if is parameter ready.
+	 *
+	 * @return true, if is parameter ready
+	 */
 	public boolean isParameterReady() {
 		return isParameterReady;
 	}
 
+	/** The connect params listener. */
 	private ValueChangeListener connectParamsListener = new ValueChangeListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -347,6 +363,11 @@ public class ParametersLayout extends HorizontalLayout {
 		}
 	};
 
+	/**
+	 * Validate connect params.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean validateConnectParams() {
 
 		try {
@@ -366,8 +387,15 @@ public class ParametersLayout extends HorizontalLayout {
 
 	}
 
+	/** The backup labels. */
 	private String backupLabels[] = { "Node", "Level", "State", "Size", "Restored" };
 
+	/**
+	 * Display backup info.
+	 *
+	 * @param layout the layout
+	 * @param record the record
+	 */
 	final public void displayBackupInfo(VerticalLayout layout, BackupRecord record) {
 		String value;
 		String values[] = { (value = record.getNode()) != null ? value : NOT_AVAILABLE, (value = record.getLevel()) != null ? value : NOT_AVAILABLE,

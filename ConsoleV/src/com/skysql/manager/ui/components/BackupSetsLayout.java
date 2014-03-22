@@ -37,6 +37,9 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.Table;
 
+/**
+ * The Class BackupSetsLayout.
+ */
 @SuppressWarnings("serial")
 public class BackupSetsLayout extends HorizontalLayout {
 
@@ -44,6 +47,9 @@ public class BackupSetsLayout extends HorizontalLayout {
 	private int oldBackupsCount;
 	private UpdaterThread updaterThread;
 
+	/**
+	 * Instantiates a new backup sets layout.
+	 */
 	public BackupSetsLayout() {
 
 		addStyleName("backupsLayout");
@@ -67,6 +73,9 @@ public class BackupSetsLayout extends HorizontalLayout {
 
 	}
 
+	/**
+	 * Refresh.
+	 */
 	public void refresh() {
 
 		ManagerUI.log("BackupsLayout refresh()");
@@ -75,16 +84,28 @@ public class BackupSetsLayout extends HorizontalLayout {
 
 	}
 
+	/**
+	 * The Class UpdaterThread.
+	 */
 	class UpdaterThread extends Thread {
+
 		UpdaterThread oldUpdaterThread;
 		volatile boolean flagged = false;
 		volatile boolean adjust;
 		volatile String format;
 
+		/**
+		 * Instantiates a new updater thread.
+		 *
+		 * @param oldUpdaterThread the old updater thread
+		 */
 		UpdaterThread(UpdaterThread oldUpdaterThread) {
 			this.oldUpdaterThread = oldUpdaterThread;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Thread#run()
+		 */
 		@Override
 		public void run() {
 			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
@@ -107,6 +128,11 @@ public class BackupSetsLayout extends HorizontalLayout {
 		}
 	}
 
+	/**
+	 * Asynch refresh.
+	 *
+	 * @param updaterThread the updater thread
+	 */
 	private void asynchRefresh(final UpdaterThread updaterThread) {
 
 		ManagerUI managerUI = getSession().getAttribute(ManagerUI.class);

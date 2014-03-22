@@ -195,16 +195,9 @@ public class PanelControl extends VerticalLayout {
 	 */
 	class UpdaterThread extends Thread {
 
-		/** The old updater thread. */
 		UpdaterThread oldUpdaterThread;
-
-		/** The flagged. */
 		volatile boolean flagged = false;
-
-		/** The adjust. */
 		volatile boolean adjust;
-
-		/** The format. */
 		volatile String format;
 
 		/**

@@ -28,7 +28,11 @@ import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.NativeSelect;
 
+/**
+ * The Class ChartControls.
+ */
 public class ChartControls extends HorizontalLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private static final Integer INTERVAL_5_MIN = 5 * 60;
@@ -42,6 +46,9 @@ public class ChartControls extends HorizontalLayout {
 	private static final Integer INTERVAL_1_MONTH = INTERVAL_1_DAY * 31;
 	public static final Integer DEFAULT_INTERVAL = INTERVAL_30_MIN;
 
+	/**
+	 * The Enum Themes.
+	 */
 	private enum Themes {
 		Default, Grid, Highcharts;
 	}
@@ -51,6 +58,9 @@ public class ChartControls extends HorizontalLayout {
 	private NativeSelect selectInterval, selectTheme;
 	private ValueChangeListener intervalListener, themeListener;
 
+	/**
+	 * Instantiates a new chart controls.
+	 */
 	public ChartControls() {
 
 		setSpacing(true);
@@ -102,18 +112,33 @@ public class ChartControls extends HorizontalLayout {
 
 	}
 
+	/**
+	 * Select interval.
+	 *
+	 * @param timeSpan the time span
+	 */
 	public void selectInterval(int timeSpan) {
 		selectInterval.removeValueChangeListener(intervalListener);
 		selectInterval.select(timeSpan);
 		selectInterval.addValueChangeListener(intervalListener);
 	}
 
+	/**
+	 * Select theme.
+	 *
+	 * @param themeName the theme name
+	 */
 	public void selectTheme(String themeName) {
 		selectTheme.removeValueChangeListener(themeListener);
 		setTheme(themeName);
 		selectTheme.addValueChangeListener(themeListener);
 	}
 
+	/**
+	 * Sets the theme.
+	 *
+	 * @param themeName the new theme
+	 */
 	private void setTheme(String themeName) {
 
 		selectTheme.select(themeName);
@@ -136,11 +161,21 @@ public class ChartControls extends HorizontalLayout {
 
 	}
 
+	/**
+	 * Adds the interval selection listener.
+	 *
+	 * @param listener the listener
+	 */
 	public void addIntervalSelectionListener(ValueChangeListener listener) {
 		intervalListener = listener;
 		selectInterval.addValueChangeListener(listener);
 	}
 
+	/**
+	 * Adds the theme selection listener.
+	 *
+	 * @param listener the listener
+	 */
 	public void addThemeSelectionListener(ValueChangeListener listener) {
 		themeListener = listener;
 		selectTheme.addValueChangeListener(listener);
