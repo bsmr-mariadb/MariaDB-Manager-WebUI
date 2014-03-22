@@ -41,8 +41,12 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
+/**
+ * The Class UsersSettings.
+ */
 @SuppressWarnings("deprecation")
 public class UsersSettings extends VerticalLayout implements Window.CloseListener {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private Label userName = new Label("Full Name");
@@ -54,6 +58,9 @@ public class UsersSettings extends VerticalLayout implements Window.CloseListene
 	private FormLayout userLayout;
 	private final UsersSettings thisObject = this;
 
+	/**
+	 * Instantiates a new users settings.
+	 */
 	UsersSettings() {
 		addStyleName("usersTab");
 		setSizeFull();
@@ -174,13 +181,23 @@ public class UsersSettings extends VerticalLayout implements Window.CloseListene
 
 	}
 
+	/**
+	 * Adds a user to the list.
+	 *
+	 * @param userID the user id
+	 */
 	public void addToSelect(String userID) {
 		select.addItem(userID);
 		select.select(userID);
-		updateSelect(userID);
+		updateUserName(userID);
 	}
 
-	public void updateSelect(String userID) {
+	/**
+	 * Update user name.
+	 *
+	 * @param userID the user id
+	 */
+	public void updateUserName(String userID) {
 		String name = userInfo.findAnyNameByID(userID);
 		userName.setValue(name);
 		if (userID.equals(currentUserID)) {
@@ -189,12 +206,20 @@ public class UsersSettings extends VerticalLayout implements Window.CloseListene
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.Window.CloseListener#windowClose(com.vaadin.ui.Window.CloseEvent)
+	 */
 	public void windowClose(CloseEvent e) {
 		// reload current UserInfo after possible adds and removes
 		userInfo = new UserInfo(null);
 		VaadinSession.getCurrent().setAttribute(UserInfo.class, userInfo);
 	}
 
+	/**
+	 * Removes the user.
+	 *
+	 * @param event the event
+	 */
 	public void removeUser(Button.ClickEvent event) {
 		secondaryDialog = new ModalWindow("Delete User", null);
 		UI.getCurrent().addWindow(secondaryDialog);

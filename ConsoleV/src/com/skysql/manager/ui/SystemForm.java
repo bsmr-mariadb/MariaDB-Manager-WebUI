@@ -37,8 +37,12 @@ import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class SystemForm.
+ */
 @SuppressWarnings("deprecation")
 public class SystemForm extends VerticalLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	final TextField name = new TextField("Name");
@@ -49,10 +53,16 @@ public class SystemForm extends VerticalLayout {
 	final TextField repUsername = new TextField("Replication Username");
 	final PasswordField repPassword = new PasswordField("Replication Password");
 	final PasswordField repPassword2 = new PasswordField("Confirm Password");
+	final Form form = new Form();
 	private SystemRecord system;
 
-	final Form form = new Form();
-
+	/**
+	 * Instantiates a new system form.
+	 *
+	 * @param system the system
+	 * @param description the description
+	 * @param commitButton the commit button
+	 */
 	SystemForm(final SystemRecord system, String description, final Button commitButton) {
 		this.system = system;
 
@@ -154,6 +164,11 @@ public class SystemForm extends VerticalLayout {
 
 	}
 
+	/**
+	 * Validate system.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean validateSystem() {
 
 		try {

@@ -35,7 +35,6 @@ import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.api.Monitors.PermittedMonitorType;
 import com.skysql.manager.ui.ErrorDialog;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class Monitors.
  */
@@ -45,47 +44,24 @@ public class Monitors {
 	 * The Enum MonitorNames only includes some of the historic monitor names and is used in info panel and popups.
 	 */
 	public enum MonitorNames {
-
-		/** The connections. */
-		connections,
-		/** The traffic. */
-		traffic,
-		/** The availability. */
-		availability,
-		/** The nodestate. */
-		nodestate,
-		/** The capacity. */
-		capacity,
-		/** The hoststate. */
-		hoststate;
+		connections, traffic, availability, nodestate, capacity, hoststate;
 	}
 
 	/**
 	 * The Enum PermittedMonitorType determines which types of monitors are going to be visible to the user.
 	 */
 	public enum PermittedMonitorType {
-
-		/** The sql. */
-		SQL,
-		/** The global. */
-		GLOBAL,
-		/** The js. */
-		JS;
+		SQL, GLOBAL, JS;
 	}
 
 	/**
 	 * The Enum EditableMonitorType determines which types of monitors are going to be editable by the user.
 	 */
 	public enum EditableMonitorType {
-
-		/** The sql. */
 		SQL;
 	}
 
-	/** The monitors map. */
 	private static LinkedHashMap<String, LinkedHashMap<String, MonitorRecord>> monitorsMap;
-
-	/** The current list. */
 	private static LinkedHashMap<String, MonitorRecord> currentList;
 
 	/**

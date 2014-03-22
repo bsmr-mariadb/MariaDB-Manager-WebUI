@@ -25,10 +25,18 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
+/**
+ * The Class TimelineDialog.
+ */
 public class TimelineDialog {
 
 	Window dialogWindow;
 
+	/**
+	 * Instantiates a new timeline dialog.
+	 *
+	 * @param userChart the user chart
+	 */
 	public TimelineDialog(UserChart userChart) {
 
 		dialogWindow = new ModalWindow("Timeline", "800px");

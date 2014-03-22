@@ -34,8 +34,12 @@ import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class UserForm.
+ */
 @SuppressWarnings("deprecation")
 public class UserForm extends VerticalLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	final TextField userName = new TextField("Username");
@@ -45,6 +49,14 @@ public class UserForm extends VerticalLayout {
 	final Form form = new Form();
 	private UserObject user;
 
+	/**
+	 * Instantiates a new user form.
+	 *
+	 * @param userInfo the user info
+	 * @param user the user
+	 * @param description the description
+	 * @param commitButton the commit button
+	 */
 	UserForm(final UserInfo userInfo, final UserObject user, String description, final Button commitButton) {
 		this.user = user;
 
@@ -109,6 +121,11 @@ public class UserForm extends VerticalLayout {
 
 	}
 
+	/**
+	 * Validate user.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean validateUser() {
 
 		try {

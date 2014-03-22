@@ -31,12 +31,19 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class PanelTools.
+ */
 public class PanelTools extends HorizontalLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private Link phpLink, monyogLink;
 	private String phpUrl;
 
+	/**
+	 * Instantiates a new panel tools.
+	 */
 	PanelTools() {
 
 		// thisTab.setSizeFull();
@@ -102,6 +109,9 @@ public class PanelTools extends HorizontalLayout {
 
 	}
 
+	/**
+	 * Refresh.
+	 */
 	public void refresh() {
 
 		ClusterComponent componentInfo = getSession().getAttribute(ClusterComponent.class);

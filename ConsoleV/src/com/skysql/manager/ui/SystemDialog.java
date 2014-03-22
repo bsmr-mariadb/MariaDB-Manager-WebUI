@@ -32,7 +32,11 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
+/**
+ * The Class SystemDialog.
+ */
 public class SystemDialog implements Window.CloseListener {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private Window dialogWindow;
@@ -42,6 +46,12 @@ public class SystemDialog implements Window.CloseListener {
 	private final SystemForm systemForm;
 	private final ComponentButton button;
 
+	/**
+	 * Instantiates a new system dialog.
+	 *
+	 * @param systemRecord the system record
+	 * @param button the button
+	 */
 	public SystemDialog(final SystemRecord systemRecord, final ComponentButton button) {
 		this.button = button;
 
@@ -88,6 +98,11 @@ public class SystemDialog implements Window.CloseListener {
 
 	}
 
+	/**
+	 * Save system.
+	 *
+	 * @param okButtonCaption the ok button caption
+	 */
 	private void saveSystem(final String okButtonCaption) {
 
 		commitButton.setCaption(okButtonCaption);
@@ -132,6 +147,9 @@ public class SystemDialog implements Window.CloseListener {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.Window.CloseListener#windowClose(com.vaadin.ui.Window.CloseEvent)
+	 */
 	public void windowClose(CloseEvent e) {
 		dialogWindow.close();
 	}

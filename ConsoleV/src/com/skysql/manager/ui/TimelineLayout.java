@@ -36,7 +36,11 @@ import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class TimelineLayout.
+ */
 public class TimelineLayout extends VerticalLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	public static final String MAX_TIMESPAN = "31536000"; // 1 year in seconds
@@ -49,6 +53,12 @@ public class TimelineLayout extends VerticalLayout {
 	private String name;
 	private Calendar latestCal;
 
+	/**
+	 * Instantiates a new timeline layout.
+	 *
+	 * @param name the name
+	 * @param monitorIDs the monitor i ds
+	 */
 	public TimelineLayout(String name, ArrayList<String> monitorIDs) {
 		this.name = name;
 
@@ -56,6 +66,11 @@ public class TimelineLayout extends VerticalLayout {
 		initializeContainers(monitorIDs);
 	}
 
+	/**
+	 * Initialize containers.
+	 *
+	 * @param monitorIDs the monitor i ds
+	 */
 	private void initializeContainers(ArrayList<String> monitorIDs) {
 
 		ClusterComponent componentInfo = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
@@ -110,6 +125,11 @@ public class TimelineLayout extends VerticalLayout {
 		return container;
 	}
 
+	/**
+	 * Creates the timeline.
+	 *
+	 * @return the component
+	 */
 	private Component createTimeline() {
 		timeline = new Timeline(name);
 		timeline.setSizeFull();
@@ -159,6 +179,11 @@ public class TimelineLayout extends VerticalLayout {
 		return timeline;
 	}
 
+	/**
+	 * Gets the time line.
+	 *
+	 * @return the time line
+	 */
 	public Component getTimeLine() {
 		createTimeline();
 		return timeline;
