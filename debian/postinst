@@ -1,0 +1,9 @@
+chkconfig --add tomcat7
+#/etc/init.d/tomcat7 restart
+/etc/init.d/tomcat7 stop
+rm -rf /usr/local/tomcat7/webapps/MariaDBManager/
+chown tomcat:tomcat /usr/local/tomcat7/webapps/MariaDBManager.war
+iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
+service iptables save
+/etc/init.d/tomcat7 start
+
