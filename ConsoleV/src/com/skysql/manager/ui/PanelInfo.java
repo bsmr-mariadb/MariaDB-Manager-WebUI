@@ -55,10 +55,15 @@ import com.vaadin.ui.themes.Runo;
 import fi.jasoft.dragdroplayouts.DDCssLayout;
 import fi.jasoft.dragdroplayouts.client.ui.LayoutDragMode;
 
+/**
+ * The Class PanelInfo.
+ */
 @SuppressWarnings("serial")
 public class PanelInfo extends HorizontalSplitPanel {
 
 	private static final String NOT_AVAILABLE = "n/a";
+
+	/** Determines where the split between the info panel and the charts occurs */
 	private static final int PANEL_SPLIT_X = 315;
 
 	private ClusterComponent lastComponent;
@@ -66,10 +71,15 @@ public class PanelInfo extends HorizontalSplitPanel {
 	private VerticalLayout infoLayout, chartsLayout;
 	private DDCssLayout chartsArray;
 	private String chartTime, chartInterval = "1800";
+
+	/** The system labels strings. */
 	private String systemLabelsStrings[] = { "State", "System Type", "Last Monitored", "Availability", "Capacity", "Connections", "Traffic", "Last Backup",
 			"Start Date", "Last Access" };
+
+	/** The node labels strings. */
 	private String nodeLabelsStrings[] = { "State", "Command Running", "Last Monitored", "Availability", "Capacity", "Connections", "Traffic", "Hostname",
 			"Public IP", "Private IP", "Instance ID" };
+
 	private Label systemLabels[], nodeLabels[];
 	private ChartControls chartControls;
 	private ChartsLayout chartsArrayLayout;
@@ -78,6 +88,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 	private ChartProperties chartProperties;
 	private boolean isExpanded = false;
 
+	/** The chart interval listener. */
 	private ValueChangeListener chartIntervalListener = new ValueChangeListener() {
 
 		public void valueChange(ValueChangeEvent event) {
@@ -88,6 +99,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 		}
 	};
 
+	/** The chart theme listener. */
 	private ValueChangeListener chartThemeListener = new ValueChangeListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -99,6 +111,9 @@ public class PanelInfo extends HorizontalSplitPanel {
 
 	};
 
+	/**
+	 * Instantiates a new panel info.
+	 */
 	PanelInfo() {
 
 		addStyleName("infoTab");
@@ -110,6 +125,9 @@ public class PanelInfo extends HorizontalSplitPanel {
 
 	}
 
+	/**
+	 * Creates the info layout.
+	 */
 	private void createInfoLayout() {
 
 		infoLayout = new VerticalLayout();
@@ -187,10 +205,22 @@ public class PanelInfo extends HorizontalSplitPanel {
 		nodeGrid = createCurrentInfo(nodeLabels, nodeLabelsStrings);
 	}
 
+	/**
+	 * Sets the component name.
+	 *
+	 * @param name the new component name
+	 */
 	public void setComponentName(String name) {
 		nameLabel.setValue(name);
 	}
 
+	/**
+	 * Creates the current info.
+	 *
+	 * @param labels the labels
+	 * @param values the values
+	 * @return the component
+	 */
 	private Component createCurrentInfo(Label[] labels, String[] values) {
 		GridLayout currentGrid = new GridLayout(2, labels.length);
 		currentGrid.addStyleName("currentInfo");
@@ -210,6 +240,9 @@ public class PanelInfo extends HorizontalSplitPanel {
 		return (currentGrid);
 	}
 
+	/**
+	 * Creates the charts layout.
+	 */
 	private void createChartsLayout() {
 
 		chartsLayout = new VerticalLayout();
@@ -333,6 +366,9 @@ public class PanelInfo extends HorizontalSplitPanel {
 
 	}
 
+	/**
+	 * Stop refresh.
+	 */
 	public void stopRefresh() {
 		if (chartsArrayLayout != null) {
 			chartsArrayLayout.stopRefresh();
@@ -340,6 +376,9 @@ public class PanelInfo extends HorizontalSplitPanel {
 		}
 	}
 
+	/**
+	 * Refresh.
+	 */
 	public void refresh() {
 		ClusterComponent componentInfo = getSession().getAttribute(ClusterComponent.class);
 		if (componentInfo == null) {
@@ -406,7 +445,7 @@ public class PanelInfo extends HorizontalSplitPanel {
 			}
 			chartsArray = chartsArrayLayout;
 			chartsPanel.setContent(chartsArray);
-			chartProperties.isDirty(false);
+			chartProperties.setDirty(false);
 
 		}
 

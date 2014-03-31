@@ -39,14 +39,17 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class ComponentButton.
+ */
 public class ComponentButton extends VerticalLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	public static final float COMPONENT_HEIGHT = 70;
 	private static final float NODE_WIDTH = 50;
 	private static final float SYSTEM_WIDTH = 69;
 	private static final List<String> capacityStates = Arrays.asList("master", "slave", "joined", "synced", "donor");
-
 	private boolean isSelected = false, isEditable = false;
 	private Embedded editButton, deleteButton;
 	private VerticalLayout imageLayout;
@@ -59,6 +62,11 @@ public class ComponentButton extends VerticalLayout {
 	private ThemeResource errorResource = new ThemeResource("img/alert.png");
 	private ThemeResource runningResource = new ThemeResource("img/running.gif");
 
+	/**
+	 * Instantiates a new component button.
+	 *
+	 * @param componentInfo the component info
+	 */
 	public ComponentButton(ClusterComponent componentInfo) {
 		thisButton = this;
 		this.componentInfo = componentInfo;
@@ -137,10 +145,20 @@ public class ComponentButton extends VerticalLayout {
 
 	}
 
+	/**
+	 * Sets the name.
+	 *
+	 * @param name the new name
+	 */
 	public void setName(String name) {
 		nameLabel.setValue(name);
 	}
 
+	/**
+	 * Sets the command label.
+	 *
+	 * @param taskRecord the new command label
+	 */
 	public void setCommandLabel(TaskRecord taskRecord) {
 		if (taskRecord != null) {
 			switch (CommandStates.States.valueOf(taskRecord.getState())) {
@@ -168,16 +186,30 @@ public class ComponentButton extends VerticalLayout {
 		}
 	}
 
+	/**
+	 * Sets the alert.
+	 *
+	 * @param msg the msg
+	 * @param resource the resource
+	 */
 	private void setAlert(String msg, ThemeResource resource) {
 		alert.setDescription(msg);
 		alert.setSource(resource);
 		alert.setVisible(msg != null);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.AbstractComponent#setDescription(java.lang.String)
+	 */
 	public void setDescription(String description) {
 		info.setDescription(description);
 	}
 
+	/**
+	 * Sets the selected.
+	 *
+	 * @param isSelected the new selected
+	 */
 	public void setSelected(boolean isSelected) {
 		this.isSelected = isSelected;
 
@@ -189,10 +221,22 @@ public class ComponentButton extends VerticalLayout {
 		}
 	}
 
+	/**
+	 * Checks if is selected.
+	 *
+	 * @return true, if is selected
+	 */
 	public boolean isSelected() {
 		return isSelected;
 	}
 
+	/**
+	 * Sets the icon.
+	 *
+	 * @param type the type
+	 * @param state the state
+	 * @param capacity the capacity
+	 */
 	public void setIcon(String type, String state, String capacity) {
 		if (type.equals("node")) {
 			String icon = NodeStates.getNodeIcon(componentInfo.getSystemType(), state);
@@ -218,6 +262,11 @@ public class ComponentButton extends VerticalLayout {
 
 	}
 
+	/**
+	 * Sets the editable.
+	 *
+	 * @param editable the new editable
+	 */
 	public void setEditable(boolean editable) {
 		if (editable && !this.isEditable) {
 			imageLayout.setEnabled(false);
@@ -278,6 +327,11 @@ public class ComponentButton extends VerticalLayout {
 		this.isEditable = editable;
 	}
 
+	/**
+	 * Delete component.
+	 *
+	 * @param clusterComponent the cluster component
+	 */
 	public void deleteComponent(final ClusterComponent clusterComponent) {
 
 		this.clusterComponent = clusterComponent;
@@ -302,8 +356,10 @@ public class ComponentButton extends VerticalLayout {
 
 	}
 
+	/** The secondary dialog. */
 	private WarningWindow secondaryDialog;
 
+	/** The ok listener. */
 	private Button.ClickListener okListener = new Button.ClickListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 

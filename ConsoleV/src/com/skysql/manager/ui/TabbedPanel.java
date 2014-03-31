@@ -26,6 +26,9 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 
+/**
+ * The Class TabbedPanel.
+ */
 @SuppressWarnings("serial")
 public class TabbedPanel implements Serializable {
 
@@ -37,6 +40,11 @@ public class TabbedPanel implements Serializable {
 	private PanelTools panelTools;
 	private VaadinSession session;
 
+	/**
+	 * Instantiates a new tabbed panel.
+	 *
+	 * @param session the session
+	 */
 	public TabbedPanel(VaadinSession session) {
 		this.session = session;
 
@@ -90,10 +98,18 @@ public class TabbedPanel implements Serializable {
 		});
 	}
 
+	/**
+	 * Gets the tab sheet.
+	 *
+	 * @return the tab sheet
+	 */
 	public TabSheet getTabSheet() {
 		return this.tabsheet;
 	}
 
+	/**
+	 * Refresh.
+	 */
 	public void refresh() {
 
 		ClusterComponent componentInfo = session.getAttribute(ClusterComponent.class);

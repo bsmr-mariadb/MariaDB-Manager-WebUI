@@ -30,18 +30,38 @@ import com.google.gson.JsonParseException;
 import com.skysql.manager.BackupRecord;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class Backups to map to API backups.
+ */
 public class Backups {
 
+	/** The backups list. */
 	LinkedHashMap<String, BackupRecord> backupsList;
 
+	/**
+	 * Gets the backups list.
+	 *
+	 * @return the backups list
+	 */
 	public LinkedHashMap<String, BackupRecord> getBackupsList() {
 		return backupsList;
 	}
 
+	/**
+	 * Sets the backups list.
+	 *
+	 * @param backupsList the backups list
+	 */
 	public void setBackupsList(LinkedHashMap<String, BackupRecord> backupsList) {
 		this.backupsList = backupsList;
 	}
 
+	/**
+	 * Gets the backups for a node.
+	 *
+	 * @param nodeID the node id
+	 * @return the backups for node
+	 */
 	public LinkedHashMap<String, BackupRecord> getBackupsForNode(String nodeID) {
 		LinkedHashMap<String, BackupRecord> backupsForNode = new LinkedHashMap<String, BackupRecord>();
 
@@ -54,10 +74,19 @@ public class Backups {
 		return backupsForNode;
 	}
 
+	/**
+	 * Instantiates a new backups.
+	 */
 	public Backups() {
 
 	}
 
+	/**
+	 * Instantiates a new backups.
+	 *
+	 * @param system the system
+	 * @param date the date
+	 */
 	public Backups(String system, String date) {
 
 		APIrestful api = new APIrestful();

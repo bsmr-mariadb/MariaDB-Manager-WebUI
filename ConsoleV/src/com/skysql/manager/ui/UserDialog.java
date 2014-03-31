@@ -30,7 +30,11 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
+/**
+ * The Class UserDialog.
+ */
 public class UserDialog implements Window.CloseListener {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private Window dialogWindow;
@@ -42,6 +46,13 @@ public class UserDialog implements Window.CloseListener {
 	private final UsersSettings usersSettings;
 	private boolean isAdding = false;
 
+	/**
+	 * Instantiates a new user dialog.
+	 *
+	 * @param userInfo the user info
+	 * @param userObject the user object
+	 * @param usersSettings the users settings
+	 */
 	public UserDialog(final UserInfo userInfo, final UserObject userObject, final UsersSettings usersSettings) {
 		this.userInfo = userInfo;
 		this.usersSettings = usersSettings;
@@ -90,6 +101,11 @@ public class UserDialog implements Window.CloseListener {
 
 	}
 
+	/**
+	 * Save user.
+	 *
+	 * @param commitButtonCaption the commit button caption
+	 */
 	private void saveUser(final String commitButtonCaption) {
 
 		final Button cancelButton = new Button("Cancel");
@@ -114,7 +130,7 @@ public class UserDialog implements Window.CloseListener {
 						if (isAdding) {
 							usersSettings.addToSelect(userObject.getUserID());
 						} else {
-							usersSettings.updateSelect(userObject.getUserID());
+							usersSettings.updateUserName(userObject.getUserID());
 						}
 						windowClose(null);
 					} else {
@@ -131,6 +147,9 @@ public class UserDialog implements Window.CloseListener {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.Window.CloseListener#windowClose(com.vaadin.ui.Window.CloseEvent)
+	 */
 	public void windowClose(CloseEvent e) {
 		dialogWindow.close();
 	}

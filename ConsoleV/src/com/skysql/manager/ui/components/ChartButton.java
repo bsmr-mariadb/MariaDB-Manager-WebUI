@@ -41,7 +41,11 @@ import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class ChartButton.
+ */
 public class ChartButton extends CustomComponent {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private VerticalLayout layout;
@@ -52,6 +56,11 @@ public class ChartButton extends CustomComponent {
 	private ChartsLayout chartsLayout;
 	private boolean isEditable;
 
+	/**
+	 * Instantiates a new chart button.
+	 *
+	 * @param userChart the user chart
+	 */
 	public ChartButton(UserChart userChart) {
 		thisButton = this;
 
@@ -114,14 +123,29 @@ public class ChartButton extends CustomComponent {
 		setCompositionRoot(layout);
 	}
 
+	/**
+	 * Gets the chart.
+	 *
+	 * @return the chart
+	 */
 	public Chart getChart() {
 		return chart;
 	}
 
+	/**
+	 * Sets the charts layout.
+	 *
+	 * @param chartsLayout the new charts layout
+	 */
 	public void setChartsLayout(ChartsLayout chartsLayout) {
 		this.chartsLayout = chartsLayout;
 	}
 
+	/**
+	 * Make the chart editable or not
+	 *
+	 * @param editable the new editable
+	 */
 	public void setEditable(boolean editable) {
 		isEditable = editable;
 

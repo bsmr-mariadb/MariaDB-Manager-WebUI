@@ -35,19 +35,40 @@ import com.skysql.manager.UserChart;
 import com.skysql.manager.ui.components.ChartControls;
 import com.vaadin.server.VaadinSession;
 
+/**
+ * The Class ChartProperties.
+ */
 public class ChartProperties implements Serializable {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
+	/** The charts map. */
 	protected LinkedHashMap<String, ArrayList<ChartMappings>> chartsMap;
+
+	/** The time span as selected by the user. */
 	protected int timeSpan;
+
+	/** The theme as selected by the user. */
 	protected String theme;
+
+	/** Charts need to be redrawn */
 	private boolean isDirty;
+
+	/** The user object. */
 	private UserObject userObject;
 
+	/**
+	 * Instantiates a new chart properties.
+	 */
 	public ChartProperties() {
 
 	}
 
+	/**
+	 * Instantiates a new chart properties.
+	 *
+	 * @param dummy 
+	 */
 	public ChartProperties(String dummy) {
 
 		userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
@@ -91,23 +112,52 @@ public class ChartProperties implements Serializable {
 
 	}
 
+	/**
+	 * Gets the charts map.
+	 *
+	 * @return the charts map
+	 */
 	protected LinkedHashMap<String, ArrayList<ChartMappings>> getChartsMap() {
 		return chartsMap;
 	}
 
+	/**
+	 * Sets the charts map.
+	 *
+	 * @param chartsMap the charts map
+	 */
 	protected void setChartsMap(LinkedHashMap<String, ArrayList<ChartMappings>> chartsMap) {
 		this.chartsMap = chartsMap;
 	}
 
+	/**
+	 * Gets the chart mappings.
+	 *
+	 * @param systemType the system type
+	 * @return the chart mappings
+	 */
 	public ArrayList<ChartMappings> getChartMappings(String systemType) {
 		return chartsMap.get(systemType);
 	}
 
+	/**
+	 * Sets the chart mappings.
+	 *
+	 * @param key the key
+	 * @param value the value
+	 */
 	public void setChartMappings(String key, ArrayList<ChartMappings> value) {
 		chartsMap.put(key, value);
 		save();
 	}
 
+	/**
+	 * Find charts using the given monitor.
+	 *
+	 * @param systemType the system type
+	 * @param monitorID the monitor id
+	 * @return the list of charts
+	 */
 	public ArrayList<String> findChartsforMonitor(String systemType, String monitorID) {
 
 		ArrayList<String> chartNames = new ArrayList<String>();
@@ -124,6 +174,9 @@ public class ChartProperties implements Serializable {
 	}
 
 	// {"chartProperties":[{"systemtype":"aws","mappings":[{...},...]},{"systemid":"1","mappings":[{...},...]}]}
+	/**
+	 * Encodes ChartProperties in JSON and saves it to the user's properties
+	 */
 	public void save() {
 
 		StringBuilder sb = new StringBuilder();
@@ -158,32 +211,68 @@ public class ChartProperties implements Serializable {
 
 	}
 
+	/**
+	 * Checks if charts need to be redrawn.
+	 *
+	 * @return true, if is dirty
+	 */
 	public boolean isDirty() {
 		return isDirty;
 	}
 
-	public void isDirty(boolean isDirty) {
+	/**
+	 * Set if charts need to be redrawn.
+	 *
+	 * @param isDirty the is dirty
+	 */
+	public void setDirty(boolean isDirty) {
 		this.isDirty = isDirty;
 	}
 
+	/**
+	 * Gets the time span.
+	 *
+	 * @return the time span
+	 */
 	public int getTimeSpan() {
 		return timeSpan;
 	}
 
+	/**
+	 * Sets the time span.
+	 *
+	 * @param timeSpan the new time span
+	 */
 	public void setTimeSpan(int timeSpan) {
 		this.timeSpan = timeSpan;
 		saveChartSettings();
 	}
 
+	/**
+	 * Gets the theme.
+	 *
+	 * @return the theme
+	 */
 	public String getTheme() {
 		return theme;
 	}
 
+	/**
+	 * Sets the theme.
+	 *
+	 * @param theme the new theme
+	 */
 	public void setTheme(String theme) {
 		this.theme = theme;
 		saveChartSettings();
 	}
 
+	/**
+	 * Turn a single ChartMapping into JSON
+	 *
+	 * @param mapping the mapping
+	 * @return the string
+	 */
 	private String mappingToJSON(ChartMappings mapping) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("{\"name\":" + (mapping.getName() == null ? "null" : "\"" + mapping.getName() + "\""));
@@ -203,6 +292,9 @@ public class ChartProperties implements Serializable {
 		return sb.toString();
 	}
 
+	/**
+	 * Save chart settings as JSON to user's properties.
+	 */
 	private void saveChartSettings() {
 		String settings = "{\"chartSettings\":{\"timeSpan\":" + timeSpan + ",\"theme\":\"" + theme + "\"}}";
 		userObject.setProperty(UserObject.PROPERTY_CHART_SETTINGS, settings);

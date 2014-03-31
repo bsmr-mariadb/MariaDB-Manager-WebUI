@@ -37,8 +37,12 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class SystemLayout.
+ */
 @SuppressWarnings("serial")
 public class SystemLayout extends VerticalLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private boolean isEditable;
@@ -47,6 +51,7 @@ public class SystemLayout extends VerticalLayout {
 	private ComponentButton systemButton;
 	private String systemID;
 
+	/** The component listener. */
 	private LayoutClickListener componentListener = new LayoutClickListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -66,6 +71,11 @@ public class SystemLayout extends VerticalLayout {
 		}
 	};
 
+	/**
+	 * Instantiates a new system layout.
+	 *
+	 * @param systemRecord the system record
+	 */
 	public SystemLayout(SystemRecord systemRecord) {
 
 		addStyleName("systemLayout");
@@ -115,10 +125,20 @@ public class SystemLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Gets the button.
+	 *
+	 * @return the button
+	 */
 	public ComponentButton getButton() {
 		return systemButton;
 	}
 
+	/**
+	 * Sets the editable.
+	 *
+	 * @param editable the new editable
+	 */
 	public void setEditable(boolean editable) {
 		isEditable = editable;
 
@@ -130,6 +150,11 @@ public class SystemLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Delete component.
+	 *
+	 * @param button the button
+	 */
 	public void deleteComponent(ComponentButton button) {
 		removeComponent(button);
 
@@ -147,6 +172,12 @@ public class SystemLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Refresh.
+	 *
+	 * @param updaterThread the updater thread
+	 * @param systemRecord the system record
+	 */
 	public void refresh(final OverviewPanel.UpdaterThread updaterThread, SystemRecord systemRecord) {
 
 		VaadinSession session = getSession();

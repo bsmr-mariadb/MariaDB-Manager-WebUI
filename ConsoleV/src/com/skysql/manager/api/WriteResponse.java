@@ -25,41 +25,80 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 
+/**
+ * The Class WriteResponse parses the API response from a write operation (PUT, POST or DELETE).
+ */
 public class WriteResponse {
 
 	private int updateCount;
 	private int deleteCount;
 	private String insertKey;
 
+	/**
+	 * Gets the update count.
+	 *
+	 * @return the update count
+	 */
 	public int getUpdateCount() {
 		return updateCount;
 	}
 
+	/**
+	 * Sets the update count.
+	 *
+	 * @param updateCount the new update count
+	 */
 	protected void setUpdateCount(int updateCount) {
 		this.updateCount = updateCount;
 	}
 
+	/**
+	 * Gets the delete count.
+	 *
+	 * @return the delete count
+	 */
 	public int getDeleteCount() {
 		return deleteCount;
 	}
 
+	/**
+	 * Sets the delete count.
+	 *
+	 * @param deleteCount the new delete count
+	 */
 	protected void setDeleteCount(int deleteCount) {
 		this.deleteCount = deleteCount;
 	}
 
+	/**
+	 * Gets the insert key.
+	 *
+	 * @return the insert key
+	 */
 	public String getInsertKey() {
 		return insertKey;
 	}
 
+	/**
+	 * Sets the insert key.
+	 *
+	 * @param insertKey the new insert key
+	 */
 	protected void setInsertKey(String insertKey) {
 		this.insertKey = insertKey;
 	}
 
+	/**
+	 * Instantiates a new write response.
+	 */
 	protected WriteResponse() {
 	}
 
 }
 
+/**
+ * The Class ResponseDeserializer.
+ */
 class ResponseDeserializer implements JsonDeserializer<WriteResponse> {
 	public WriteResponse deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 

@@ -36,11 +36,21 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
+/**
+ * The Class ErrorDialog.
+ */
 @SuppressWarnings("serial")
 public class ErrorDialog implements Window.CloseListener {
 
+	/** The dialog window. */
 	Window dialogWindow;
 
+	/**
+	 * Instantiates a new error dialog.
+	 *
+	 * @param e the exception
+	 * @param humanizedError the humanized error
+	 */
 	public ErrorDialog(Exception e, String humanizedError) {
 
 		if (e != null) {
@@ -138,7 +148,11 @@ public class ErrorDialog implements Window.CloseListener {
 
 	}
 
-	/** In case the window is closed otherwise. */
+	/**
+	 *  In case the window is closed otherwise.
+	 *
+	 * @param e the exception
+	 */
 	@Override
 	public void windowClose(CloseEvent e) {
 		UI.getCurrent().close();

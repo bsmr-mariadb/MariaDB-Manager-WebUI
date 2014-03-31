@@ -33,17 +33,20 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
+/**
+ * The Class SetupDialog.
+ */
 public class SetupDialog implements Window.CloseListener {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
-
-	Window dialogWindow;
-	Button openButton;
-	Button closebutton;
-
+	private Window dialogWindow;
 	private Component currentForm = new VerticalLayout();
 	private HorizontalLayout wrapper;
 	private HorizontalLayout buttonsBar;
 
+	/**
+	 * Instantiates a new setup dialog.
+	 */
 	public SetupDialog() {
 
 		dialogWindow = new ModalWindow("Initial System Setup", "350px");
@@ -77,8 +80,9 @@ public class SetupDialog implements Window.CloseListener {
 
 	}
 
-	int i = 0;
-
+	/**
+	 * Next form.
+	 */
 	private void nextForm() {
 		UserInfo userInfo = new UserInfo(null);
 		if (userInfo == null || userInfo.getUsersList() == null || userInfo.getUsersList().size() == 0) {
@@ -93,15 +97,15 @@ public class SetupDialog implements Window.CloseListener {
 
 	}
 
-	UserInfo userInfo;
-	UserForm userForm;
-
+	/**
+	 * Add user.
+	 */
 	private void inputUser() {
 
 		final Button finishedButton = new Button("Add User");
 
 		final UserObject user = new UserObject();
-		userForm = new UserForm(null, user, "Add User to the System", finishedButton);
+		final UserForm userForm = new UserForm(null, user, "Add User to the System", finishedButton);
 		wrapper.replaceComponent(currentForm, userForm);
 		currentForm = userForm;
 
@@ -121,6 +125,9 @@ public class SetupDialog implements Window.CloseListener {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.Window.CloseListener#windowClose(com.vaadin.ui.Window.CloseEvent)
+	 */
 	public void windowClose(CloseEvent e) {
 		dialogWindow.close();
 	}

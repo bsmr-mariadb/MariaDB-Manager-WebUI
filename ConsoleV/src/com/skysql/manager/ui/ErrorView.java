@@ -26,9 +26,20 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class ErrorView.
+ */
 public class ErrorView extends VerticalLayout {
+
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
+	/**
+	 * Instantiates a new error view.
+	 *
+	 * @param type the notification type
+	 * @param errorMsg the error msg
+	 */
 	public ErrorView(Type type, String errorMsg) {
 
 		addStyleName("loginView");

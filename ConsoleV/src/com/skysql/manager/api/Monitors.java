@@ -35,16 +35,28 @@ import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.api.Monitors.PermittedMonitorType;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class Monitors.
+ */
 public class Monitors {
 
+	/**
+	 * The Enum MonitorNames only includes some of the historic monitor names and is used in info panel and popups.
+	 */
 	public enum MonitorNames {
 		connections, traffic, availability, nodestate, capacity, hoststate;
 	}
 
+	/**
+	 * The Enum PermittedMonitorType determines which types of monitors are going to be visible to the user.
+	 */
 	public enum PermittedMonitorType {
 		SQL, GLOBAL, JS;
 	}
 
+	/**
+	 * The Enum EditableMonitorType determines which types of monitors are going to be editable by the user.
+	 */
 	public enum EditableMonitorType {
 		SQL;
 	}
@@ -52,10 +64,21 @@ public class Monitors {
 	private static LinkedHashMap<String, LinkedHashMap<String, MonitorRecord>> monitorsMap;
 	private static LinkedHashMap<String, MonitorRecord> currentList;
 
+	/**
+	 * Gets the monitors list.
+	 *
+	 * @return the monitors list
+	 */
 	public static LinkedHashMap<String, MonitorRecord> getMonitorsList() {
 		return currentList;
 	}
 
+	/**
+	 * Gets the monitors list.
+	 *
+	 * @param systemType the system type
+	 * @return the monitors list
+	 */
 	public static LinkedHashMap<String, MonitorRecord> getMonitorsList(String systemType) {
 		if (monitorsMap == null) {
 			reloadMonitors();
@@ -64,18 +87,35 @@ public class Monitors {
 		return currentList;
 	}
 
+	/**
+	 * Gets the monitor.
+	 *
+	 * @param ID the id
+	 * @return the monitor
+	 */
 	public static MonitorRecord getMonitor(String ID) {
 		return (currentList != null ? currentList.get(ID) : null);
 	}
 
+	/**
+	 * Sets the monitors map.
+	 *
+	 * @param monitorsMap the monitors map
+	 */
 	protected void setMonitorsMap(LinkedHashMap<String, LinkedHashMap<String, MonitorRecord>> monitorsMap) {
 		Monitors.monitorsMap = monitorsMap;
 	}
 
+	/**
+	 * Instantiates a new monitors.
+	 */
 	public Monitors() {
 
 	}
 
+	/**
+	 * Reload list of monitors from API.
+	 */
 	public synchronized static void reloadMonitors() {
 
 		APIrestful api = new APIrestful();
@@ -94,6 +134,12 @@ public class Monitors {
 
 	}
 
+	/**
+	 * Writes the monitor to the API.
+	 *
+	 * @param monitor the monitor
+	 * @return true, if successful
+	 */
 	public synchronized static boolean setMonitor(MonitorRecord monitor) {
 
 		APIrestful api = new APIrestful();
@@ -136,6 +182,12 @@ public class Monitors {
 
 	}
 
+	/**
+	 * Checks if the proposed monitor key is unique.
+	 *
+	 * @param proposedName the proposed name
+	 * @return true, if is name unique
+	 */
 	public static boolean isNameUnique(String proposedName) {
 		for (Map.Entry<String, MonitorRecord> entry : currentList.entrySet()) {
 			MonitorRecord monitor = entry.getValue();
@@ -146,6 +198,12 @@ public class Monitors {
 		return true;
 	}
 
+	/**
+	 * Creates the unique monitor ID (API: monitor key).
+	 *
+	 * @param name the name
+	 * @return the string
+	 */
 	private synchronized static String createUniqueID(String name) {
 		String ID = name.replaceAll("[^a-zA-Z0-9.-]", "");
 		int i = 0;
@@ -156,6 +214,12 @@ public class Monitors {
 		return uniqueID;
 	}
 
+	/**
+	 * Deletes monitor from API.
+	 *
+	 * @param monitor the monitor
+	 * @return true, if successful
+	 */
 	public synchronized static boolean deleteMonitor(MonitorRecord monitor) {
 
 		APIrestful api = new APIrestful();
@@ -222,6 +286,7 @@ public class Monitors {
 	{"systemtype":"galera","monitor":"flowcontrol","name":"Flow Controlled","sql":"select variable_value from global_status where variable_name = \"WSREP_FLOW_CONTROL_SENT\";","description":"Flow control messages sent","charttype":"LineChart","delta":"1","monitortype":"SQL","systemaverage":"0","interval":"30","unit":null,"monitorid":"17"},
 	{"systemtype":"galera","monitor":"sendqueue","name":"Avg Send Queue","sql":"select variable_value from global_status where variable_name = \"WSREP_LOCAL_SEND_QUEUE_AVG\";","description":"Average length of send queue","charttype":"LineChart","delta":"0","monitortype":"SQL","systemaverage":"1","interval":"30","unit":null,"monitorid":"18"}]}
 ***/
+
 class MonitorsDeserializer implements JsonDeserializer<Monitors> {
 	public Monitors deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		Monitors monitors = new Monitors();

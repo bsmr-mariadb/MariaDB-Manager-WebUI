@@ -27,9 +27,15 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class ScriptingControlsLayout.
+ */
 @SuppressWarnings("serial")
 public class ScriptingControlsLayout extends VerticalLayout {
 
+	/**
+	 * The Enum Controls.
+	 */
 	public enum Controls {
 		Run, Schedule, Stop, Pause;
 	}
@@ -37,6 +43,12 @@ public class ScriptingControlsLayout extends VerticalLayout {
 	private LinkedHashMap<String, Button> ctrlButtons = new LinkedHashMap<String, Button>();
 	private UpdaterThread updaterThread;
 
+	/**
+	 * Instantiates a new scripting controls layout.
+	 *
+	 * @param runningTask the running task
+	 * @param controls the controls
+	 */
 	public ScriptingControlsLayout(final RunningTask runningTask, Controls[] controls) {
 
 		addStyleName("scriptingControlsLayout");
@@ -64,22 +76,42 @@ public class ScriptingControlsLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Enable controls.
+	 *
+	 * @param enable the enable
+	 */
 	public void enableControls(boolean enable) {
 		enableControls(enable, ctrlButtons.keySet().toArray(new Controls[0]));
 	}
 
+	/**
+	 * Enable controls.
+	 *
+	 * @param enable the enable
+	 * @param control the control
+	 */
 	public void enableControls(boolean enable, Controls control) {
 		String key = control.name();
 		Button button = ctrlButtons.get(key);
 		button.setEnabled(enable);
 	}
 
+	/**
+	 * Enable controls.
+	 *
+	 * @param enable the enable
+	 * @param controls the controls
+	 */
 	public void enableControls(boolean enable, Controls[] controls) {
 		for (Controls control : controls) {
 			enableControls(enable, control);
 		}
 	}
 
+	/**
+	 * Refresh.
+	 */
 	public void refresh() {
 
 		ManagerUI.log("ScheduledLayout refresh()");
@@ -88,14 +120,29 @@ public class ScriptingControlsLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * The Class UpdaterThread.
+	 */
 	class UpdaterThread extends Thread {
+
+		/** The old updater thread. */
 		UpdaterThread oldUpdaterThread;
+
+		/** The flagged. */
 		volatile boolean flagged = false;
 
+		/**
+		 * Instantiates a new updater thread.
+		 *
+		 * @param oldUpdaterThread the old updater thread
+		 */
 		UpdaterThread(UpdaterThread oldUpdaterThread) {
 			this.oldUpdaterThread = oldUpdaterThread;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Thread#run()
+		 */
 		@Override
 		public void run() {
 			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
@@ -118,6 +165,11 @@ public class ScriptingControlsLayout extends VerticalLayout {
 		}
 	}
 
+	/**
+	 * Asynch refresh.
+	 *
+	 * @param updaterThread the updater thread
+	 */
 	private void asynchRefresh(final UpdaterThread updaterThread) {
 
 		ManagerUI managerUI = getSession().getAttribute(ManagerUI.class);

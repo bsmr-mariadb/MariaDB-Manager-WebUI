@@ -23,8 +23,17 @@ import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.ui.components.ComponentButton;
 
+/**
+ * The Class ComponentDialog.
+ */
 public class ComponentDialog {
 
+	/**
+	 * Instantiates a new component dialog.
+	 *
+	 * @param componentInfo the component info
+	 * @param button the button
+	 */
 	public ComponentDialog(ClusterComponent componentInfo, ComponentButton button) {
 
 		switch (componentInfo.getType()) {

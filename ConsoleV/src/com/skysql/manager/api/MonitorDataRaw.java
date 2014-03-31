@@ -35,6 +35,9 @@ import com.vaadin.addon.timeline.Timeline;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.IndexedContainer;
 
+/**
+ * The Class MonitorDataRaw gets the raw, unprocessed monitor data from the API for the TimeLine.
+ */
 public class MonitorDataRaw {
 
 	private MonitorRecord monitor;
@@ -43,26 +46,60 @@ public class MonitorDataRaw {
 	private String system, node;
 	private Long timeEnd;
 
+	/**
+	 * Gets the data points.
+	 *
+	 * @return the data points
+	 */
 	public ArrayList<Double> getDataPoints() {
 		return dataPoints;
 	}
 
+	/**
+	 * Sets the data points.
+	 *
+	 * @param dataPoints the new data points
+	 */
 	public void setDataPoints(ArrayList<Double> dataPoints) {
 		this.dataPoints = dataPoints;
 	}
 
+	/**
+	 * Gets the time stamps.
+	 *
+	 * @return the time stamps
+	 */
 	public ArrayList<Long> getTimeStamps() {
 		return timeStamps;
 	}
 
+	/**
+	 * Sets the time stamps.
+	 *
+	 * @param timeStamps the new time stamps
+	 */
 	public void setTimeStamps(ArrayList<Long> timeStamps) {
 		this.timeStamps = timeStamps;
 	}
 
+	/**
+	 * Gets the latest time.
+	 *
+	 * @return the latest time
+	 */
 	public Long getLatestTime() {
 		return (timeStamps == null || timeStamps.size() == 0) ? null : timeStamps.get(timeStamps.size() - 1);
 	}
 
+	/**
+	 * Updates the monitor data from the API.
+	 *
+	 * @param system the system
+	 * @param node the node
+	 * @param time the time
+	 * @param interval the interval
+	 * @return true, if successful
+	 */
 	public boolean update(String system, String node, String time, String interval) {
 
 		MonitorDataRaw newMonitorData;
@@ -84,6 +121,11 @@ public class MonitorDataRaw {
 		return false;
 	}
 
+	/**
+	 * Fill data source.
+	 *
+	 * @param container the container
+	 */
 	public void fillDataSource(IndexedContainer container) {
 
 		Calendar cal = new GregorianCalendar();
@@ -103,9 +145,21 @@ public class MonitorDataRaw {
 		}
 	}
 
+	/**
+	 * Instantiates a new MonitorDataRaw.
+	 */
 	public MonitorDataRaw() {
 	}
 
+	/**
+	 * Instantiates a new monitor data raw.
+	 *
+	 * @param monitor the monitor
+	 * @param system the system
+	 * @param node the node
+	 * @param timeEnd the time end
+	 * @param interval the interval
+	 */
 	public MonitorDataRaw(MonitorRecord monitor, String system, String node, Long timeEnd, String interval) {
 
 		if (timeEnd == null) {
@@ -140,6 +194,9 @@ public class MonitorDataRaw {
 	}
 }
 
+/**
+ * The Class MonitorDataRawDeserializer.
+ */
 class MonitorDataRawDeserializer implements JsonDeserializer<MonitorDataRaw> {
 	public MonitorDataRaw deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		MonitorDataRaw monitorData = new MonitorDataRaw();

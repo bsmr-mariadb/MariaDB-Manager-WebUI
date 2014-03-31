@@ -67,31 +67,66 @@ import com.skysql.manager.MonitorLatest;
 import com.skysql.manager.ui.ErrorDialog;
 import com.vaadin.ui.Notification;
 
+/**
+ * The Class APIrestful handles communication with the API.
+ */
 public class APIrestful {
 
+	/** The Constant sdf defines the format that date fields are expected to be received in from the API. */
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+
+	/** The api uri. */
 	private static String apiURI;
+
+	/** The key ID and code for the authentication header */
 	private static String keyID, keyCode;
+
+	/** The gson class for parsing the API responses */
 	private static Gson gson;
+
+	/** The api class singleton. */
 	private static APIrestful api;
 
+	/** The success code. */
 	protected boolean success;
+
+	/** The response code. */
 	private int responseCode = 200;
+
+	/** The last call to the API. */
 	private String lastCall;
+
+	/** The last result from the API. */
 	private String result;
+
+	/** The last errors from the API. */
 	private String errors;
+
+	/** The API version as returned by the API. */
 	private static String version;
 
+	/**
+	 * Gets the API uri.
+	 *
+	 * @return the uri
+	 */
 	public static String getURI() {
 		return apiURI;
 	}
 
+	/**
+	 * Creates or obtains the instance of the api singleton.
+	 *
+	 * @param URI the uri
+	 * @param keys the keys ID and code table
+	 * @return the api instance
+	 */
 	public static APIrestful newInstance(String URI, Hashtable<String, String> keys) {
 		if (api == null) {
 			api = new APIrestful();
 			apiURI = URI;
 			if (keys.size() > 0) {
-				// for now take first set - in future loop through and take first one that works
+				// TODO: for now it takes first set - needs to be changed into searching for the GUI's own ID ("1") and produce an error if it cannot find it 
 				keyID = (String) keys.keySet().toArray()[0];
 				keyCode = keys.get(keyID);
 			}
@@ -104,6 +139,11 @@ public class APIrestful {
 		return api;
 	}
 
+	/**
+	 * Gets the gson class.
+	 *
+	 * @return the gson
+	 */
 	public static Gson getGson() {
 		if (gson == null) {
 			GsonBuilder gsonBuilder = new GsonBuilder();
@@ -114,7 +154,6 @@ public class APIrestful {
 			gsonBuilder.registerTypeAdapter(CommandStates.class, new CommandStatesDeserializer());
 			gsonBuilder.registerTypeAdapter(Monitors.class, new MonitorsDeserializer());
 			gsonBuilder.registerTypeAdapter(MonitorData.class, new MonitorDataDeserializer());
-			gsonBuilder.registerTypeAdapter(MonitorDataLatest.class, new MonitorDataLatestDeserializer());
 			gsonBuilder.registerTypeAdapter(MonitorDataRaw.class, new MonitorDataRawDeserializer());
 			gsonBuilder.registerTypeAdapter(MonitorLatest.class, new ObjectDeserializer());
 			gsonBuilder.registerTypeAdapter(NodeInfo.class, new NodeInfoDeserializer());
@@ -138,78 +177,167 @@ public class APIrestful {
 		return gson;
 	}
 
+	/**
+	 * The Enum CallType.
+	 */
 	protected enum CallType {
 		GET, PUT, POST, DELETE;
 	}
 
+	/**
+	 * Checks if is successful.
+	 *
+	 * @return true, if is success
+	 */
 	public boolean isSuccess() {
 		return success;
 	}
 
+	/**
+	 * Gets the result.
+	 *
+	 * @return the result
+	 */
 	public String getResult() {
 		return result;
 	}
 
+	/**
+	 * Gets the errors.
+	 *
+	 * @return the errors
+	 */
 	public String getErrors() {
 		return errors;
 	}
 
+	/**
+	 * Gets the call.
+	 *
+	 * @return the call
+	 */
 	public String getCall() {
 		return lastCall;
 	}
 
+	/**
+	 * Gets the version.
+	 *
+	 * @return the version
+	 */
 	public String getVersion() {
 		return version;
 	}
 
+	/**
+	 * Sets the success.
+	 *
+	 * @param success the new success
+	 */
 	protected void setSuccess(boolean success) {
 		this.success = success;
 	}
 
+	/**
+	 * Sets the result.
+	 *
+	 * @param result the new result
+	 */
 	protected void setResult(String result) {
 		this.result = result;
 	}
 
+	/**
+	 * Sets the errors.
+	 *
+	 * @param errors the new errors
+	 */
 	protected void setErrors(String errors) {
 		this.errors = errors;
 	}
 
+	/**
+	 * Error string.
+	 *
+	 * @return the string
+	 */
 	public String errorString() {
 		return "<p class=\"api-response\">" + getCall() + "</p>" + "HTTP " + responseCode + " - "
 				+ (getResult() != null ? "Response: <p class=\"api-response\">" + getResult() + "</p>" : "")
 				+ (getErrors() != null ? "Errors: <p class=\"api-response\">" + getErrors() + "</p>" : "");
 	}
 
+	/**
+	 * Gets the.
+	 *
+	 * @param uri the uri
+	 * @return true, if successful
+	 */
 	public boolean get(String uri) {
 
 		return call(uri, CallType.GET, null);
 
 	}
 
+	/**
+	 * Performs a GET
+	 *
+	 * @param uri the uri
+	 * @param value the value
+	 * @return true, if successful
+	 */
 	public boolean get(String uri, String value) {
 
 		return call(uri, CallType.GET, value);
 
 	}
 
+	/**
+	 * Performs a PUT
+	 *
+	 * @param uri the uri
+	 * @param value the value
+	 * @return true, if successful
+	 */
 	public boolean put(String uri, String value) {
 
 		return call(uri, CallType.PUT, value);
 
 	}
 
+	/**
+	 * Performs a POST
+	 *
+	 * @param uri the uri
+	 * @param value the value
+	 * @return true, if successful
+	 */
 	public boolean post(String uri, String value) {
 
 		return call(uri, CallType.POST, value);
 
 	}
 
+	/**
+	 * Performs a DELETE.
+	 *
+	 * @param uri the uri
+	 * @return true, if successful
+	 */
 	public boolean delete(String uri) {
 
 		return call(uri, CallType.DELETE, null);
 
 	}
 
+	/**
+	 * Makes a call to the API
+	 *
+	 * @param uri the uri
+	 * @param type the type (GET,PUT,POST,DELETE)
+	 * @param value the value
+	 * @return true, if successful
+	 */
 	private boolean call(String uri, CallType type, String value) {
 
 		HttpURLConnection httpConnection = null;
@@ -343,6 +471,12 @@ public class APIrestful {
 
 	}
 
+	/**
+	 * Encrypt the authentication header as per API requirements.
+	 *
+	 * @param input the input
+	 * @return the string
+	 */
 	public String encryptAES(String input) {
 		SecureRandom random = new SecureRandom();
 		byte ivBytes[] = new byte[16];
@@ -395,6 +529,9 @@ public class APIrestful {
 	}
 }
 
+/**
+ * The Class APIrestfulDeserializer reads the JSON returned by the API.
+ */
 class APIrestfulDeserializer implements JsonDeserializer<APIrestful> {
 	public APIrestful deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 

@@ -30,11 +30,18 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class TopPanel.
+ */
 public class TopPanel extends HorizontalLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private Label userName;
 
+	/**
+	 * Instantiates a new top panel.
+	 */
 	public TopPanel() {
 		setSpacing(true);
 		addStyleName("titleLayout");
@@ -93,6 +100,11 @@ public class TopPanel extends HorizontalLayout {
 
 	}
 
+	/**
+	 * Sets the user name.
+	 *
+	 * @param name the new user name
+	 */
 	public void setUserName(String name) {
 		userName.setValue(name);
 	}

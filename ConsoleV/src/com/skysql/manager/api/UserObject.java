@@ -36,6 +36,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class UserObject.
+ */
 public class UserObject {
 
 	public static final String PROPERTY_CHART_MAPPINGS = "com.skysql.manager.chart.mappings";
@@ -49,22 +52,48 @@ public class UserObject {
 	private String password;
 	private LinkedHashMap<String, String> properties;
 
+	/**
+	 * Gets the user id.
+	 *
+	 * @return the user id
+	 */
 	public String getUserID() {
 		return userID;
 	}
 
+	/**
+	 * Gets the name.
+	 *
+	 * @return the name
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Gets the password.
+	 *
+	 * @return the password
+	 */
 	public String getPassword() {
 		return password;
 	}
 
+	/**
+	 * Gets the user name if available or the id.
+	 *
+	 * @return the any name
+	 */
 	public String getAnyName() {
 		return (name != null && !name.isEmpty()) ? name : userID;
 	}
 
+	/**
+	 * Gets the property.
+	 *
+	 * @param key the key
+	 * @return the property
+	 */
 	public String getProperty(String key) {
 		if (properties != null)
 			return properties.get(key);
@@ -72,6 +101,11 @@ public class UserObject {
 			return null;
 	}
 
+	/**
+	 * Saves the user to the API.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean set() {
 		try {
 			APIrestful api = new APIrestful();
@@ -94,6 +128,13 @@ public class UserObject {
 		return false;
 	}
 
+	/**
+	 * Sets the property.
+	 *
+	 * @param key the key
+	 * @param value the value
+	 * @return true, if successful
+	 */
 	public boolean setProperty(String key, String value) {
 		if (properties == null) {
 			properties = new LinkedHashMap<String, String>();
@@ -112,6 +153,12 @@ public class UserObject {
 
 	}
 
+	/**
+	 * Delete property.
+	 *
+	 * @param key the key
+	 * @return true, if successful
+	 */
 	public boolean deleteProperty(String key) {
 		if (properties != null) {
 			APIrestful api = new APIrestful();
@@ -124,31 +171,67 @@ public class UserObject {
 		return false;
 	}
 
+	/**
+	 * Sets the user id.
+	 *
+	 * @param userID the new user id
+	 */
 	public void setUserID(String userID) {
 		this.userID = userID;
 	}
 
+	/**
+	 * Sets the name.
+	 *
+	 * @param name the new name
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	/**
+	 * Sets the password.
+	 *
+	 * @param password the new password
+	 */
 	public void setPassword(String password) {
 		this.password = password;
 	}
 
+	/**
+	 * Sets the properties.
+	 *
+	 * @param properties the properties
+	 */
 	protected void setProperties(LinkedHashMap<String, String> properties) {
 		this.properties = properties;
 	}
 
+	/**
+	 * Instantiates a new user object.
+	 */
 	public UserObject() {
 
 	}
 
+	/**
+	 * Instantiates a new user object.
+	 *
+	 * @param userID the user id
+	 * @param name the name
+	 */
 	public UserObject(String userID, String name) {
 		this.userID = userID;
 		this.name = name;
 	}
 
+	/**
+	 * Logs user with the API.
+	 *
+	 * @param userID the user id
+	 * @param password the password
+	 * @return true, if successful
+	 */
 	public boolean login(String userID, String password) {
 
 		APIrestful api = new APIrestful();
@@ -180,6 +263,9 @@ public class UserObject {
 	}
 }
 
+/**
+ * The Class UserObjectDeserializer.
+ */
 class UserObjectDeserializer implements JsonDeserializer<UserObject> {
 	public UserObject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		UserObject userObject = new UserObject();

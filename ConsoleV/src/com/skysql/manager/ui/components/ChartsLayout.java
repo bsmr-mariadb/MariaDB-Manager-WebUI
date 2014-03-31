@@ -54,7 +54,11 @@ import fi.jasoft.dragdroplayouts.drophandlers.DefaultCssLayoutDropHandler;
 import fi.jasoft.dragdroplayouts.events.LayoutBoundTransferable;
 import fi.jasoft.dragdroplayouts.interfaces.DragFilter;
 
+/**
+ * The Class ChartsLayout.
+ */
 public class ChartsLayout extends DDCssLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private boolean isChartsEditing;
@@ -62,6 +66,13 @@ public class ChartsLayout extends DDCssLayout {
 	private String systemType;
 	private String time, interval;
 
+	/**
+	 * Instantiates a new charts layout.
+	 *
+	 * @param previewMode the preview mode
+	 * @param time the time
+	 * @param interval the interval
+	 */
 	public ChartsLayout(boolean previewMode, String time, String interval) {
 		this.time = time;
 		this.interval = interval;
@@ -88,14 +99,31 @@ public class ChartsLayout extends DDCssLayout {
 
 	}
 
+	/**
+	 * Gets the time.
+	 *
+	 * @return the time
+	 */
 	public String getTime() {
 		return time;
 	}
 
+	/**
+	 * Gets the interval.
+	 *
+	 * @return the interval
+	 */
 	public String getInterval() {
 		return interval;
 	}
 
+	/**
+	 * Initialize charts.
+	 *
+	 * @param chartProperties the chart properties
+	 * @param systemType the system type
+	 * @return true, if successful
+	 */
 	public boolean initializeCharts(ChartProperties chartProperties, String systemType) {
 		this.chartProperties = chartProperties;
 		this.systemType = systemType;
@@ -124,6 +152,12 @@ public class ChartsLayout extends DDCssLayout {
 
 	}
 
+	/**
+	 * Strip missing monitors.
+	 *
+	 * @param chartMapping the chart mapping
+	 * @return true, if successful
+	 */
 	private boolean stripMissingMonitors(ChartMappings chartMapping) {
 		boolean isDirty = false;
 		ArrayList<String> monitorIDs = chartMapping.getMonitorIDs();
@@ -137,6 +171,9 @@ public class ChartsLayout extends DDCssLayout {
 		return isDirty;
 	}
 
+	/**
+	 * Save charts to properties.
+	 */
 	private void saveChartsToProperties() {
 		ArrayList<ChartMappings> chartMappings = new ArrayList<ChartMappings>();
 		Iterator<Component> iter = iterator();
@@ -149,10 +186,21 @@ public class ChartsLayout extends DDCssLayout {
 		chartProperties.setChartMappings(systemType, chartMappings);
 	}
 
+	/**
+	 * Delete chart.
+	 *
+	 * @param chartButton the chart button
+	 */
 	public void deleteChart(Component chartButton) {
 		removeComponent(chartButton);
 	}
 
+	/**
+	 * Replace chart.
+	 *
+	 * @param oldChartButton the old chart button
+	 * @param userChart the user chart
+	 */
 	public void replaceChart(ChartButton oldChartButton, UserChart userChart) {
 
 		userChart.clearMonitorData();
@@ -162,6 +210,11 @@ public class ChartsLayout extends DDCssLayout {
 
 	}
 
+	/**
+	 * Sets the editable.
+	 *
+	 * @param editable the new editable
+	 */
 	public void setEditable(boolean editable) {
 		isChartsEditing = editable;
 		VaadinSession.getCurrent().setAttribute("isChartsEditing", isChartsEditing);
@@ -178,6 +231,9 @@ public class ChartsLayout extends DDCssLayout {
 		}
 	}
 
+	/**
+	 * Hide charts.
+	 */
 	public void hideCharts() {
 		Iterator<Component> iter = iterator();
 		while (iter.hasNext()) {
@@ -190,6 +246,9 @@ public class ChartsLayout extends DDCssLayout {
 		}
 	}
 
+	/**
+	 * Stop refresh.
+	 */
 	public void stopRefresh() {
 		//		if (updaterThread != null && updaterThread.isAlive()) {
 		//			ManagerUI.log(this.getClass().getName() + "Stopping thread: " + updaterThread);
@@ -198,6 +257,12 @@ public class ChartsLayout extends DDCssLayout {
 		//		}
 	}
 
+	/**
+	 * Refresh.
+	 *
+	 * @param time the time
+	 * @param interval the interval
+	 */
 	public void refresh(String time, String interval) {
 		this.time = time;
 		this.interval = interval;
@@ -230,20 +295,40 @@ public class ChartsLayout extends DDCssLayout {
 
 	}
 
+	/**
+	 * The Class UpdaterThread.
+	 */
 	class UpdaterThread extends Thread {
+
+		/** The chart button. */
 		ChartButton chartButton;
+
+		/** The flagged. */
 		volatile boolean flagged = false;
 
+		/**
+		 * Instantiates a new updater thread.
+		 *
+		 * @param chartButton the chart button
+		 */
 		UpdaterThread(ChartButton chartButton) {
 			this.chartButton = chartButton;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Thread#run()
+		 */
 		@Override
 		public void run() {
 			asynchRefresh(this);
 		}
 	}
 
+	/**
+	 * Asynch refresh.
+	 *
+	 * @param updaterThread the updater thread
+	 */
 	private void asynchRefresh(UpdaterThread updaterThread) {
 
 		VaadinSession.getCurrent().setAttribute("ChartsRefresh", true);
@@ -252,6 +337,12 @@ public class ChartsLayout extends DDCssLayout {
 
 	}
 
+	/**
+	 * Refresh code.
+	 *
+	 * @param chartButton the chart button
+	 * @param updaterThread the updater thread
+	 */
 	public void refreshCode(ChartButton chartButton, UpdaterThread updaterThread) {
 		String systemID, nodeID;
 
@@ -441,6 +532,12 @@ public class ChartsLayout extends DDCssLayout {
 
 	}
 
+	/**
+	 * Stamp to string.
+	 *
+	 * @param timestamp the timestamp
+	 * @return the string
+	 */
 	private String stampToString(Long timestamp) {
 
 		Calendar cal = Calendar.getInstance();
@@ -451,6 +548,9 @@ public class ChartsLayout extends DDCssLayout {
 		return timeString;
 	}
 
+	/* (non-Javadoc)
+	 * @see fi.jasoft.dragdroplayouts.DDCssLayout#paintContent(com.vaadin.server.PaintTarget)
+	 */
 	@Override
 	public void paintContent(PaintTarget target) throws PaintException {
 		super.paintContent(target);
@@ -463,8 +563,14 @@ public class ChartsLayout extends DDCssLayout {
 		target.addAttribute(Constants.ATTRIBUTE_HORIZONTAL_DROP_RATIO, 0.5f);
 	}
 
+	/**
+	 * The Class CustomCssLayoutDropHandler.
+	 */
 	public static class CustomCssLayoutDropHandler extends DefaultCssLayoutDropHandler {
 
+		/* (non-Javadoc)
+		 * @see fi.jasoft.dragdroplayouts.drophandlers.DefaultCssLayoutDropHandler#handleComponentReordering(com.vaadin.event.dd.DragAndDropEvent)
+		 */
 		@Override
 		protected void handleComponentReordering(DragAndDropEvent event) {
 			LayoutBoundTransferable transferable = (LayoutBoundTransferable) event.getTransferable();

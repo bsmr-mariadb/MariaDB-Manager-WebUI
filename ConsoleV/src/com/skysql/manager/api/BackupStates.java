@@ -29,21 +29,37 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class BackupStates.
+ */
 public class BackupStates {
 
 	private static BackupStates backupStates;
 	private static LinkedHashMap<String, String> backupStatesDescriptions;
 
+	/**
+	 * Gets the descriptions.
+	 *
+	 * @return the descriptions
+	 */
 	public static LinkedHashMap<String, String> getDescriptions() {
 		GetBackupStates();
 		return BackupStates.backupStatesDescriptions;
 	}
 
+	/**
+	 * Attempts to load the backupstates.
+	 *
+	 * @return true, if successful
+	 */
 	public static boolean load() {
 		GetBackupStates();
 		return (backupStates != null);
 	}
 
+	/**
+	 * Gets the backup states from the API.
+	 */
 	private static void GetBackupStates() {
 		if (backupStates == null) {
 			APIrestful api = new APIrestful();
@@ -61,6 +77,11 @@ public class BackupStates {
 		}
 	}
 
+	/**
+	 * Sets the backup states descriptions.
+	 *
+	 * @param pairs the pairs
+	 */
 	protected void setBackupStatesDescriptions(LinkedHashMap<String, String> pairs) {
 		BackupStates.backupStatesDescriptions = pairs;
 	}

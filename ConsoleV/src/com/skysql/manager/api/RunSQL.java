@@ -23,32 +23,65 @@ import java.net.URLEncoder;
 
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class RunSQL.
+ */
 public class RunSQL {
 
 	private boolean success;
 	private String result;
 	private String errors;
 
+	/**
+	 * Gets the success.
+	 *
+	 * @return the success
+	 */
 	public boolean getSuccess() {
 		return success;
 	}
 
+	/**
+	 * Sets the success.
+	 *
+	 * @param success the new success
+	 */
 	public void setSuccess(boolean success) {
 		this.success = success;
 	}
 
+	/**
+	 * Gets the result.
+	 *
+	 * @return the result
+	 */
 	public String getResult() {
 		return result;
 	}
 
+	/**
+	 * Gets the errors.
+	 *
+	 * @return the errors
+	 */
 	public String getErrors() {
 		return errors;
 	}
 
+	/**
+	 * Instantiates a new class.
+	 */
 	public RunSQL() {
 
 	}
 
+	/**
+	 * Instantiates a new class and asks the API to validate the sql.
+	 *
+	 * @param SQL the sql
+	 * @param systemID the system id
+	 * @param nodeID the node id
+	 */
 	public RunSQL(String SQL, String systemID, String nodeID) {
 		APIrestful api = new APIrestful();
 		try {

@@ -32,6 +32,9 @@ import com.skysql.manager.MonitorLatest;
 
 // {"connections":null,"traffic":null,"availability":null,"nodestate":null,"capacity":null,"hoststate":null,"clustersize":null,"reppaused":null,"parallelism":null,"recvqueue":null,"flowcontrol":null,"sendqueue":null}
 
+/**
+ * The Class ObjectDeserializer.
+ */
 public class ObjectDeserializer implements JsonDeserializer<MonitorLatest> {
 	public MonitorLatest deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		MonitorLatest ml = new MonitorLatest();

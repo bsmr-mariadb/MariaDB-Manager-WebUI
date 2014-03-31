@@ -39,8 +39,16 @@ import net.fortuna.ical4j.model.property.Version;
 import com.skysql.manager.ui.CalendarCustomEvent;
 import com.skysql.manager.ui.CalendarDialog.Until;
 
+/**
+ * The Class iCalSupport. Manipulate iCal entries associated with API's scheduled tasks.
+ */
 public class iCalSupport {
 
+	/**
+	 * Create new ical.
+	 *
+	 * @return the calendar
+	 */
 	public static synchronized Calendar createiCal() {
 		net.fortuna.ical4j.model.Calendar iCalendar = new net.fortuna.ical4j.model.Calendar();
 		iCalendar.getProperties().add(new ProdId("-//SkySQL//MariaDB Manager 1.0//EN"));
@@ -50,7 +58,13 @@ public class iCalSupport {
 		return iCalendar;
 	}
 
-	public static synchronized VEvent createiEvent(CalendarCustomEvent calEvent) {
+	/**
+	 * Create VEvent.
+	 *
+	 * @param calEvent the cal event
+	 * @return the VEvent
+	 */
+	public static synchronized VEvent createVEvent(CalendarCustomEvent calEvent) {
 		// Create a TimeZone
 		//		TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
 		//		TimeZone timezone = registry.getTimeZone("America/Denver");
@@ -99,6 +113,12 @@ public class iCalSupport {
 
 	}
 
+	/**
+	 * Sets the event RRule by parsing the repeat string.
+	 *
+	 * @param repeat the repeat
+	 * @param event the event
+	 */
 	public static synchronized void parseRepeat(String repeat, CalendarCustomEvent event) {
 		if (repeat == null) {
 			event.setRepeat(CalendarCustomEvent.RECUR_NONE);
@@ -130,7 +150,13 @@ public class iCalSupport {
 
 	}
 
-	public static synchronized VEvent readiEvent(String eventString) {
+	/**
+	 * Creates VEvent from eventString.
+	 *
+	 * @param eventString the event string
+	 * @return the vEvent
+	 */
+	public static synchronized VEvent readVEvent(String eventString) {
 
 		try {
 			String wholeCal = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//SkySQL//MariaDB Manager 1.0//EN\r\n" + eventString + "\r\nEND:VCALENDAR";
@@ -147,6 +173,12 @@ public class iCalSupport {
 		return null;
 	}
 
+	/**
+	 * Adds the uid to a VEvent.
+	 *
+	 * @param event the VEvent
+	 * @param uid the uid
+	 */
 	public static synchronized void addUid(VEvent event, String uid) {
 		try {
 			event.getProperty("UID").setValue(uid);
@@ -159,6 +191,12 @@ public class iCalSupport {
 		}
 	}
 
+	/**
+	 * Adds the excluded date.
+	 *
+	 * @param event the event
+	 * @param date the date
+	 */
 	public static synchronized void addExcludedDate(VEvent event, Date date) {
 		final ExDate exDate = new ExDate();
 		//exDate.setTimeZone(tz);
@@ -169,6 +207,12 @@ public class iCalSupport {
 
 	}
 
+	/**
+	 * Delete future recurring events past the given endDate.
+	 *
+	 * @param vEvent the VEvent
+	 * @param endDate the end date
+	 */
 	public static synchronized void deleteAllFuture(VEvent vEvent, Date endDate) {
 		net.fortuna.ical4j.model.Property rruleProperty = vEvent.getProperty("RRULE");
 		String rruleStr = rruleProperty != null ? rruleProperty.getValue() : null;

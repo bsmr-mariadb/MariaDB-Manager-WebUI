@@ -35,19 +35,38 @@ import com.google.gson.JsonParseException;
 import com.skysql.manager.ScheduleRecord;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class Schedule.
+ */
 public class Schedule {
 
-	LinkedHashMap<String, ScheduleRecord> scheduleList;
-	String error;
+	private LinkedHashMap<String, ScheduleRecord> scheduleList;
+	private String error;
 
+	/**
+	 * Gets the schedule list.
+	 *
+	 * @return the schedule list
+	 */
 	public LinkedHashMap<String, ScheduleRecord> getScheduleList() {
 		return scheduleList;
 	}
 
+	/**
+	 * Sets the schedule list.
+	 *
+	 * @param scheduleList the schedule list
+	 */
 	public void setScheduleList(LinkedHashMap<String, ScheduleRecord> scheduleList) {
 		this.scheduleList = scheduleList;
 	}
 
+	/**
+	 * Gets the schedule list for a node.
+	 *
+	 * @param nodeID the node id
+	 * @return the schedule list for node
+	 */
 	public LinkedHashMap<String, ScheduleRecord> getScheduleForNode(String nodeID) {
 		LinkedHashMap<String, ScheduleRecord> scheduleForNode = new LinkedHashMap<String, ScheduleRecord>();
 
@@ -60,10 +79,24 @@ public class Schedule {
 		return scheduleForNode;
 	}
 
+	/**
+	 * Instantiates a new schedule.
+	 */
 	public Schedule() {
 
 	}
 
+	/**
+	 * Instantiates a new schedule.
+	 *
+	 * @param systemID the system id
+	 * @param nodeID the node id
+	 * @param userID the user id
+	 * @param command the command
+	 * @param params the params
+	 * @param state the state
+	 * @param ical the ical
+	 */
 	public Schedule(String systemID, String nodeID, String userID, String command, String params, String state, String ical) {
 
 		APIrestful api = new APIrestful();
@@ -106,6 +139,12 @@ public class Schedule {
 		}
 	}
 
+	/**
+	 * Instantiates a new schedule.
+	 *
+	 * @param system the system
+	 * @param date the date
+	 */
 	public Schedule(String system, String date) {
 
 		APIrestful api = new APIrestful();
@@ -124,6 +163,12 @@ public class Schedule {
 		}
 	}
 
+	/**
+	 * Delete a schedule from the API.
+	 *
+	 * @param id the id
+	 * @return true, if successful
+	 */
 	public static synchronized boolean delete(String id) {
 
 		APIrestful api = new APIrestful();
@@ -134,6 +179,13 @@ public class Schedule {
 		return false;
 	}
 
+	/**
+	 * Update a schedule in the API.
+	 *
+	 * @param scheduleID the schedule id
+	 * @param iCal the i cal
+	 * @return true, if successful
+	 */
 	public static synchronized boolean update(String scheduleID, String iCal) {
 
 		boolean success = false;
@@ -155,6 +207,9 @@ public class Schedule {
 // {"total":"0","scheduled":null}
 // {"schedule":{"scheduleid":"3","command":"backup","systemid":"1","nodeid":"1","username":"admin","level":0,"parameters":"Full","icalentry":"BEGIN:VEVENT\r\nDTSTAMP:20131016T131512Z\r\nDTSTART:20131016T180000Z\r\nDTEND:20131016T190000Z\r\nSUMMARY:Backup\r\nRRULE:FREQ=WEEKLY\r\nEND:VEVENT","nextstart":"Wed, 16 Oct 2013 18:00:00 +0000","atjobnumber":"2","created":"","updated":"Wed, 16 Oct 2013 13:15:12 +0000","state":"scheduled"},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
 
+/**
+ * The Class ScheduleDeserializer.
+ */
 class ScheduleDeserializer implements JsonDeserializer<Schedule> {
 	public Schedule deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 

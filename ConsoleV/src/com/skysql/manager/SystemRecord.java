@@ -31,61 +31,134 @@ import com.skysql.manager.api.WriteResponse;
 import com.skysql.manager.ui.ErrorDialog;
 import com.vaadin.server.VaadinSession;
 
+/**
+ * The Class SystemRecord.
+ */
 public class SystemRecord extends ClusterComponent {
 
+	/** The Constant NOT_AVAILABLE. */
 	private static final String NOT_AVAILABLE = "n/a";
 
+	/** The start date. */
 	private String startDate;
+
+	/** The last access. */
 	private String lastAccess;
+
+	/** The nodes. */
 	private String[] nodes;
+
+	/** The properties. */
 	private LinkedHashMap<String, String> properties;
+
+	/** The last backup. */
 	private String lastBackup;
 
+	/**
+	 * Gets the start date.
+	 *
+	 * @return the start date
+	 */
 	public String getStartDate() {
 		return startDate;
 	}
 
+	/**
+	 * Sets the start date.
+	 *
+	 * @param startDate the new start date
+	 */
 	public void setStartDate(String startDate) {
 		this.startDate = startDate;
 	}
 
+	/**
+	 * Gets the last access.
+	 *
+	 * @return the last access
+	 */
 	public String getLastAccess() {
 		return lastAccess;
 	}
 
+	/**
+	 * Sets the last access.
+	 *
+	 * @param lastAccess the new last access
+	 */
 	public void setLastAccess(String lastAccess) {
 		this.lastAccess = lastAccess;
 	}
 
+	/**
+	 * Gets the nodes.
+	 *
+	 * @return the nodes
+	 */
 	public String[] getNodes() {
 		return nodes;
 	}
 
+	/**
+	 * Sets the nodes.
+	 *
+	 * @param nodes the new nodes
+	 */
 	public void setNodes(String[] nodes) {
 		this.nodes = nodes;
 	}
 
+	/**
+	 * Gets the properties.
+	 *
+	 * @return the properties
+	 */
 	public LinkedHashMap<String, String> getProperties() {
 		return properties;
 	}
 
+	/**
+	 * Sets the properties.
+	 *
+	 * @param properties the properties
+	 */
 	public void setProperties(LinkedHashMap<String, String> properties) {
 		this.properties = properties;
 	}
 
+	/**
+	 * Gets the last backup.
+	 *
+	 * @return the last backup
+	 */
 	public String getLastBackup() {
 		return lastBackup;
 	}
 
+	/**
+	 * Sets the last backup.
+	 *
+	 * @param lastBackup the new last backup
+	 */
 	public void setLastBackup(String lastBackup) {
 		this.lastBackup = lastBackup;
 	}
 
+	/**
+	 * Instantiates a new system record.
+	 *
+	 * @param parentID the parent id
+	 */
 	public SystemRecord(String parentID) {
 		this.type = ClusterComponent.CCType.system;
 		this.parentID = parentID;
 	}
 
+	/**
+	 * Tool tip. Generates the text to be displayed for this System's tooltip.
+	 *
+	 * @return the string
+	 */
 	public String ToolTip() {
 		DateConversion dateConversion = VaadinSession.getCurrent().getAttribute(DateConversion.class);
 
@@ -97,6 +170,11 @@ public class SystemRecord extends ClusterComponent {
 				+ ((this.lastBackup == null) ? NOT_AVAILABLE : dateConversion.adjust(this.lastBackup)) + "</li>" + "</ul>";
 	}
 
+	/**
+	 * Save. Saves the newly created or modified system to the API.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean save() {
 
 		APIrestful api = new APIrestful();
@@ -145,6 +223,11 @@ public class SystemRecord extends ClusterComponent {
 
 	}
 
+	/**
+	 * Delete. Deletes the system from the API.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean delete() {
 
 		APIrestful api = new APIrestful();

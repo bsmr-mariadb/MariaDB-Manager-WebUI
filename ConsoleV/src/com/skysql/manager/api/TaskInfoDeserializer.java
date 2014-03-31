@@ -36,6 +36,10 @@ import com.skysql.manager.TaskRecord;
 ***/
 
 class TaskInfoDeserializer implements JsonDeserializer<TaskInfo> {
+
+	/* (non-Javadoc)
+	 * @see com.google.gson.JsonDeserializer#deserialize(com.google.gson.JsonElement, java.lang.reflect.Type, com.google.gson.JsonDeserializationContext)
+	 */
 	public TaskInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		TaskInfo taskInfo = new TaskInfo();
 

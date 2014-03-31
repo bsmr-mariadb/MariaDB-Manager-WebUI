@@ -42,9 +42,13 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class RunningTask.
+ */
 public final class RunningTask {
 
 	private static final int SHORT_REFRESH_DELAY = 3;
+
 	private VerticalLayout containerLayout;
 	private ScriptingControlsLayout scriptingControlsLayout;
 	private ScriptingProgressLayout scriptingProgressLayout;
@@ -61,6 +65,13 @@ public final class RunningTask {
 	private OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);
 	private TaskRun taskRun;
 
+	/**
+	 * Instantiates a new running task.
+	 *
+	 * @param command the command
+	 * @param nodeInfo the node info
+	 * @param commandSelect the command select
+	 */
 	RunningTask(String command, NodeInfo nodeInfo, ListSelect commandSelect) {
 		this.command = command;
 		this.nodeInfo = nodeInfo;
@@ -137,22 +148,47 @@ public final class RunningTask {
 
 	}
 
+	/**
+	 * Gets the layout.
+	 *
+	 * @return the layout
+	 */
 	public VerticalLayout getLayout() {
 		return containerLayout;
 	}
 
+	/**
+	 * Gets the controls layout.
+	 *
+	 * @return the controls layout
+	 */
 	public ScriptingControlsLayout getControlsLayout() {
 		return scriptingControlsLayout;
 	}
 
+	/**
+	 * Gets the scripting layout.
+	 *
+	 * @return the scripting layout
+	 */
 	public HorizontalLayout getScriptingLayout() {
 		return scriptingLayout;
 	}
 
+	/**
+	 * Gets the command.
+	 *
+	 * @return the command
+	 */
 	public String getCommand() {
 		return command;
 	}
 
+	/**
+	 * Select parameter.
+	 *
+	 * @param parameter the parameter
+	 */
 	public void selectParameter(String parameter) {
 		params = parameter;
 
@@ -161,6 +197,11 @@ public final class RunningTask {
 		}
 	}
 
+	/**
+	 * Control clicked.
+	 *
+	 * @param control the control
+	 */
 	public void controlClicked(Controls control) {
 		switch (control) {
 		case Run:
@@ -182,6 +223,9 @@ public final class RunningTask {
 		}
 	}
 
+	/**
+	 * Start.
+	 */
 	void start() {
 		// disable further command selection immediately
 		commandSelect.setEnabled(false);
@@ -225,9 +269,15 @@ public final class RunningTask {
 
 	}
 
+	/**
+	 * Schedule.
+	 */
 	void schedule() {
 	}
 
+	/**
+	 * Stop.
+	 */
 	void stop() {
 		TaskRun.delete(taskRecord.getID());
 		Runnable runTimerTask = new RunTimerTask();
@@ -235,10 +285,16 @@ public final class RunningTask {
 		close();
 	}
 
+	/**
+	 * Pause.
+	 */
 	void pause() {
 
 	}
 
+	/**
+	 * Close.
+	 */
 	public void close() {
 		// make sure timers get stopped
 		if (runTimerFuture != null) {
@@ -262,10 +318,18 @@ public final class RunningTask {
 
 	}
 
+	/**
+	 * Adds the refresh listener.
+	 *
+	 * @param listener the listener
+	 */
 	public void addRefreshListener(ValueChangeListener listener) {
 		this.listener = listener;
 	}
 
+	/**
+	 * Activate timer.
+	 */
 	public void activateTimer() {
 		// if timer not running yet
 		if (runTimerFuture == null) {
@@ -285,9 +349,17 @@ public final class RunningTask {
 
 	}
 
+	/**
+	 * The Class RunTimerTask.
+	 */
 	private final class RunTimerTask implements Runnable {
+
+		/** The count. */
 		private int fCount;
 
+		/* (non-Javadoc)
+		 * @see java.lang.Runnable#run()
+		 */
 		public void run() {
 			++fCount;
 			ManagerUI.log("RunningTask - task:" + nodeInfo.getTask() + " - " + fCount);

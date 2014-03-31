@@ -26,12 +26,23 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class WarningWindow.
+ */
 public class WarningWindow extends ModalWindow {
 
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	final WarningWindow warningWindow = this;
 
+	/**
+	 * Instantiates a new warning window.
+	 *
+	 * @param caption the caption
+	 * @param message the message
+	 * @param label the label
+	 * @param okListener the ok listener
+	 */
 	public WarningWindow(String caption, String message, String label, Button.ClickListener okListener) {
 		super(caption, "60%");
 

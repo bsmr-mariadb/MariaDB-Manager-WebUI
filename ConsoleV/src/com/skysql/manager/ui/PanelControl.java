@@ -41,7 +41,11 @@ import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class PanelControl.
+ */
 public class PanelControl extends VerticalLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private NodeInfo nodeInfo;
@@ -56,6 +60,7 @@ public class PanelControl extends VerticalLayout {
 	private Label placeholderLabel;
 	private Object firstObject;
 
+	/** The command listener. */
 	private ValueChangeListener commandListener = new ValueChangeListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -71,6 +76,7 @@ public class PanelControl extends VerticalLayout {
 		}
 	};
 
+	/** The refresh listener. */
 	private ValueChangeListener refreshListener = new ValueChangeListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -85,6 +91,9 @@ public class PanelControl extends VerticalLayout {
 		}
 	};
 
+	/**
+	 * Instantiates a new panel control.
+	 */
 	PanelControl() {
 
 		setSizeFull();
@@ -95,6 +104,9 @@ public class PanelControl extends VerticalLayout {
 
 	}
 
+	/**
+	 * Creates the new layout.
+	 */
 	private void createNewLayout() {
 
 		newLayout = new HorizontalLayout();
@@ -135,6 +147,9 @@ public class PanelControl extends VerticalLayout {
 
 	}
 
+	/**
+	 * Creates the logs layout.
+	 */
 	private void createLogsLayout() {
 		Label separator = new Label();
 		separator.addStyleName("separator");
@@ -164,6 +179,9 @@ public class PanelControl extends VerticalLayout {
 
 	}
 
+	/**
+	 * Refresh.
+	 */
 	public void refresh() {
 
 		ManagerUI.log("PanelControl refresh()");
@@ -172,16 +190,28 @@ public class PanelControl extends VerticalLayout {
 
 	}
 
+	/**
+	 * The Class UpdaterThread.
+	 */
 	class UpdaterThread extends Thread {
+
 		UpdaterThread oldUpdaterThread;
 		volatile boolean flagged = false;
 		volatile boolean adjust;
 		volatile String format;
 
+		/**
+		 * Instantiates a new updater thread.
+		 *
+		 * @param oldUpdaterThread the old updater thread
+		 */
 		UpdaterThread(UpdaterThread oldUpdaterThread) {
 			this.oldUpdaterThread = oldUpdaterThread;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Thread#run()
+		 */
 		@Override
 		public void run() {
 			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
@@ -204,6 +234,11 @@ public class PanelControl extends VerticalLayout {
 		}
 	}
 
+	/**
+	 * Asynch refresh.
+	 *
+	 * @param updaterThread the updater thread
+	 */
 	private void asynchRefresh(final UpdaterThread updaterThread) {
 
 		ManagerUI managerUI = getSession().getAttribute(ManagerUI.class);
@@ -230,7 +265,7 @@ public class PanelControl extends VerticalLayout {
 				RunningTask runningTask = nodeInfo.getCommandTask();
 
 				DateConversion dateConversion = getSession().getAttribute(DateConversion.class);
-				boolean adjust = dateConversion.getAdjust();
+				boolean adjust = dateConversion.isAdjustedToLocal();
 				String format = dateConversion.getFormat();
 
 				if (!newNodeID.equals(lastNodeID) || (tasksList != null && tasksList.size() != oldTasksCount) || adjust != updaterThread.adjust
@@ -330,6 +365,11 @@ public class PanelControl extends VerticalLayout {
 
 	}
 
+	/**
+	 * Select command.
+	 *
+	 * @param command the command
+	 */
 	public void selectCommand(String command) {
 		RunningTask runningTask = nodeInfo.getCommandTask();
 

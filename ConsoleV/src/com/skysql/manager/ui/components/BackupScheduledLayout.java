@@ -53,15 +53,21 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class BackupScheduledLayout.
+ */
 @SuppressWarnings("serial")
 public class BackupScheduledLayout extends VerticalLayout {
 
+	private Schedule schedule;
 	private Table scheduledTable;
 	private UpdaterThread updaterThread;
-	public Schedule schedule;
 	private BackupScheduledLayout thisLayout = this;
 	private Button calendarButton;
 
+	/**
+	 * Instantiates a new backup scheduled layout.
+	 */
 	public BackupScheduledLayout() {
 
 		addStyleName("scheduledLayout");
@@ -108,6 +114,11 @@ public class BackupScheduledLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Gets the schedule.
+	 *
+	 * @return the schedule
+	 */
 	private Schedule getSchedule() {
 		SystemInfo systemInfo = VaadinSession.getCurrent().getAttribute(SystemInfo.class);
 		String systemID = systemInfo.getCurrentID();
@@ -120,6 +131,11 @@ public class BackupScheduledLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Collect events.
+	 *
+	 * @return the tree map
+	 */
 	private TreeMap<String, String> collectEvents() {
 
 		TreeMap<String, String> eventsTree = new TreeMap<String, String>();
@@ -133,7 +149,7 @@ public class BackupScheduledLayout extends VerticalLayout {
 			ScheduleRecord scheduleRecord = entry.getValue();
 
 			String iCalString = scheduleRecord.getICal();
-			VEvent vEvent = iCalSupport.readiEvent(iCalString);
+			VEvent vEvent = iCalSupport.readVEvent(iCalString);
 			addEventsToMap(eventsTree, scheduleRecord.getID(), vEvent);
 
 		}
@@ -142,6 +158,13 @@ public class BackupScheduledLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Adds the events to map.
+	 *
+	 * @param eventsMap the events map
+	 * @param eventID the event id
+	 * @param vEvent the vEvent
+	 */
 	private void addEventsToMap(TreeMap<String, String> eventsMap, String eventID, VEvent vEvent) {
 
 		Date start = new Date();
@@ -158,6 +181,9 @@ public class BackupScheduledLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Refresh.
+	 */
 	public void refresh() {
 
 		ManagerUI.log("ScheduleLayout refresh()");
@@ -166,14 +192,29 @@ public class BackupScheduledLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * The Class UpdaterThread.
+	 */
 	class UpdaterThread extends Thread {
+
+		/** The old updater thread. */
 		UpdaterThread oldUpdaterThread;
+
+		/** The flagged. */
 		volatile boolean flagged = false;
 
+		/**
+		 * Instantiates a new updater thread.
+		 *
+		 * @param oldUpdaterThread the old updater thread
+		 */
 		UpdaterThread(UpdaterThread oldUpdaterThread) {
 			this.oldUpdaterThread = oldUpdaterThread;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Thread#run()
+		 */
 		@Override
 		public void run() {
 			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
@@ -196,6 +237,11 @@ public class BackupScheduledLayout extends VerticalLayout {
 		}
 	}
 
+	/**
+	 * Asynch refresh.
+	 *
+	 * @param updaterThread the updater thread
+	 */
 	private void asynchRefresh(final UpdaterThread updaterThread) {
 
 		ManagerUI managerUI = getSession().getAttribute(ManagerUI.class);

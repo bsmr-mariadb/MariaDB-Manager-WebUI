@@ -30,54 +30,125 @@ import com.google.gson.JsonParseException;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class MonitorData.
+ */
 public class MonitorData {
 
+	/** Used to get the average value from the API */
 	public static final String METHOD_AVG = "avg";
+
+	/** Used to get the min and max values from the API */
 	public static final String METHOD_MINMAX = "minmax";
 
+	/** The monitor. */
 	private MonitorRecord monitor;
+
+	/** The avg points. */
 	private ArrayList<Number> avgPoints;
+
+	/** The min points. */
 	private ArrayList<Number> minPoints;
+
+	/** The max points. */
 	private ArrayList<Number> maxPoints;
+
+	/** The time stamps. */
 	private ArrayList<Long> timeStamps;
+
 	private String system, node, timeSpan, method;
 
+	/**
+	 * Gets the avg points.
+	 *
+	 * @return the avg points
+	 */
 	public ArrayList<Number> getAvgPoints() {
 		return avgPoints;
 	}
 
+	/**
+	 * Sets the avg points.
+	 *
+	 * @param avgPoints the new avg points
+	 */
 	protected void setAvgPoints(ArrayList<Number> avgPoints) {
 		this.avgPoints = avgPoints;
 	}
 
+	/**
+	 * Gets the min points.
+	 *
+	 * @return the min points
+	 */
 	public ArrayList<Number> getMinPoints() {
 		return minPoints;
 	}
 
+	/**
+	 * Sets the min points.
+	 *
+	 * @param minPoints the new min points
+	 */
 	protected void setMinPoints(ArrayList<Number> minPoints) {
 		this.minPoints = minPoints;
 	}
 
+	/**
+	 * Gets the max points.
+	 *
+	 * @return the max points
+	 */
 	public ArrayList<Number> getMaxPoints() {
 		return maxPoints;
 	}
 
+	/**
+	 * Sets the max points.
+	 *
+	 * @param maxPoints the new max points
+	 */
 	protected void setMaxPoints(ArrayList<Number> maxPoints) {
 		this.maxPoints = maxPoints;
 	}
 
+	/**
+	 * Gets the time stamps.
+	 *
+	 * @return the time stamps
+	 */
 	public ArrayList<Long> getTimeStamps() {
 		return timeStamps;
 	}
 
+	/**
+	 * Sets the time stamps.
+	 *
+	 * @param timeStamps the new time stamps
+	 */
 	public void setTimeStamps(ArrayList<Long> timeStamps) {
 		this.timeStamps = timeStamps;
 	}
 
+	/**
+	 * Gets the latest time.
+	 *
+	 * @return the latest time
+	 */
 	public Long getLatestTime() {
 		return (timeStamps == null) ? null : timeStamps.get(timeStamps.size() - 1);
 	}
 
+	/**
+	 * Updates the monitor data from the API.
+	 *
+	 * @param system the system
+	 * @param node the node
+	 * @param endTime the end time
+	 * @param timeSpan the time span
+	 * @param count the count
+	 * @return true, if successful
+	 */
 	public boolean update(String system, String node, String endTime, String timeSpan, int count) {
 
 		MonitorData newMonitorData;
@@ -119,9 +190,23 @@ public class MonitorData {
 
 	}
 
+	/**
+	 * Instantiates a new monitor data.
+	 */
 	public MonitorData() {
 	}
 
+	/**
+	 * Instantiates a new monitor data.
+	 *
+	 * @param monitor the monitor
+	 * @param system the system
+	 * @param node the node
+	 * @param endTime the end time
+	 * @param spanTime the span time
+	 * @param count the count
+	 * @param method the method
+	 */
 	public MonitorData(MonitorRecord monitor, String system, String node, String endTime, String spanTime, int count, String method) {
 		this.monitor = monitor;
 		this.system = system;
@@ -153,6 +238,9 @@ public class MonitorData {
 	}
 }
 
+/**
+ * The Class MonitorDataDeserializer.
+ */
 class MonitorDataDeserializer implements JsonDeserializer<MonitorData> {
 	public MonitorData deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		MonitorData monitorData = new MonitorData();

@@ -33,7 +33,11 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class MonitorsLayout is used to build the left hand-side of the Monitors to Chart mappings dialog.
+ */
 public class MonitorsLayout extends VerticalLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private int componentIndex;
@@ -42,6 +46,7 @@ public class MonitorsLayout extends VerticalLayout {
 	private ArrayList<String> selectedMonitorIDs;
 	private ArrayList<ComboBox> selectMonitorList;
 
+	/** The monitor select listener. */
 	private ValueChangeListener monitorSelectListener = new ValueChangeListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -51,6 +56,11 @@ public class MonitorsLayout extends VerticalLayout {
 		}
 	};
 
+	/**
+	 * Instantiates a new monitors layout.
+	 *
+	 * @param selectedMonitorIDs the selected monitor IDs
+	 */
 	public MonitorsLayout(ArrayList<String> selectedMonitorIDs) {
 		this.selectedMonitorIDs = selectedMonitorIDs;
 
@@ -64,6 +74,9 @@ public class MonitorsLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Initialize monitors list.
+	 */
 	public void initializeMonitors() {
 
 		final Label monitorsLabel = new Label("Select Monitors");
@@ -90,10 +103,18 @@ public class MonitorsLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Adds the chart preview.
+	 *
+	 * @param chartPreviewLayout the chart preview layout
+	 */
 	public void addChartPreview(ChartPreviewLayout chartPreviewLayout) {
 		this.chartPreviewLayout = chartPreviewLayout;
 	}
 
+	/**
+	 * Refresh monitors.
+	 */
 	private void refreshMonitors() {
 
 		selectedMonitorIDs.clear();
@@ -106,6 +127,12 @@ public class MonitorsLayout extends VerticalLayout {
 
 	}
 
+	/**
+	 * Adds a new monitor row.
+	 *
+	 * @param monitorID the monitor id
+	 * @return the component
+	 */
 	private Component addRow(String monitorID) {
 		HorizontalLayout row = new HorizontalLayout();
 		ComboBox selectMonitor = new ComboBox();

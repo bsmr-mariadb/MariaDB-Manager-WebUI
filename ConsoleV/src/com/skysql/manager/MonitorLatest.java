@@ -20,14 +20,28 @@ package com.skysql.manager;
 
 import java.util.LinkedHashMap;
 
+/**
+ * The Class MonitorLatest, to store what the API returns for the latest monitor values for a node or a system.
+ */
 public class MonitorLatest {
 
+	/** The data is map of Monitor keys and values. */
 	private LinkedHashMap<String, String> data;
 
+	/**
+	 * Gets the data.
+	 *
+	 * @return the data
+	 */
 	public LinkedHashMap<String, String> getData() {
 		return data;
 	}
 
+	/**
+	 * Sets the data.
+	 *
+	 * @param data the data
+	 */
 	public void setData(LinkedHashMap<String, String> data) {
 		this.data = data;
 	}

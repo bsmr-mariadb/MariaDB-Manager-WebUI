@@ -40,6 +40,9 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class NodesLayout.
+ */
 @SuppressWarnings("serial")
 public class NodesLayout extends HorizontalLayout {
 
@@ -50,6 +53,11 @@ public class NodesLayout extends HorizontalLayout {
 	private VerticalLayout placeholderLayout;
 	private String message;
 
+	/**
+	 * Instantiates a new nodes layout.
+	 *
+	 * @param systemRecord the system record
+	 */
 	public NodesLayout(SystemRecord systemRecord) {
 
 		addStyleName("network");
@@ -93,6 +101,12 @@ public class NodesLayout extends HorizontalLayout {
 
 	}
 
+	/**
+	 * Gets the button.
+	 *
+	 * @param index the index
+	 * @return the button
+	 */
 	public ComponentButton getButton(int index) {
 		if (!buttons.isEmpty() && index < buttons.size()) {
 			return buttons.get(index);
@@ -101,6 +115,13 @@ public class NodesLayout extends HorizontalLayout {
 		}
 	}
 
+	/**
+	 * Gets the button.
+	 *
+	 * @param parentID the parent id
+	 * @param componentID the component id
+	 * @return the button
+	 */
 	public ComponentButton getButton(String parentID, String componentID) {
 		for (ComponentButton button : buttons) {
 			ClusterComponent componentInfo = (ClusterComponent) button.getData();
@@ -112,6 +133,11 @@ public class NodesLayout extends HorizontalLayout {
 		return null;
 	}
 
+	/**
+	 * Gets the nodes.
+	 *
+	 * @return the nodes
+	 */
 	public ArrayList<NodeInfo> getNodes() {
 		ArrayList<NodeInfo> nodes = new ArrayList<NodeInfo>(buttons.size());
 		for (ComponentButton button : buttons) {
@@ -123,6 +149,12 @@ public class NodesLayout extends HorizontalLayout {
 		return nodes;
 	}
 
+	/**
+	 * Find button.
+	 *
+	 * @param component the component
+	 * @return the component button
+	 */
 	public ComponentButton findButton(ClusterComponent component) {
 		for (ComponentButton button : buttons) {
 			ClusterComponent oldComponent = (ClusterComponent) button.getData();
@@ -134,6 +166,11 @@ public class NodesLayout extends HorizontalLayout {
 		return null;
 	}
 
+	/**
+	 * Delete component.
+	 *
+	 * @param button the button
+	 */
 	public void deleteComponent(ComponentButton button) {
 		buttons.remove(button);
 		removeComponent(button);
@@ -144,6 +181,11 @@ public class NodesLayout extends HorizontalLayout {
 		overviewPanel.refresh();
 	}
 
+	/**
+	 * Sets the editable.
+	 *
+	 * @param editable the new editable
+	 */
 	public void setEditable(boolean editable) {
 		isEditable = editable;
 		for (ComponentButton button : buttons) {
@@ -151,6 +193,11 @@ public class NodesLayout extends HorizontalLayout {
 		}
 	}
 
+	/**
+	 * Placeholder layout.
+	 *
+	 * @param message the message
+	 */
 	public void placeholderLayout(String message) {
 
 		if (placeholderLayout == null) {
@@ -190,6 +237,12 @@ public class NodesLayout extends HorizontalLayout {
 
 	}
 
+	/**
+	 * Refresh.
+	 *
+	 * @param updaterThread the updater thread
+	 * @param parentSystemRecord the parent system record
+	 */
 	public synchronized void refresh(final OverviewPanel.UpdaterThread updaterThread, final SystemRecord parentSystemRecord) {
 
 		VaadinSession session = getSession();

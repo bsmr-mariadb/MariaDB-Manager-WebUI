@@ -41,15 +41,19 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class LoginView is used for the app login page.
+ */
 public class LoginView extends VerticalLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	private UpdaterThread updaterThread;
-
 	private TextField userName = new TextField();
 	private PasswordField password = new PasswordField();
 	final private Button login = new Button("Sign In");
 
+	/** The login listener. */
 	private Button.ClickListener loginListener = new Button.ClickListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -76,6 +80,11 @@ public class LoginView extends VerticalLayout {
 
 	};
 
+	/**
+	 * Instantiates a new login view.
+	 *
+	 * @param aboutRecord the about record
+	 */
 	public LoginView(AboutRecord aboutRecord) {
 
 		setSizeFull();
@@ -165,6 +174,9 @@ public class LoginView extends VerticalLayout {
 
 	}
 
+	/**
+	 * Preloads several data classes from the API while login screen is up.
+	 */
 	public void preload() {
 
 		ManagerUI.log("LoginView preload()");
@@ -174,14 +186,29 @@ public class LoginView extends VerticalLayout {
 
 	}
 
+	/**
+	 * The Class UpdaterThread.
+	 */
 	class UpdaterThread extends Thread {
+
+		/** The old updater thread. */
 		UpdaterThread oldUpdaterThread;
+
+		/** The flagged. */
 		volatile boolean flagged = false;
 
+		/**
+		 * Instantiates a new updater thread.
+		 *
+		 * @param oldUpdaterThread the old updater thread
+		 */
 		UpdaterThread(UpdaterThread oldUpdaterThread) {
 			this.oldUpdaterThread = oldUpdaterThread;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Thread#run()
+		 */
 		@Override
 		public void run() {
 			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {

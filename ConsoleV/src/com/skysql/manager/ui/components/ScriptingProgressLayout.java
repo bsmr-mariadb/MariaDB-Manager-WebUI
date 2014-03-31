@@ -37,6 +37,9 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class ScriptingProgressLayout.
+ */
 @SuppressWarnings("serial")
 public class ScriptingProgressLayout extends HorizontalLayout {
 
@@ -53,6 +56,12 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 	private RunningTask runningTask;
 	private int totalSteps;
 
+	/**
+	 * Instantiates a new scripting progress layout.
+	 *
+	 * @param runningTask the running task
+	 * @param observerMode the observer mode
+	 */
 	public ScriptingProgressLayout(final RunningTask runningTask, boolean observerMode) {
 		this.runningTask = runningTask;
 		this.observerMode = observerMode;
@@ -96,18 +105,38 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 
 	}
 
+	/**
+	 * Sets the title.
+	 *
+	 * @param value the new title
+	 */
 	public void setTitle(String value) {
 		scriptLabel.setValue(value);
 	}
 
+	/**
+	 * Sets the progress.
+	 *
+	 * @param value the new progress
+	 */
 	public void setProgress(String value) {
 		progressLabel.setValue(value);
 	}
 
+	/**
+	 * Sets the result.
+	 *
+	 * @param value the new result
+	 */
 	public void setResult(String value) {
 		resultLabel.setValue(value);
 	}
 
+	/**
+	 * Sets the error info.
+	 *
+	 * @param msg the new error info
+	 */
 	public void setErrorInfo(String msg) {
 		Embedded info = new Embedded(null, new ThemeResource("img/alert.png"));
 		info.addStyleName("infoButton");
@@ -116,11 +145,21 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 		resultLayout.setComponentAlignment(info, Alignment.MIDDLE_CENTER);
 	}
 
+	/**
+	 * Start.
+	 */
 	public void start() {
 		startTime = System.currentTimeMillis();
 		setResult("Launching");
 	}
 
+	/**
+	 * Builds the progress.
+	 *
+	 * @param taskRecord the task record
+	 * @param command the command
+	 * @param steps the steps
+	 */
 	public void buildProgress(TaskRecord taskRecord, String command, String steps) {
 
 		VaadinSession session = getSession();
@@ -173,6 +212,11 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 
 	}
 
+	/**
+	 * Refresh.
+	 *
+	 * @param taskRecord the task record
+	 */
 	public void refresh(TaskRecord taskRecord) {
 		this.taskRecord = taskRecord;
 
@@ -182,14 +226,29 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 
 	}
 
+	/**
+	 * The Class UpdaterThread.
+	 */
 	class UpdaterThread extends Thread {
+
+		/** The old updater thread. */
 		UpdaterThread oldUpdaterThread;
+
+		/** The flagged. */
 		volatile boolean flagged = false;
 
+		/**
+		 * Instantiates a new updater thread.
+		 *
+		 * @param oldUpdaterThread the old updater thread
+		 */
 		UpdaterThread(UpdaterThread oldUpdaterThread) {
 			this.oldUpdaterThread = oldUpdaterThread;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Thread#run()
+		 */
 		@Override
 		public void run() {
 			if (oldUpdaterThread != null && oldUpdaterThread.isAlive()) {
@@ -212,6 +271,11 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 		}
 	}
 
+	/**
+	 * Asynch refresh.
+	 *
+	 * @param updaterThread the updater thread
+	 */
 	private void asynchRefresh(final UpdaterThread updaterThread) {
 
 		VaadinSession session = getSession();
@@ -296,6 +360,11 @@ public class ScriptingProgressLayout extends HorizontalLayout {
 
 	}
 
+	/**
+	 * Gets the running time.
+	 *
+	 * @return the running time
+	 */
 	private String getRunningTime() {
 		runningTime = System.currentTimeMillis() - startTime;
 		//String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(runningTime), TimeUnit.MILLISECONDS.toSeconds(runningTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(runningTime)));

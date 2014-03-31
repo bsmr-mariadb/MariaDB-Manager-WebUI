@@ -41,11 +41,19 @@ import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class NodeForm.
+ */
 @SuppressWarnings("deprecation")
 public class NodeForm extends VerticalLayout {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
 	final static String connectionInfo = "If this node is available now, a connection will be attempted using either the root password or ssh key provided by the user. If it is not, a node representation will be created in the system and when it becomes available, the user can run the connect command from the Control panel. In both cases, neither the password nor the key will be stored or retained beyond the attempt to establish the initial connection and will be discarded whether this is successful or not.";
+
+	public boolean runConnect = false, usePassword = false;
+	public boolean isGalera = false;
+	private NodeInfo node;
 
 	final TextField name = new TextField("Name");
 	final TextField hostname = new TextField("Hostname");
@@ -64,10 +72,12 @@ public class NodeForm extends VerticalLayout {
 	final OptionGroup passwordOption = new OptionGroup();
 	final Form form = new Form();
 
-	private NodeInfo node;
-	public boolean runConnect = false, usePassword = false;
-	public boolean isGalera = false;
-
+	/**
+	 * Instantiates a new node form.
+	 *
+	 * @param node the node
+	 * @param description the description
+	 */
 	NodeForm(final NodeInfo node, String description) {
 		this.node = node;
 
@@ -270,10 +280,18 @@ public class NodeForm extends VerticalLayout {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.AbstractComponent#setDescription(java.lang.String)
+	 */
 	public void setDescription(String description) {
 		form.setDescription(description);
 	}
 
+	/**
+	 * Validate node.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean validateNode() {
 
 		try {

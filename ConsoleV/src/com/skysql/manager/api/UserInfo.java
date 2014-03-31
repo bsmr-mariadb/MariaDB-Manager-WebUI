@@ -29,20 +29,36 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.skysql.manager.ui.ErrorDialog;
 
+/**
+ * The Class UserInfo.
+ */
 public class UserInfo {
 
 	private static final String NOT_AVAILABLE = "n/a";
 
-	LinkedHashMap<String, UserObject> usersList;
+	private LinkedHashMap<String, UserObject> usersList;
 
+	/**
+	 * Gets the users list.
+	 *
+	 * @return the users list
+	 */
 	public LinkedHashMap<String, UserObject> getUsersList() {
 		return usersList;
 	}
 
+	/**
+	 * Instantiates a new user info.
+	 */
 	public UserInfo() {
 
 	}
 
+	/**
+	 * Gets a user info from the API.
+	 *
+	 * @param dummy the dummy
+	 */
 	public UserInfo(String dummy) {
 
 		APIrestful api = new APIrestful();
@@ -61,10 +77,22 @@ public class UserInfo {
 
 	}
 
+	/**
+	 * Find record by id.
+	 *
+	 * @param id the id
+	 * @return the user object
+	 */
 	public UserObject findRecordByID(String id) {
 		return usersList.get(id);
 	}
 
+	/**
+	 * Find name by id.
+	 *
+	 * @param id the id
+	 * @return the string
+	 */
 	public String findNameByID(String id) {
 		UserObject userObject = usersList.get(id);
 		if (userObject == null) {
@@ -74,6 +102,12 @@ public class UserInfo {
 		return userObject.getName();
 	}
 
+	/**
+	 * Find any name by id.
+	 *
+	 * @param id the id
+	 * @return the string
+	 */
 	public String findAnyNameByID(String id) {
 		UserObject userObject = usersList.get(id);
 		if (userObject == null) {
@@ -83,6 +117,12 @@ public class UserInfo {
 		return userObject.getAnyName();
 	}
 
+	/**
+	 * Provides user id + full name, by id.
+	 *
+	 * @param id the id
+	 * @return the string
+	 */
 	public String completeNamesByID(String id) {
 		UserObject userObject = usersList.get(id);
 		if (userObject == null) {
@@ -92,6 +132,12 @@ public class UserInfo {
 		return id + ((name == null || name.isEmpty()) ? "" : " (" + name + ")");
 	}
 
+	/**
+	 * Save user to API.
+	 *
+	 * @param userObject the user object
+	 * @return true, if successful
+	 */
 	public boolean setUser(UserObject userObject) {
 
 		if (userObject.set()) {
@@ -103,6 +149,12 @@ public class UserInfo {
 		return false;
 	}
 
+	/**
+	 * Delete user from API.
+	 *
+	 * @param userID the user id
+	 * @return true, if successful
+	 */
 	public boolean deleteUser(String userID) {
 
 		APIrestful api = new APIrestful();
@@ -114,12 +166,20 @@ public class UserInfo {
 		return false;
 	}
 
+	/**
+	 * Sets the users list.
+	 *
+	 * @param usersList the users list
+	 */
 	protected void setUsersList(LinkedHashMap<String, UserObject> usersList) {
 		this.usersList = usersList;
 	}
 
 }
 
+/**
+ * The Class UserInfoDeserializer.
+ */
 class UserInfoDeserializer implements JsonDeserializer<UserInfo> {
 	public UserInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		UserInfo userInfo = new UserInfo();

@@ -45,8 +45,12 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class GeneralSettings is used for the General panel of the Settings dialog.
+ */
 @SuppressWarnings("serial")
 public class GeneralSettings extends HorizontalLayout {
+
 	public static boolean DEFAULT_TIME_ADJUST = false;
 	public static boolean DEFAULT_COMMAND_EXECUTION = false;
 
@@ -54,6 +58,11 @@ public class GeneralSettings extends HorizontalLayout {
 	private UserObject userObject;
 	private SettingsDialog settingsDialog;
 
+	/**
+	 * Instantiates a new general settings.
+	 *
+	 * @param settingsDialog the settings dialog
+	 */
 	GeneralSettings(SettingsDialog settingsDialog) {
 		this.settingsDialog = settingsDialog;
 
@@ -77,6 +86,11 @@ public class GeneralSettings extends HorizontalLayout {
 
 	}
 
+	/**
+	 * Backups layout.
+	 *
+	 * @return the vertical layout
+	 */
 	private VerticalLayout backupsLayout() {
 
 		VerticalLayout layout = new VerticalLayout();
@@ -138,6 +152,11 @@ public class GeneralSettings extends HorizontalLayout {
 		return layout;
 	}
 
+	/**
+	 * Time layout.
+	 *
+	 * @return the vertical layout
+	 */
 	private VerticalLayout timeLayout() {
 
 		VerticalLayout layout = new VerticalLayout();
@@ -290,7 +309,7 @@ public class GeneralSettings extends HorizontalLayout {
 			@Override
 			public void valueChange(final ValueChangeEvent event) {
 				boolean value = (Boolean) event.getProperty().getValue();
-				dateConversion.setAdjust(value);
+				dateConversion.setAdjustedToLocal(value);
 				userObject.setProperty(UserObject.PROPERTY_TIME_ADJUST, String.valueOf(value));
 				settingsDialog.setRefresh(true);
 				if (value == false) {
@@ -352,6 +371,11 @@ public class GeneralSettings extends HorizontalLayout {
 		return layout;
 	}
 
+	/**
+	 * Commands layout.
+	 *
+	 * @return the vertical layout
+	 */
 	private VerticalLayout commandsLayout() {
 
 		VerticalLayout layout = new VerticalLayout();
@@ -392,9 +416,20 @@ public class GeneralSettings extends HorizontalLayout {
 		return layout;
 	}
 
+	/**
+	 * The Class TimeFormatValidator.
+	 */
 	class TimeFormatValidator implements Validator {
+
+		/** The error. */
 		private String error;
 
+		/**
+		 * Checks if is valid.
+		 *
+		 * @param value the value
+		 * @return true, if is valid
+		 */
 		public boolean isValid(Object value) {
 			// ignore an empty field
 			if (value == null || (value != null && value.toString().isEmpty())) {
@@ -412,6 +447,9 @@ public class GeneralSettings extends HorizontalLayout {
 		}
 
 		// Upon failure, the validate() method throws an exception
+		/* (non-Javadoc)
+		 * @see com.vaadin.data.Validator#validate(java.lang.Object)
+		 */
 		public void validate(Object value) throws InvalidValueException {
 			if (!isValid(value)) {
 				throw new InvalidValueException(error);

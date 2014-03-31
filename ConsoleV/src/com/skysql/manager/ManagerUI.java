@@ -47,6 +47,9 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * The Class ManagerUI.  Application's main class.
+ */
 @SuppressWarnings("serial")
 @Theme("skystyle1")
 @Title("MariaDB Manager")
@@ -54,14 +57,24 @@ import com.vaadin.ui.VerticalLayout;
 @PreserveOnRefresh
 public class ManagerUI extends UI {
 
+	/** The Constant GUI_VERSION. */
 	private static final String GUI_VERSION = "1.1-90";
+
+	/** The Constant NOT_AVAILABLE. */
 	private static final String NOT_AVAILABLE = "n/a";
 
+	/** The main timer future. */
 	private ScheduledFuture<?> mainTimerFuture;
 
+	/** The overview panel. */
 	private OverviewPanel overviewPanel;
+
+	/** The tabbed panel. */
 	private TabbedPanel tabbedPanel;
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.UI#init(com.vaadin.server.VaadinRequest)
+	 */
 	@Override
 	protected void init(VaadinRequest request) {
 
@@ -105,6 +118,9 @@ public class ManagerUI extends UI {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.UI#close()
+	 */
 	@Override
 	public void close() {
 		log("close");
@@ -112,6 +128,9 @@ public class ManagerUI extends UI {
 		super.close();
 	}
 
+	/**
+	 * Refresh content based on session data.
+	 */
 	public void refreshContentBasedOnSessionData() {
 		/*
 		 *  As the UI is regenerated upon browser refresh, we should always check in the init what content to set to our UI. 
@@ -170,6 +189,9 @@ public class ManagerUI extends UI {
 		}
 	}
 
+	/**
+	 * Inits the layout.
+	 */
 	private void initLayout() {
 
 		VerticalLayout main = new VerticalLayout();
@@ -206,6 +228,9 @@ public class ManagerUI extends UI {
 
 	}
 
+	/**
+	 * Inits the executor.
+	 */
 	private void initExecutor() {
 
 		// setup scheduler that will keep refreshing the UI until the end of the session
@@ -215,10 +240,17 @@ public class ManagerUI extends UI {
 		mainTimerFuture = ExecutorFactory.addTimer(runTimerTask, fDelayBetweenRuns);
 	}
 
+	/**
+	 * The Class RunMainTimerTask.
+	 */
 	private final class RunMainTimerTask implements Runnable {
 
+		/** The count. */
 		private long count = 0;
 
+		/* (non-Javadoc)
+		 * @see java.lang.Runnable#run()
+		 */
 		public void run() {
 
 			VaadinSession session = getSession();
@@ -247,16 +279,16 @@ public class ManagerUI extends UI {
 				new ErrorDialog(e, null);
 			} catch (Exception e) {
 				new ErrorDialog(e, null);
-			} finally {
-				// Mark Riddoch - 4th Oct 2013
-				// Comment out floowing call to close as this causes the user interface to almost
-				// constantly become grey out, making it practically unusable
-				//				close();
 			}
 
 		}
 	}
 
+	/**
+	 * Log debug messages.
+	 *
+	 * @param msg the msg
+	 */
 	public static void log(String msg) {
 		if (Debug.ON) {
 			System.out.println(msg);

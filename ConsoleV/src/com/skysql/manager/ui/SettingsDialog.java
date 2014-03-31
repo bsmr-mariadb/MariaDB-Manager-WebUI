@@ -25,7 +25,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.TabSheet.Tab;
@@ -33,19 +32,22 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 
+/**
+ * The Class SettingsDialog.
+ */
 public class SettingsDialog implements Window.CloseListener {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
-	ModalWindow dialogWindow;
-	Button openButton;
-	Button closebutton;
-	Label explanation;
+	private ModalWindow dialogWindow;
+	private Button openButton;
 	private TabSheet tabsheet;
 	private String selectedTab;
 	private boolean refresh = false;
 	private boolean switchAllowed = true;
-	SettingsDialog settingsDialog;
+	private SettingsDialog settingsDialog;
 
+	/** The settings dialog open listener. */
 	private ClickListener settingsDialogOpenListener = new ClickListener() {
 		private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
@@ -58,11 +60,9 @@ public class SettingsDialog implements Window.CloseListener {
 			tabsheet = new TabSheet();
 			tabsheet.setImmediate(true);
 
-			Tab tab;
-
 			// General Tab
 			GeneralSettings backupsTab = new GeneralSettings(settingsDialog);
-			tab = tabsheet.addTab(backupsTab, "General");
+			Tab tab = tabsheet.addTab(backupsTab, "General");
 			if (selectedTab != null && selectedTab.equals("General")) {
 				tabsheet.setSelectedTab(tab);
 			}
@@ -130,6 +130,11 @@ public class SettingsDialog implements Window.CloseListener {
 		}
 	};
 
+	/**
+	 * Instantiates a new settings dialog.
+	 *
+	 * @param label the label
+	 */
 	public SettingsDialog(String label) {
 
 		openButton = new Button(label, settingsDialogOpenListener);
@@ -137,6 +142,12 @@ public class SettingsDialog implements Window.CloseListener {
 
 	}
 
+	/**
+	 * Instantiates a new settings dialog.
+	 *
+	 * @param label the label
+	 * @param selectedTab the selected tab
+	 */
 	public SettingsDialog(String label, String selectedTab) {
 
 		this(label);
@@ -144,20 +155,38 @@ public class SettingsDialog implements Window.CloseListener {
 
 	}
 
+	/**
+	 * Sets the refresh.
+	 *
+	 * @param refresh the new refresh
+	 */
 	public void setRefresh(boolean refresh) {
 		this.refresh = refresh;
 	}
 
+	/**
+	 * Sets the close.
+	 *
+	 * @param close the new close
+	 */
 	public void setClose(boolean close) {
 		dialogWindow.setClose(close);
 		switchAllowed = close;
 		//dialogWindow.setClosable(close);
 	}
 
+	/**
+	 * Gets the button.
+	 *
+	 * @return the button
+	 */
 	public Button getButton() {
 		return (openButton);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.Window.CloseListener#windowClose(com.vaadin.ui.Window.CloseEvent)
+	 */
 	public void windowClose(CloseEvent e) {
 		if (refresh) {
 			OverviewPanel overviewPanel = VaadinSession.getCurrent().getAttribute(OverviewPanel.class);

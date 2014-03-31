@@ -31,6 +31,9 @@ import com.skysql.manager.Commands;
 
 // {"commands":[{"command":"backup","description":"Backup Offline Slave Node","steps":"backup"},{"command":"restore","description":"Restore Offline Slave Node","steps":"restore"}]}
 
+/**
+ * The Class CommandsDeserializer.
+ */
 public class CommandsDeserializer implements JsonDeserializer<Commands> {
 	public Commands deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 		Commands commands = new Commands();

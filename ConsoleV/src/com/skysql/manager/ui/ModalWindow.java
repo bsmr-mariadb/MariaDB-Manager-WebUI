@@ -21,11 +21,22 @@ package com.skysql.manager.ui;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
+/**
+ * The Class ModalWindow for generic Modal Window support.
+ */
 public class ModalWindow extends Window {
+
 	private static final long serialVersionUID = 0x4C656F6E6172646FL;
 
+	/** Are we allowing the user to close the window? */
 	private boolean closeAllowed = true;
 
+	/**
+	 * Instantiates a new modal window.
+	 *
+	 * @param caption the caption
+	 * @param width the width
+	 */
 	public ModalWindow(String caption, String width) {
 		setModal(true);
 		if (width != null) {
@@ -39,6 +50,9 @@ public class ModalWindow extends Window {
 		layout.setMargin(true);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vaadin.ui.Window#close()
+	 */
 	@Override
 	public void close() {
 		if (closeAllowed) {
@@ -48,6 +62,11 @@ public class ModalWindow extends Window {
 		}
 	}
 
+	/**
+	 * Sets whether closing is allowed
+	 *
+	 * @param allowed the new closing allowed value
+	 */
 	public void setClose(boolean allowed) {
 		closeAllowed = allowed;
 	}

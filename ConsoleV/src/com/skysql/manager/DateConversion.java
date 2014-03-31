@@ -26,6 +26,9 @@ import java.util.TimeZone;
 import com.vaadin.server.WebBrowser;
 import com.vaadin.ui.UI;
 
+/**
+ * The Class DateConversion. Converts date received from API into local time zone and custom format.
+ */
 public class DateConversion {
 	public static String DEFAULT_INPUT_FORMAT = "E, d MMM y HH:mm:ss Z"; // as currently returned by the API: Mon, 02 Sep 2013 13:08:14 +0000
 	public static String DEFAULT_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
@@ -35,6 +38,12 @@ public class DateConversion {
 	private String clientTZname;
 	private SimpleTimeZone clientTimeZone;
 
+	/**
+	 * Instantiates a new date conversion.
+	 *
+	 * @param adjust adjust to local tz or not
+	 * @param format the output format
+	 */
 	public DateConversion(boolean adjust, String format) {
 		this.adjust = adjust;
 		this.format = (format == null ? DEFAULT_TIME_FORMAT : format);
@@ -45,26 +54,57 @@ public class DateConversion {
 		clientTZname = clientTimeZone.getDisplayName();
 	}
 
+	/**
+	 * Gets the client tz name.
+	 *
+	 * @return the client tz name
+	 */
 	public String getClientTZname() {
 		return clientTZname;
 	}
 
-	public boolean getAdjust() {
+	/**
+	 * Checks if is adjusted to local TZ.
+	 *
+	 * @return true, if is adjusted to local
+	 */
+	public boolean isAdjustedToLocal() {
 		return adjust;
 	}
 
-	public void setAdjust(boolean adjust) {
+	/**
+	 * Sets the adjusted to local.
+	 *
+	 * @param adjust the new adjusted to local
+	 */
+	public void setAdjustedToLocal(boolean adjust) {
 		this.adjust = adjust;
 	}
 
+	/**
+	 * Gets the output date format.
+	 *
+	 * @return the format
+	 */
 	public String getFormat() {
 		return format;
 	}
 
+	/**
+	 * Sets the output date format.
+	 *
+	 * @param format the new format
+	 */
 	public void setFormat(String format) {
 		this.format = format;
 	}
 
+	/**
+	 * Adjust the input date to local tz (or not) and apply custom format.
+	 *
+	 * @param timestamp the timestamp
+	 * @return the string
+	 */
 	public String adjust(String timestamp) {
 		if (timestamp == null || timestamp.isEmpty()) {
 			return timestamp;
@@ -85,16 +125,6 @@ public class DateConversion {
 				e.printStackTrace();
 				adjusted = "Format Error";
 			}
-			return adjusted;
-		}
-	}
-
-	public String adjust(Date myDate) {
-		if (myDate == null) {
-			return null;
-		} else {
-			SimpleDateFormat sdfOutput = new SimpleDateFormat(format);
-			String adjusted = sdfOutput.format(myDate);
 			return adjusted;
 		}
 	}
