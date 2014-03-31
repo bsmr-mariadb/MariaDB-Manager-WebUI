@@ -64,7 +64,7 @@ class TaskInfoDeserializer implements JsonDeserializer<TaskInfo> {
 			String privateIP = (element = taskObject.get("privateip")).isJsonNull() ? null : element.getAsString();
 			String user = (element = taskObject.get("username")).isJsonNull() ? null : element.getAsString();
 			String command = (element = taskObject.get("command")).isJsonNull() ? null : element.getAsString();
-			String params = ((element = taskObject.get("parameters")).isJsonNull()) ? null : element.getAsJsonObject().toString().replaceAll("{}\"", "");
+			String params = ((element = taskObject.get("parameters")).isJsonNull()) ? null : element.getAsJsonObject().toString().replaceAll("[\\{\\}\"]*", "");
 			String steps = (element = taskObject.get("steps")).isJsonNull() ? null : element.getAsString();
 			String start = (element = taskObject.get("started")).isJsonNull() ? null : element.getAsString();
 			String pid = (element = taskObject.get("pid")).isJsonNull() ? null : element.getAsString();
