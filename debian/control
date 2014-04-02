@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 8)
 
 Package: mariadb-manager-webui
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, tomcat7, java-1.7.0-openjdk
+Depends: ${shlibs:Depends}, ${misc:Depends}, tomcat7, openjdk-7-jre, iptables, iptables-persistent
 Description: MariaDB Manager Web UI
  MariaDB Manager is a tool to manage and monitor a set of MariaDB
  servers using the Galera multi-master replication form Codership.
