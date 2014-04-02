@@ -1,1 +1,1 @@
-MariaDBManager.war  /usr/local/tomcat7/webapps/MariaDBManager.war
+MariaDBManager.war  var/lib/tomcat7/webapps/
