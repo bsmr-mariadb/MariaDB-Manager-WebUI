@@ -1,3 +1,4 @@
+update-alternatives --set java /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
 update-rc.d tomcat7 defaults
 #/etc/init.d/tomcat7 restart
 /etc/init.d/tomcat7 stop
