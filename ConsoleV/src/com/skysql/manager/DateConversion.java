@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
+import com.skysql.java.Logging;
 import com.vaadin.server.WebBrowser;
 import com.vaadin.ui.UI;
 
@@ -121,8 +122,10 @@ public class DateConversion {
 				}
 				adjusted = sdfOutput.format(myDate);
 			} catch (Exception e) {
-				System.err.println("Execption parsing timestamp: " + timestamp + " with format: " + format);
-				e.printStackTrace();
+//				System.err.println("Execption parsing timestamp: " + timestamp + " with format: " + format);
+				Logging.error("Execption parsing timestamp: " + timestamp + " with format: " + format);
+//				e.printStackTrace();
+				Logging.error(e.getMessage());
 				adjusted = "Format Error";
 			}
 			return adjusted;

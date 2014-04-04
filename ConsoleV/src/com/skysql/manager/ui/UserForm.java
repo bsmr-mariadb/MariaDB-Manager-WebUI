@@ -18,6 +18,7 @@
 
 package com.skysql.manager.ui;
 
+import com.skysql.java.Logging;
 import com.skysql.manager.api.UserInfo;
 import com.skysql.manager.api.UserObject;
 import com.skysql.manager.validators.Password2Validator;
@@ -143,7 +144,8 @@ public class UserForm extends VerticalLayout {
 		} catch (InvalidValueException e) {
 			return false;
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 			return false;
 		}
 

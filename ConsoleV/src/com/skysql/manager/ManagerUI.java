@@ -22,6 +22,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import org.vaadin.jouni.animator.AnimatorProxy;
 
+import com.skysql.java.Logging;
 import com.skysql.manager.AppData.Debug;
 import com.skysql.manager.api.APIrestful;
 import com.skysql.manager.api.SystemInfo;
@@ -79,8 +80,11 @@ public class ManagerUI extends UI {
 	protected void init(VaadinRequest request) {
 
 		VaadinSession session = getSession();
-
+		
+		Logging.setComponent("WebUI");
+		
 		log("init session: - " + session + " UI: " + this.toString());
+		
 
 		try {
 
@@ -112,7 +116,8 @@ public class ManagerUI extends UI {
 			refreshContentBasedOnSessionData();
 
 		} catch (RuntimeException e) {
-			System.err.println("RunTime error: " + e.getLocalizedMessage());
+//			System.err.println("RunTime error: " + e.getLocalizedMessage());
+			Logging.error("RunTime error: " + e.getLocalizedMessage());
 			close();
 		}
 
@@ -291,7 +296,8 @@ public class ManagerUI extends UI {
 	 */
 	public static void log(String msg) {
 		if (Debug.ON) {
-			System.out.println(msg);
+//			System.out.println(msg);
+			Logging.debug(msg);
 		}
 	}
 

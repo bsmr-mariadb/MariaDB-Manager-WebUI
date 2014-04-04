@@ -38,6 +38,7 @@ import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.util.UidGenerator;
 
+import com.skysql.java.Logging;
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.ScheduleRecord;
@@ -1476,7 +1477,8 @@ public class CalendarDialog implements Window.CloseListener {
 				uid.setValue(scheduleID);
 				vEvent.getProperties().add(uid);
 			} catch (SocketException e) {
-				e.printStackTrace();
+//				e.printStackTrace();
+				Logging.error(e.getMessage());
 			}
 
 		} else {

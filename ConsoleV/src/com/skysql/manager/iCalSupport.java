@@ -36,6 +36,7 @@ import net.fortuna.ical4j.model.property.ProdId;
 import net.fortuna.ical4j.model.property.RRule;
 import net.fortuna.ical4j.model.property.Version;
 
+import com.skysql.java.Logging;
 import com.skysql.manager.ui.CalendarCustomEvent;
 import com.skysql.manager.ui.CalendarDialog.Until;
 
@@ -144,7 +145,8 @@ public class iCalSupport {
 				}
 
 			} catch (ParseException e) {
-				e.printStackTrace();
+//				e.printStackTrace();
+				Logging.error(e.getMessage());
 			}
 		}
 
@@ -167,7 +169,8 @@ public class iCalSupport {
 			return (VEvent) calendar.getComponent("VEVENT");
 
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 		}
 
 		return null;
@@ -183,11 +186,14 @@ public class iCalSupport {
 		try {
 			event.getProperty("UID").setValue(uid);
 		} catch (IOException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 		} catch (URISyntaxException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 		} catch (ParseException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 		}
 	}
 
@@ -226,7 +232,8 @@ public class iCalSupport {
 			vEvent.getProperties().remove(rruleProperty);
 			vEvent.getProperties().add(rule);
 		} catch (ParseException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 		}
 
 	}

@@ -32,6 +32,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.java.Logging;
 import com.skysql.manager.ui.ErrorDialog;
 
 /**
@@ -112,7 +113,8 @@ public class NodeStates {
 		}
 
 		if (icon == null) {
-			System.err.println("Unknown system type + node state found in API response: " + systemType + ", " + state);
+//			System.err.println("Unknown system type + node state found in API response: " + systemType + ", " + state);
+			Logging.error("Unknown system type + node state found in API response: " + systemType + ", " + state);
 			icon = INVALID_ICON;
 		}
 

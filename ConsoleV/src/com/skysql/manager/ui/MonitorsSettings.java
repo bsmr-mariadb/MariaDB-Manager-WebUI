@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import com.skysql.java.Logging;
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.UserChart;
@@ -542,7 +543,8 @@ public class MonitorsSettings extends VerticalLayout implements Window.CloseList
 				} catch (InvalidValueException e) {
 					return;
 				} catch (Exception e) {
-					e.printStackTrace();
+//					e.printStackTrace();
+					Logging.error(e.getMessage());
 					return;
 				}
 			}

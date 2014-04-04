@@ -60,6 +60,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.MalformedJsonException;
+import com.skysql.java.Logging;
 import com.skysql.manager.AppData.Debug;
 import com.skysql.manager.Commands;
 import com.skysql.manager.ManagerUI;
@@ -426,8 +427,10 @@ public class APIrestful {
 				if (Debug.ON) {
 					ManagerUI.log("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
 				} else {
-					System.err.println("API " + lastCall);
-					System.err.println("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
+//					System.err.println("API " + lastCall);
+//					System.err.println("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
+					Logging.error("API " + lastCall);
+					Logging.error("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
 				}
 
 				APIrestful api = getGson().fromJson(errors, APIrestful.class);
@@ -497,22 +500,28 @@ public class APIrestful {
 			cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
 			encrypted = cipher.doFinal(data);
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 			return null;
 		} catch (NoSuchPaddingException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 			return null;
 		} catch (InvalidKeyException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 			return null;
 		} catch (IllegalBlockSizeException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 			return null;
 		} catch (BadPaddingException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 			return null;
 		} catch (InvalidAlgorithmParameterException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 			return null;
 		}
 
@@ -523,7 +532,8 @@ public class APIrestful {
 			outputStream.write(encrypted);
 			output = outputStream.toByteArray();
 		} catch (IOException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 		}
 		return DatatypeConverter.printBase64Binary(output);
 	}

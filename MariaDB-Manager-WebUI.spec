@@ -15,7 +15,7 @@ Release: 		%{release}
 Source: 		%{name}-%{version}-%{release}.tar.gz
 Prefix: 		/
 Group: 			Development/Tools
-Requires:		tomcat7  java-1.7.0-openjdk
+Requires:		tomcat7  java-1.7.0-openjdk  libMariaDB-Manager-java
 
 %description
 MariaDB Manager is a tool to manage and monitor a set of MariaDB
@@ -37,6 +37,7 @@ rm -rf %{install_path}MariaDBManager/
 chown tomcat:tomcat %{install_path}MariaDBManager.war
 iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
 service iptables save
+sed -i 's|shared.loader=|shared.loader=/usr/local/skysql/share/*.jar|g' /usr/local/tomcat/conf/catalina.properties
 /etc/init.d/tomcat7 start
 
 %install

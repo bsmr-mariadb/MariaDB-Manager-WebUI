@@ -18,6 +18,7 @@
 
 package com.skysql.manager.ui;
 
+import com.skysql.java.Logging;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemTypes;
 import com.skysql.manager.validators.NodeNameValidator;
@@ -358,7 +359,8 @@ public class NodeForm extends VerticalLayout {
 		} catch (InvalidValueException e) {
 			return false;
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			Logging.error(e.getMessage());
 			return false;
 		}
 
