@@ -58,7 +58,7 @@ import com.vaadin.ui.VerticalLayout;
 public class ManagerUI extends UI {
 
 	/** The Constant GUI_VERSION. */
-	private static final String GUI_VERSION = "1.1-90";
+	private static final String GUI_VERSION = "1.1-91";
 
 	/** The Constant NOT_AVAILABLE. */
 	private static final String NOT_AVAILABLE = "n/a";

@@ -62,7 +62,7 @@ public class UserNameValidator implements Validator {
 			throw new InvalidValueException("Username invalid");
 		} else {
 			String name = (String) value;
-			if (name.contains(" ")) {
+			if (!name.matches("[a-zA-Z0-9_]+")) {
 				throw new InvalidValueException("Username contains illegal characters");
 			} else if (userInfo != null && userInfo.findRecordByID((String) value) != null) {
 				throw new InvalidValueException("Username already exists");

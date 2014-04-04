@@ -29,9 +29,14 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator.EmptyValueException;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.event.ShortcutAction.KeyCode;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.MarginInfo;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Form;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
@@ -69,10 +74,30 @@ public class SystemForm extends VerticalLayout {
 		setMargin(new MarginInfo(true, true, false, true));
 		setSpacing(false);
 
+		HorizontalLayout formDescription = new HorizontalLayout();
+		formDescription.setSpacing(true);
+
+		Embedded info = new Embedded(null, new ThemeResource("img/info.png"));
+		info.addStyleName("infoButton");
+		String infoText = "<table border=0 cellspacing=3 cellpadding=0 summary=\"\">\n" + "     <tr bgcolor=\"#ccccff\">" + "         <th align=left>Field"
+				+ "         <th align=left>Description" + "     <tr>" + "         <td><code>Name</code>" + "         <td>Name of the system"
+				+ "     <tr bgcolor=\"#eeeeff\">" + "         <td><code>Type</code>" + "         <td>Type of the system e.g. aws or galera" + "     <tr>"
+				+ "         <td><code>Database Username</code>" + "         <td>System default for database user name" + "     <tr bgcolor=\"#eeeeff\">"
+				+ "         <td><code>Database Password</code>" + "         <td>System default for database password" + "     <tr>"
+				+ "         <td><code>Replication Username</code>" + "         <td>System default for replication user name" + "     <tr bgcolor=\"#eeeeff\">"
+				+ "         <td><code>Replication Password</code>" + "         <td>System default for replication password" + " </table>" + " </blockquote>";
+		info.setDescription(infoText);
+
+		formDescription.addComponent(info);
+		Label labelDescription = new Label(description);
+		formDescription.addComponent(labelDescription);
+		formDescription.setComponentAlignment(labelDescription, Alignment.MIDDLE_LEFT);
+		addComponent(formDescription);
+
 		addComponent(form);
 		form.setImmediate(false);
 		form.setFooter(null);
-		form.setDescription(description);
+		form.setDescription(null);
 
 		String value;
 		if ((value = system.getName()) != null) {
