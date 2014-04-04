@@ -235,9 +235,18 @@ public class LoginView extends VerticalLayout {
 			NodeStates.load();
 			SystemTypes.load();
 
-			// enable Login button when all is done
-			login.addClickListener(loginListener);
-			login.setEnabled(true);
+			ManagerUI managerUI = getSession().getAttribute(ManagerUI.class);
+
+			managerUI.access(new Runnable() {
+				@Override
+				public void run() {
+					// Here the UI is locked and can be updated
+
+					// enable Login button when all is done
+					login.addClickListener(loginListener);
+					login.setEnabled(true);
+				}
+			});
 
 		}
 	}
