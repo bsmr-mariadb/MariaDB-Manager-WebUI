@@ -30,6 +30,7 @@ import com.vaadin.data.Validator.EmptyValueException;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.MarginInfo;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Form;
 import com.vaadin.ui.HorizontalLayout;
@@ -84,12 +85,42 @@ public class NodeForm extends VerticalLayout {
 		setMargin(new MarginInfo(true, true, false, true));
 		setSpacing(false);
 
+		isGalera = node.getSystemType().equals(SystemTypes.Type.galera.name());
+
+		HorizontalLayout formDescription = new HorizontalLayout();
+		formDescription.setSpacing(true);
+
+		Embedded info = new Embedded(null, new ThemeResource("img/info.png"));
+		info.addStyleName("infoButton");
+		String infoText = "<table border=0 cellspacing=3 cellpadding=0 summary=\"\">\n" + "     <tr bgcolor=\"#ccccff\">" + "         <th align=left>Field"
+				+ "         <th align=left>Description" + "     <tr>" + "         <td><code>Name</code>" + "         <td>Name of the Node"
+				+ "     <tr bgcolor=\"#eeeeff\">" + "         <td><code>Hostname</code>" + "         <td>In some systems, a hostname that identifies the node"
+				+ "     <tr>" + "         <td><code>Instance ID</code>"
+				+ "         <td>The instance ID field is for information only and is not used within the Manager" + "     <tr bgcolor=\"#eeeeff\">"
+				+ "         <td><code>Public IP</code>" + "         <td>In some systems, the public IP address of the node" + "     <tr>"
+				+ "         <td><code>Private IP</code>" + "         <td>The IP address that accesses the node internally to the manager";
+
+		if (!isGalera) {
+			infoText += "     <tr bgcolor=\"#eeeeff\">" + "         <td><code>Database Username</code>"
+					+ "         <td>Node system override for database user name" + "     <tr>" + "         <td><code>Database Password</code>"
+					+ "         <td>Node system override for database password" + "     <tr bgcolor=\"#eeeeff\">"
+					+ "         <td><code>Replication Username</code>" + "         <td>Node system override for replication user name" + "     <tr>"
+					+ "         <td><code>Replication Password</code>" + "         <td>Node system override for replication password";
+
+		}
+		infoText += " </table>" + " </blockquote>";
+		info.setDescription(infoText);
+
+		formDescription.addComponent(info);
+		Label labelDescription = new Label(description);
+		formDescription.addComponent(labelDescription);
+		formDescription.setComponentAlignment(labelDescription, Alignment.MIDDLE_LEFT);
+		addComponent(formDescription);
+
 		addComponent(form);
 		form.setImmediate(false);
 		form.setFooter(null);
-		form.setDescription(description);
-
-		isGalera = node.getSystemType().equals(SystemTypes.Type.galera.name());
+		form.setDescription(null);
 
 		String value;
 		if ((value = node.getName()) != null) {
@@ -148,9 +179,7 @@ public class NodeForm extends VerticalLayout {
 			dbPassword2.setImmediate(true);
 			dbPassword2.setRequiredError("Confirm Password is a required field");
 			dbPassword2.addValidator(new Password2Validator(dbPassword));
-		}
 
-		if (!isGalera) {
 			if ((value = node.getRepUsername()) != null) {
 				repUsername.setValue(value);
 			}
@@ -181,6 +210,12 @@ public class NodeForm extends VerticalLayout {
 		if (node.getID() == null) {
 			Layout layout = form.getLayout();
 
+			{
+				Label spacer = new Label();
+				spacer.setWidth("40px");
+				layout.addComponent(spacer);
+			}
+
 			HorizontalLayout optionLayout = new HorizontalLayout();
 			optionLayout.addStyleName("formInfoLayout");
 			optionLayout.setSpacing(true);
@@ -190,10 +225,10 @@ public class NodeForm extends VerticalLayout {
 			Label padding = new Label("\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0");
 			optionLayout.addComponent(padding);
 
-			Embedded info = new Embedded(null, new ThemeResource("img/info.png"));
-			info.addStyleName("infoButton");
-			info.setDescription(connectionInfo);
-			optionLayout.addComponent(info);
+			Embedded info2 = new Embedded(null, new ThemeResource("img/info.png"));
+			info2.addStyleName("infoButton");
+			info2.setDescription(connectionInfo);
+			optionLayout.addComponent(info2);
 
 			final Validator validator = new Password2Validator(connectPassword);
 
@@ -233,6 +268,7 @@ public class NodeForm extends VerticalLayout {
 				}
 			});
 			optionLayout.addComponent(connectOption);
+			optionLayout.setComponentAlignment(connectOption, Alignment.MIDDLE_LEFT);
 			connectOption.select(true);
 
 			passwordOption.addItem(true);

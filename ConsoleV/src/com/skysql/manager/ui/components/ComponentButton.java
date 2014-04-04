@@ -58,7 +58,6 @@ public class ComponentButton extends VerticalLayout {
 	private ComponentButton thisButton;
 	private Embedded info, alert;
 	private ClusterComponent clusterComponent;
-	private ThemeResource cancelledResource = new ThemeResource("img/cancelled.png");
 	private ThemeResource errorResource = new ThemeResource("img/alert.png");
 	private ThemeResource runningResource = new ThemeResource("img/running.gif");
 
@@ -172,7 +171,7 @@ public class ComponentButton extends VerticalLayout {
 				setAlert(null, null);
 				break;
 			case cancelled:
-				setAlert("<h3>Last command \"" + taskRecord.getCommand() + "\" was cancelled.</h3>", cancelledResource);
+				setAlert(null, null);
 				break;
 			case missing:
 				setAlert("<h3>Last command \"" + taskRecord.getCommand() + "\" was missing.</h3>", errorResource);
