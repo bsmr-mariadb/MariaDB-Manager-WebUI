@@ -19,6 +19,7 @@
 package com.skysql.manager;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
@@ -122,14 +123,31 @@ public class DateConversion {
 				}
 				adjusted = sdfOutput.format(myDate);
 			} catch (Exception e) {
-//				System.err.println("Execption parsing timestamp: " + timestamp + " with format: " + format);
-				Logging.error("Execption parsing timestamp: " + timestamp + " with format: " + format);
-//				e.printStackTrace();
+				Logging.error("Exception parsing timestamp: " + timestamp + " with format: " + format);
 				Logging.error(e.getMessage());
 				adjusted = "Format Error";
 			}
 			return adjusted;
 		}
+	}
+
+	/**
+	 * Stamp to string.
+	 *
+	 * @param timestamp the timestamp
+	 * @return the string
+	 */
+	public String stampToString(Long timestamp) {
+
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(timestamp * 1000L);
+		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+		if (!adjust) {
+			sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+		}
+		String timeString = sdf.format(cal.getTime());
+
+		return timeString;
 	}
 
 }

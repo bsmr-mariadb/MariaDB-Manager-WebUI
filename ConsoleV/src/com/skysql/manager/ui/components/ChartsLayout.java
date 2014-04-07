@@ -18,14 +18,13 @@
 
 package com.skysql.manager.ui.components;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
 import com.skysql.manager.ChartMappings;
 import com.skysql.manager.ClusterComponent;
+import com.skysql.manager.DateConversion;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.UserChart;
@@ -300,10 +299,7 @@ public class ChartsLayout extends DDCssLayout {
 	 */
 	class UpdaterThread extends Thread {
 
-		/** The chart button. */
 		ChartButton chartButton;
-
-		/** The flagged. */
 		volatile boolean flagged = false;
 
 		/**
@@ -409,12 +405,14 @@ public class ChartsLayout extends DDCssLayout {
 			}
 
 			if (timeStamps == null) {
+				DateConversion dateConversion = session.getAttribute(DateConversion.class);
+
 				ArrayList<Long> unixTimes = monitorData.getTimeStamps();
 				if (unixTimes != null) {
 					timeStamps = new String[unixTimes.size()];
 					int timeSpacer = unixTimes.size() / 15;
 					for (int x = 0; x < unixTimes.size(); x++) {
-						timeStamps[x] = (x % timeSpacer != 0) ? "\u00A0" : stampToString(unixTimes.get(x)).substring(11, 16);
+						timeStamps[x] = (x % timeSpacer != 0) ? "\u00A0" : dateConversion.stampToString(unixTimes.get(x));
 					}
 				}
 			}
@@ -530,22 +528,6 @@ public class ChartsLayout extends DDCssLayout {
 			}
 		});
 
-	}
-
-	/**
-	 * Stamp to string.
-	 *
-	 * @param timestamp the timestamp
-	 * @return the string
-	 */
-	private String stampToString(Long timestamp) {
-
-		Calendar cal = Calendar.getInstance();
-		cal.setTimeInMillis(timestamp * 1000L);
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String timeString = sdf.format(cal.getTime());
-
-		return timeString;
 	}
 
 	/* (non-Javadoc)
