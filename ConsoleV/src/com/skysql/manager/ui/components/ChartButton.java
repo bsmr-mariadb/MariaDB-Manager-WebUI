@@ -76,7 +76,7 @@ public class ChartButton extends CustomComponent {
 			public void layoutClick(LayoutClickEvent event) {
 
 				Component child;
-				if (event.isDoubleClick() && (child = event.getChildComponent()) != null && (child instanceof Chart)) {
+				if (event.isDoubleClick() && (child = event.getChildComponent()) != null) {
 					if (isEditable) {
 						new ChartsDialog(chartsLayout, thisButton);
 					} else {

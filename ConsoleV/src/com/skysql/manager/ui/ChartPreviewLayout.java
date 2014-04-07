@@ -26,7 +26,9 @@ import com.skysql.manager.ui.components.ChartButton;
 import com.skysql.manager.ui.components.ChartsLayout;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Embedded;
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -64,10 +66,29 @@ public class ChartPreviewLayout extends VerticalLayout {
 		setSpacing(true);
 		setMargin(true);
 
+		HorizontalLayout formDescription = new HorizontalLayout();
+		formDescription.setSpacing(true);
+
+		Embedded info = new Embedded(null, new ThemeResource("img/info.png"));
+		info.addStyleName("infoButton");
+		String infoText = "<table border=0 cellspacing=3 cellpadding=0 summary=\"\">\n" + "     <tr bgcolor=\"#ccccff\">" + "         <th align=left>Field"
+				+ "         <th align=left>Description" + "     <tr>" + "         <td><code>Title</code>" + "         <td>Name of the Chart"
+				+ "     <tr bgcolor=\"#eeeeff\">" + "         <td><code>Description</code>" + "         <td>Description of the Chart " + "     <tr>"
+				+ "         <td nowrap><code>Measurement Unit</code>"
+				+ "         <td>Unit of measurement for the data returned by the monitor, used as caption for the vertical axis of the chart"
+				+ "     <tr bgcolor=\"#eeeeff\">" + "         <td><code>Type</code>" + "         <td>Chart type (LineChart, AreaChart)" + "     <tr>"
+				+ "         <td><code>Points</code>" + "         <td>Number of data points displayed";
+		infoText += " </table>" + " </blockquote>";
+		info.setDescription(infoText);
+		formDescription.addComponent(info);
+
 		final Label monitorsLabel = new Label("Display as Chart");
 		monitorsLabel.setStyleName("dialogLabel");
-		addComponent(monitorsLabel);
-		setComponentAlignment(monitorsLabel, Alignment.TOP_CENTER);
+		formDescription.addComponent(monitorsLabel);
+		formDescription.setComponentAlignment(monitorsLabel, Alignment.MIDDLE_LEFT);
+
+		addComponent(formDescription);
+		setComponentAlignment(formDescription, Alignment.TOP_CENTER);
 
 		HorizontalLayout chartInfo = new HorizontalLayout();
 		chartInfo.setSpacing(true);
@@ -86,7 +107,7 @@ public class ChartPreviewLayout extends VerticalLayout {
 		chartDescription.setImmediate(true);
 		formLayout.addComponent(chartDescription);
 
-		chartUnit = new TextField("Unit");
+		chartUnit = new TextField("Measurement Unit");
 		chartUnit.setImmediate(true);
 		formLayout.addComponent(chartUnit);
 
