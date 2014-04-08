@@ -21,6 +21,7 @@ package com.skysql.manager.api;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Map;
 
 import com.google.gson.JsonParseException;
 import com.skysql.manager.TaskRecord;
@@ -74,10 +75,10 @@ public class TaskRun {
 	 * @param nodeID the node id
 	 * @param userID the user id
 	 * @param command the command
-	 * @param params the params
+	 * @param params the params map
 	 * @param state the state
 	 */
-	public TaskRun(String systemID, String nodeID, String userID, String command, String params, String state) {
+	public TaskRun(String systemID, String nodeID, String userID, String command, Map<String, String> params, String state) {
 
 		APIrestful api = new APIrestful();
 
@@ -91,7 +92,9 @@ public class TaskRun {
 				regParam.append("&state=" + URLEncoder.encode(state, "UTF-8"));
 			}
 			if (params != null) {
-				regParam.append("&parameters=" + URLEncoder.encode(params, "UTF-8"));
+				for (Map.Entry<String, String> entry : params.entrySet()) {
+					regParam.append("&" + entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), "UTF-8"));
+				}
 			}
 			success = api.post("command/" + command, regParam.toString());
 
