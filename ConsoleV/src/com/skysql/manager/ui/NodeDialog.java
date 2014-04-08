@@ -18,12 +18,16 @@
 
 package com.skysql.manager.ui;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.skysql.manager.api.APIrestful;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.api.TaskRun;
 import com.skysql.manager.api.UserObject;
 import com.skysql.manager.ui.components.ComponentButton;
+import com.skysql.manager.ui.components.ParametersLayout;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -138,7 +142,13 @@ public class NodeDialog implements Window.CloseListener {
 							String password = nodeForm.connectPassword.getValue();
 							String sshkey = nodeForm.connectKey.getValue();
 							if (!password.isEmpty() || !sshkey.isEmpty()) {
-								String params = nodeForm.usePassword ? "rootpassword=" + api.encryptAES(password) : "sshkey=" + api.encryptAES(sshkey);
+								Map<String, String> params = new HashMap<String, String>();
+								if (nodeForm.usePassword) {
+									params.put(ParametersLayout.PARAM_CONNECT_ROOTPASSWORD, api.encryptAES(password));
+								} else {
+									params.put(ParametersLayout.PARAM_CONNECT_SSHKEY, api.encryptAES(sshkey));
+								}
+
 								TaskRun taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, "connect", params, null);
 							}
 						}

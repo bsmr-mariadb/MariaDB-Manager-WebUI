@@ -18,6 +18,7 @@
 
 package com.skysql.manager.ui;
 
+import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
 import com.skysql.manager.Commands;
@@ -54,7 +55,8 @@ public final class RunningTask {
 	private ScriptingProgressLayout scriptingProgressLayout;
 	private HorizontalLayout scriptingLayout;
 	private ScheduledFuture<?> runTimerFuture;
-	private String command, params;
+	private String command;
+	private Map<String, String> params;
 	private NodeInfo nodeInfo;
 	private TaskRecord taskRecord;
 	private boolean observerMode;
@@ -187,9 +189,9 @@ public final class RunningTask {
 	/**
 	 * Select parameter.
 	 *
-	 * @param parameter the parameter
+	 * @param parameter the parameter map
 	 */
-	public void selectParameter(String parameter) {
+	public void selectParameter(Map<String, String> parameter) {
 		params = parameter;
 
 		if (!paramsReady) {

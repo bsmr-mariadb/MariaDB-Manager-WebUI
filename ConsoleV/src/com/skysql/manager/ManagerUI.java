@@ -58,10 +58,7 @@ import com.vaadin.ui.VerticalLayout;
 @PreserveOnRefresh
 public class ManagerUI extends UI {
 
-	/** The Constant GUI_VERSION. */
-	private static final String GUI_VERSION = "1.1-91";
-
-	/** The Constant NOT_AVAILABLE. */
+	private static final String GUI_VERSION = "1.1-92";
 	private static final String NOT_AVAILABLE = "n/a";
 
 	/** The main timer future. */
@@ -80,11 +77,10 @@ public class ManagerUI extends UI {
 	protected void init(VaadinRequest request) {
 
 		VaadinSession session = getSession();
-		
+
 		Logging.setComponent("WebUI");
-		
+
 		log("init session: - " + session + " UI: " + this.toString());
-		
 
 		try {
 
@@ -116,7 +112,7 @@ public class ManagerUI extends UI {
 			refreshContentBasedOnSessionData();
 
 		} catch (RuntimeException e) {
-//			System.err.println("RunTime error: " + e.getLocalizedMessage());
+			//			System.err.println("RunTime error: " + e.getLocalizedMessage());
 			Logging.error("RunTime error: " + e.getLocalizedMessage());
 			close();
 		}
@@ -296,7 +292,7 @@ public class ManagerUI extends UI {
 	 */
 	public static void log(String msg) {
 		if (Debug.ON) {
-//			System.out.println(msg);
+			//			System.out.println(msg);
 			Logging.debug(msg);
 		}
 	}
