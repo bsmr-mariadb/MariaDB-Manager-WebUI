@@ -120,6 +120,11 @@
 			<artifactId>backport-util-concurrent</artifactId>
 		<version>3.1</version>
 		</dependency>
+		<dependency>
+			<groupId>com.skysql.java</groupId>
+			<artifactId>libMariaDB-Manager-java</artifactId>
+			<version>0.1</version>
+		</dependency>
 	</dependencies>
 	<build>
     	<sourceDirectory>src</sourceDirectory>
