@@ -318,6 +318,10 @@ public class PanelControl extends VerticalLayout {
 					runningTask.addRefreshListener(refreshListener);
 				}
 
+				if (!newNodeID.equals(lastNodeID)) {
+					commandSelect.removeAllItems();
+					nodeInfo.updateCommands();
+				}
 				if (nodeInfo.getCommands() == null || nodeInfo.getCommands().getNames().isEmpty()) {
 					commandSelect.removeAllItems();
 					oldcommands = null;

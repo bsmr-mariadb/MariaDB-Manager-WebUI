@@ -299,6 +299,37 @@ public class NodeInfo extends ClusterComponent {
 	}
 
 	/**
+	 * Get updated list of valid commands associated with node from API.
+	 *
+	 * @return true, if successful
+	 */
+	public boolean updateCommands() {
+
+		APIrestful api = new APIrestful();
+		boolean success = false;
+
+		if (api.get("system/" + this.parentID + "/node/" + ID, "?fields=commands")) {
+			try {
+				NodeInfo nodeInfo = APIrestful.getGson().fromJson(api.getResult(), NodeInfo.class);
+				this.commands = nodeInfo.commands;
+
+				return true;
+
+			} catch (NullPointerException e) {
+				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+				throw new RuntimeException("API response");
+			} catch (JsonParseException e) {
+				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+				throw new RuntimeException("API response");
+			}
+
+		}
+
+		return false;
+
+	}
+
+	/**
 	 * Save node info to API.
 	 *
 	 * @return true, if successful
