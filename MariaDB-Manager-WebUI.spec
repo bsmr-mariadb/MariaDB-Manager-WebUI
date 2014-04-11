@@ -38,6 +38,8 @@ chown tomcat:tomcat %{install_path}MariaDBManager.war
 iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
 service iptables save
 sed -i 's|shared.loader=|shared.loader=/usr/local/skysql/share/*.jar|g' /usr/local/tomcat/conf/catalina.properties
+connector8081='<Connector port=\"8081\" proxyName=\"localhost\" proxyPort=\"80\"\/>'
+sed -i "/Service name=\"Catalina\">/ a $connector8081" /usr/local/tomcat7/conf/server.xml
 /etc/init.d/tomcat7 start
 
 %install
