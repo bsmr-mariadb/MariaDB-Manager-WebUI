@@ -76,7 +76,7 @@ public class APIrestful {
 	/** The Constant sdf defines the format that date fields are expected to be received in from the API. */
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
 
-	/** The api uri. */
+	public static final String apiVERSION = "1.1";
 	private static String apiURI;
 
 	/** The key ID and code for the authentication header */
@@ -362,7 +362,7 @@ public class APIrestful {
 			sc.setRequestProperty("Authorization", "api-auth-" + keyID + "-" + sb.toString());
 			sc.setRequestProperty("Date", date);
 			sc.setRequestProperty("Accept", "application/json");
-			sc.setRequestProperty("X-SkySQL-API-Version", "1.1");
+			sc.setRequestProperty("X-SkySQL-API-Version", apiVERSION);
 
 			OutputStreamWriter out;
 
@@ -427,8 +427,8 @@ public class APIrestful {
 				if (Debug.ON) {
 					ManagerUI.log("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
 				} else {
-//					System.err.println("API " + lastCall);
-//					System.err.println("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
+					//					System.err.println("API " + lastCall);
+					//					System.err.println("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
 					Logging.error("API " + lastCall);
 					Logging.error("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
 				}
@@ -500,27 +500,27 @@ public class APIrestful {
 			cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
 			encrypted = cipher.doFinal(data);
 		} catch (NoSuchAlgorithmException e) {
-//			e.printStackTrace();
+			//			e.printStackTrace();
 			Logging.error(e.getMessage());
 			return null;
 		} catch (NoSuchPaddingException e) {
-//			e.printStackTrace();
+			//			e.printStackTrace();
 			Logging.error(e.getMessage());
 			return null;
 		} catch (InvalidKeyException e) {
-//			e.printStackTrace();
+			//			e.printStackTrace();
 			Logging.error(e.getMessage());
 			return null;
 		} catch (IllegalBlockSizeException e) {
-//			e.printStackTrace();
+			//			e.printStackTrace();
 			Logging.error(e.getMessage());
 			return null;
 		} catch (BadPaddingException e) {
-//			e.printStackTrace();
+			//			e.printStackTrace();
 			Logging.error(e.getMessage());
 			return null;
 		} catch (InvalidAlgorithmParameterException e) {
-//			e.printStackTrace();
+			//			e.printStackTrace();
 			Logging.error(e.getMessage());
 			return null;
 		}
@@ -532,7 +532,7 @@ public class APIrestful {
 			outputStream.write(encrypted);
 			output = outputStream.toByteArray();
 		} catch (IOException e) {
-//			e.printStackTrace();
+			//			e.printStackTrace();
 			Logging.error(e.getMessage());
 		}
 		return DatatypeConverter.printBase64Binary(output);

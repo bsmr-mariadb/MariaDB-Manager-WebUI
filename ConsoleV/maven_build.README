@@ -12,3 +12,11 @@ Afterwards, use "mvn package" to generate the WAR file (to be found in the targe
   -Dversion=1.0.0.alpha4_hotfix_273 \
   -Dfile=WebContent/WEB-INF/lib/dragdroplayouts-1.0.0.alpha4_hotfix_273.jar \
   -DgeneratePom=true
+
+ mvn install:install-file \
+  -DgroupId=skysql \
+  -DartifactId=libMariaDB-Manager-java \
+  -Dpackaging=jar \
+  -Dversion=0.1 \
+  -Dfile=WebContent/WEB-INF/lib/libMariaDB-Manager-java.jar \
+  -DgeneratePom=true

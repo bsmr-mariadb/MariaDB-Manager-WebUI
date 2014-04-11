@@ -18,7 +18,6 @@
 
 package com.skysql.manager.ui;
 
-import com.skysql.manager.AboutRecord;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.api.BackupStates;
 import com.skysql.manager.api.CommandStates;
@@ -30,7 +29,6 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -85,15 +83,31 @@ public class LoginView extends VerticalLayout {
 	 *
 	 * @param aboutRecord the about record
 	 */
-	public LoginView(AboutRecord aboutRecord) {
+	public LoginView() {
 
 		setSizeFull();
 		setMargin(true);
+		setSpacing(true);
 		addStyleName("loginView");
 
+		VerticalLayout logoLayout = new VerticalLayout();
+		addComponent(logoLayout);
+		setComponentAlignment(logoLayout, Alignment.BOTTOM_CENTER);
+		setExpandRatio(logoLayout, 1.0f);
+
 		Embedded logo = new Embedded(null, new ThemeResource("img/loginlogo.png"));
-		addComponent(logo);
-		setComponentAlignment(logo, Alignment.BOTTOM_CENTER);
+		logoLayout.addComponent(logo);
+		logoLayout.setComponentAlignment(logo, Alignment.BOTTOM_CENTER);
+
+		Label releaseInfo = new Label("Version " + ManagerUI.GUI_RELEASE);
+		releaseInfo.setSizeUndefined();
+		releaseInfo.addStyleName("releaseInfo");
+		logoLayout.addComponent(releaseInfo);
+		logoLayout.setComponentAlignment(releaseInfo, Alignment.TOP_CENTER);
+
+		VerticalLayout spacer = new VerticalLayout();
+		spacer.setHeight("20px");
+		logoLayout.addComponent(spacer);
 
 		VerticalLayout loginBox = new VerticalLayout();
 		loginBox.addStyleName("loginBox");
@@ -103,24 +117,11 @@ public class LoginView extends VerticalLayout {
 		addComponent(loginBox);
 		setComponentAlignment(loginBox, Alignment.MIDDLE_CENTER);
 
-		//		HorizontalLayout featuresLayout = new HorizontalLayout();
-		//		Embedded cloud = new Embedded(null, new ThemeResource("img/productlogo.png"));
-		//		featuresLayout.addComponent(cloud);
-		//		featuresLayout.setComponentAlignment(cloud, Alignment.MIDDLE_CENTER);
-		//		addComponent(featuresLayout);
-		//		setComponentAlignment(featuresLayout, Alignment.MIDDLE_CENTER);
-
 		VerticalLayout loginFormLayout = new VerticalLayout();
 		loginFormLayout.addStyleName("loginForm");
 		loginFormLayout.setMargin(true);
 		loginFormLayout.setSpacing(true);
 		loginBox.addComponent(loginFormLayout);
-		loginBox.setComponentAlignment(loginFormLayout, Alignment.MIDDLE_CENTER);
-
-		//		Label welcome = new Label("Welcome to " + name);
-		//		welcome.setSizeUndefined();
-		//		loginFormLayout.addComponent(welcome);
-		//		loginFormLayout.setComponentAlignment(welcome, Alignment.TOP_CENTER);
 
 		// userName.focus();
 		userName.setStyleName("loginControl");
@@ -162,13 +163,9 @@ public class LoginView extends VerticalLayout {
 		loginFormLayout.addComponent(login);
 		loginFormLayout.setComponentAlignment(login, Alignment.BOTTOM_CENTER);
 
-		String versionString = "GUI Version: " + aboutRecord.getVersionGUI() + "<br/>API Version: " + aboutRecord.getVersionAPI() + "<br/>Monitor Version: "
-				+ aboutRecord.getVersionMonitor();
-		ManagerUI.log(versionString);
-		Label versionLabel = new Label(versionString, ContentMode.HTML);
-		versionLabel.setSizeUndefined();
-		addComponent(versionLabel);
-		setComponentAlignment(versionLabel, Alignment.BOTTOM_LEFT);
+		VerticalLayout filler = new VerticalLayout();
+		addComponent(filler);
+		setExpandRatio(filler, 1.0f);
 
 		preload();
 

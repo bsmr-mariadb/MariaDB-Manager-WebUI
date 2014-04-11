@@ -33,6 +33,12 @@ hr {
 
 }
 
+.releaseInfo {
+	font-family:"Helvetica Neue", Helvetica, serif;
+	font-size: 22px;
+	color: #002b64;
+}
+
 textarea.v-textarea-sshkey {
     font-family: monospace;
 }

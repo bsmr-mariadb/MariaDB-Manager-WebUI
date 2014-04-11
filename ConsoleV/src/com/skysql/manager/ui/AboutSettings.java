@@ -18,9 +18,12 @@
 
 package com.skysql.manager.ui;
 
-import com.skysql.manager.AboutRecord;
+import java.util.LinkedHashMap;
+
+import com.skysql.manager.ManagerUI;
+import com.skysql.manager.api.APIrestful;
+import com.skysql.manager.api.Versions;
 import com.vaadin.server.ExternalResource;
-import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Label;
@@ -39,22 +42,47 @@ public class AboutSettings extends VerticalLayout implements Window.CloseListene
 	/**
 	 * Reads the AboutRecord from the session and populates the panel layout.
 	 */
-	AboutSettings() {
+	AboutSettings(boolean extraInfo) {
 		addStyleName("aboutTab");
 		setSizeFull();
 		setSpacing(true);
 		setMargin(true);
-
-		AboutRecord aboutRecord = VaadinSession.getCurrent().getAttribute(AboutRecord.class);
 
 		Label title = new Label("<h3>Welcome to MariaDB Manager<h3/>", ContentMode.HTML);
 		title.setSizeUndefined();
 		addComponent(title);
 		setComponentAlignment(title, Alignment.MIDDLE_CENTER);
 
-		addComponent(new Label("GUI Version: " + aboutRecord.getVersionGUI()));
-		addComponent(new Label("API Version: " + aboutRecord.getVersionAPI()));
-		addComponent(new Label("Monitor Version: " + aboutRecord.getVersionMonitor()));
+		StringBuffer str = new StringBuffer();
+		str.append("<table border=0 cellspacing=3 cellpadding=3 summary=\"\">" + "<tr bgcolor=\"#ccccff\">" + "<th align=left>Component"
+				+ "<th align=left>Release");
+		if (extraInfo) {
+			str.append("<th align=left>Version" + "<th align=left>Date");
+		}
+		LinkedHashMap<String, Versions> versionsList = Versions.getVersionsList();
+		int i = 0;
+		for (Versions component : versionsList.values()) {
+			str.append(((i++ & 1) == 0) ? "<tr>" : "<tr bgcolor=\"#eeeeff\">");
+			str.append("<td><code>" + component.getName() + "</code><td>" + component.getRelease());
+			if (extraInfo) {
+				str.append("<td>" + component.getVersion());
+				str.append("<td>" + (component.getDate() == null ? " " : component.getDate()));
+			}
+		}
+		str.append("</table>");
+		ManagerUI.log(str.toString());
+		Label versionsLabel = new Label(str.toString(), ContentMode.HTML);
+		versionsLabel.setSizeUndefined();
+		addComponent(versionsLabel);
+		setComponentAlignment(versionsLabel, Alignment.MIDDLE_CENTER);
+
+		if (extraInfo) {
+			Label guiInfo = new Label("WebUI calling API " + APIrestful.apiVERSION + " @ " + APIrestful.getURI());
+			guiInfo.setSizeUndefined();
+			addComponent(guiInfo);
+			setComponentAlignment(guiInfo, Alignment.MIDDLE_CENTER);
+		}
+
 		addComponent(new Label(""));
 		addComponent(new Label(""));
 

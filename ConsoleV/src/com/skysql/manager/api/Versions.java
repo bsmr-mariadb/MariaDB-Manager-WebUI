@@ -19,6 +19,13 @@
 package com.skysql.manager.api;
 
 import java.lang.reflect.Type;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -32,8 +39,31 @@ import com.skysql.manager.ui.ErrorDialog;
  */
 public class Versions {
 
+	public static final String NOT_AVAILABLE = "n/a";
+
+	private static LinkedHashMap<String, Versions> versionsList = null;
 	private String name;
 	private String version;
+	private String release;
+	private String date;
+
+	/**
+	 * Gets the versions list.
+	 *
+	 * @return the versionsList
+	 */
+	public static LinkedHashMap<String, Versions> getVersionsList() {
+		return versionsList;
+	}
+
+	/**
+	 * Sets the versions list.
+	 *
+	 * @param versionsList the new versions list
+	 */
+	public static void setVersionsList(LinkedHashMap<String, Versions> versionsList) {
+		Versions.versionsList = versionsList;
+	}
 
 	/**
 	 * Gets the name.
@@ -42,15 +72,6 @@ public class Versions {
 	 */
 	public String getName() {
 		return name;
-	}
-
-	/**
-	 * Sets the name.
-	 *
-	 * @param name the new name
-	 */
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	/**
@@ -63,42 +84,68 @@ public class Versions {
 	}
 
 	/**
-	 * Sets the version.
+	 * Gets the release.
 	 *
-	 * @param version the new version
+	 * @return the release
 	 */
-	public void setVersion(String version) {
-		this.version = version;
+	public String getRelease() {
+		return release;
 	}
 
 	/**
-	 * Instantiates a new versions.
+	 * Gets the date.
+	 *
+	 * @return the date
 	 */
-	public Versions() {
-
+	public String getDate() {
+		return date;
 	}
 
 	/**
-	 * Gets version information for a component from the API.
+	 * Registers the GUI with the API and collects the whole list of Components.
 	 *
-	 * @param component the component
+	 * @param name the name
+	 * @param version the version
+	 * @param release the release
+	 * @param date the date
 	 */
-	public Versions(String component) {
+	public Versions(String id, String name, String version, String release, String date) {
 
 		APIrestful api = new APIrestful();
-		if (api.get("system/0/node/0/component/" + component)) {
-			try {
-				Versions versions = APIrestful.getGson().fromJson(api.getResult(), Versions.class);
-				this.name = versions.name;
-				this.version = versions.version;
-			} catch (NullPointerException e) {
-				new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
-				throw new RuntimeException("API response");
-			} catch (JsonParseException e) {
-				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
-				throw new RuntimeException("API response");
+
+		try {
+			JSONObject jsonParam = new JSONObject();
+			jsonParam.put("value", name);
+			api.put("system/0/node/0/component/" + id + "/property/name", jsonParam.toString());
+			jsonParam.put("value", version);
+			api.put("system/0/node/0/component/" + id + "/property/version", jsonParam.toString());
+			jsonParam.put("value", release);
+			api.put("system/0/node/0/component/" + id + "/property/release", jsonParam.toString());
+
+			if (api.get("system/0/node/0/component")) {
+				APIrestful.getGson().fromJson(api.getResult(), Versions.class);
 			}
+
+		} catch (JSONException e) {
+			new ErrorDialog(e, "Error encoding API request");
+			throw new RuntimeException("Error encoding API request");
+		} catch (NullPointerException e) {
+			new ErrorDialog(e, "API did not return expected result for:" + api.errorString());
+			throw new RuntimeException("API response");
+		} catch (JsonParseException e) {
+			new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
+			throw new RuntimeException("API response");
 		}
+
+	}
+
+	public Versions(String name, String version, String release, String date) {
+
+		this.name = name;
+		this.version = version;
+		this.release = release;
+		this.date = date;
+
 	}
 
 }
@@ -109,17 +156,26 @@ public class Versions {
 class VersionsDeserializer implements JsonDeserializer<Versions> {
 	public Versions deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException, NullPointerException {
 
-		Versions versions = new Versions();
+		JsonElement jsonElement = json.getAsJsonObject().get("components");
+		if (jsonElement != null && !jsonElement.isJsonNull()) {
 
-		JsonElement jsonElement = json.getAsJsonObject().get("monitorproperties");
-		if (!jsonElement.isJsonNull()) {
-			JsonObject jsonObject = jsonElement.getAsJsonObject();
-			JsonElement element;
-			versions.setName((element = jsonObject.get("name")) == null || element.isJsonNull() ? null : element.getAsString());
-			versions.setVersion((element = jsonObject.get("version")) == null || element.isJsonNull() ? null : element.getAsString());
+			LinkedHashMap<String, Versions> versionsList = new LinkedHashMap<String, Versions>();
+			Set<Entry<String, JsonElement>> set = jsonElement.getAsJsonObject().entrySet();
+			Iterator<Entry<String, JsonElement>> iter = set.iterator();
+			while (iter.hasNext()) {
+				Entry<String, JsonElement> entry = iter.next();
+				String componentID = entry.getKey();
+				JsonObject jsonObject = entry.getValue().getAsJsonObject();
+				JsonElement element;
+				String name = (element = jsonObject.get("name")) == null || element.isJsonNull() ? Versions.NOT_AVAILABLE : element.getAsString();
+				String version = (element = jsonObject.get("version")) == null || element.isJsonNull() ? Versions.NOT_AVAILABLE : element.getAsString();
+				String release = (element = jsonObject.get("release")) == null || element.isJsonNull() ? Versions.NOT_AVAILABLE : element.getAsString();
+				String date = (element = jsonObject.get("date")) == null || element.isJsonNull() ? null : element.getAsString();
+				versionsList.put(componentID, new Versions(name, version, release, date));
+			}
+			Versions.setVersionsList(versionsList);
 		}
-		return versions;
 
+		return null;
 	}
-
 }

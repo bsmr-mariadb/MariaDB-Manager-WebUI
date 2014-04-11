@@ -58,8 +58,8 @@ import com.vaadin.ui.VerticalLayout;
 @PreserveOnRefresh
 public class ManagerUI extends UI {
 
-	private static final String GUI_VERSION = "1.1-92";
-	private static final String NOT_AVAILABLE = "n/a";
+	public static final String GUI_RELEASE = "1.0.2";
+	public static final String GUI_VERSION = "1.1-93";
 
 	/** The main timer future. */
 	private ScheduledFuture<?> mainTimerFuture;
@@ -153,16 +153,7 @@ public class ManagerUI extends UI {
 			return;
 		}
 
-		String systemName = "{ Installation/API name goes here }";
-		String guiVersion = GUI_VERSION;
-		if (Debug.ON) {
-			guiVersion += " DEBUG";
-		}
-		String apiVersion = api.getVersion();
-		Versions monitor = new Versions("monitor");
-		String monitorVersion = (monitor.getVersion() != null ? monitor.getVersion() : NOT_AVAILABLE);
-		AboutRecord aboutRecord = new AboutRecord(systemName, guiVersion, apiVersion, monitorVersion);
-		session.setAttribute(AboutRecord.class, aboutRecord);
+		new Versions("gui", "MariaDB-Manager-WebUI", GUI_VERSION + (Debug.ON ? " DEBUG" : ""), GUI_RELEASE, null);
 
 		SystemInfo systemInfo = new SystemInfo(SystemInfo.SYSTEM_ROOT);
 		session.setAttribute(SystemInfo.class, systemInfo);
@@ -176,7 +167,7 @@ public class ManagerUI extends UI {
 
 		UserObject userObject = session.getAttribute(UserObject.class);
 		if (userObject == null) {
-			setContent(new LoginView(aboutRecord));
+			setContent(new LoginView());
 		} else {
 			String adjust = userObject.getProperty(UserObject.PROPERTY_TIME_ADJUST);
 			DateConversion dateConversion = new DateConversion((adjust == null ? GeneralSettings.DEFAULT_TIME_ADJUST : Boolean.valueOf(adjust)),
@@ -292,7 +283,7 @@ public class ManagerUI extends UI {
 	 */
 	public static void log(String msg) {
 		if (Debug.ON) {
-			//			System.out.println(msg);
+			System.out.println(msg);
 			Logging.debug(msg);
 		}
 	}
