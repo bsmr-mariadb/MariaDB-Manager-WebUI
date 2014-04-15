@@ -50,7 +50,7 @@ mkdir -p $RPM_BUILD_ROOT/etc/init.d/
 cp tomcat7 $RPM_BUILD_ROOT/etc/init.d/
 
 mkdir -p $RPM_BUILD_ROOT/usr/local/skysql/config/
-cp proxypass_tomcat.sh /usr/local/skysql/config/
+cp proxypass_tomcat.sh  $RPM_BUILD_ROOT/usr/local/skysql/config/
 
 %clean
 
