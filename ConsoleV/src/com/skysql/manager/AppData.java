@@ -31,6 +31,8 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.skysql.java.Configuration;
+import com.skysql.java.Configuration.DEFAULT_SECTION;
 import com.skysql.manager.ui.ErrorDialog;
 
 /**
@@ -49,7 +51,12 @@ public class AppData {
 	 * @return the app data
 	 */
 	public static AppData newInstance() {
-		appData = new AppData(null);
+		appData = new AppData();
+		Configuration config = new Configuration();
+		appID = config.getConfig(DEFAULT_SECTION.WEBUI).get("apikeyid");
+		appData.apiKeys.put(appID, config.getConfig(DEFAULT_SECTION.APIKEYS).get(appID));
+		appData.setApiKeys(appData.apiKeys);
+		appData.setApiURI(config.getConfig(DEFAULT_SECTION.APIHOST).get("uri"));
 		if (appData.apiURI != null) {
 			return appData;
 		} else {
@@ -100,6 +107,7 @@ public class AppData {
 	 * Instantiates a new app data.
 	 */
 	protected AppData() {
+		apiKeys = new Hashtable<String, String>(1);
 	}
 
 	/**
