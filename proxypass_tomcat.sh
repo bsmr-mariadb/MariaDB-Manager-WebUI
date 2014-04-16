@@ -18,7 +18,7 @@
 #
 # Author: Massimo Siani
 # Date: April 2014
-
+set -x
 
 if [[ -f /etc/tomcat6/server.xml ]] ; then
     tomcatConf="/etc/tomcat6/server.xml"

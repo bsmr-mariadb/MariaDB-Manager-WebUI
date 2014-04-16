@@ -30,6 +30,7 @@ Manager management and monitoring API.
 %build
 
 %post
+set -x
 chkconfig --add tomcat7
 #/etc/init.d/tomcat7 restart
 /etc/init.d/tomcat7 stop
