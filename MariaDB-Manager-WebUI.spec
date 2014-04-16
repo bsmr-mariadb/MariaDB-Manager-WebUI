@@ -37,7 +37,7 @@ rm -rf %{install_path}MariaDBManager/
 chown tomcat:tomcat %{install_path}MariaDBManager.war
 iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
 service iptables save
-sed -i 's|shared.loader=|shared.loader=/usr/local/skysql/share/*.jar|g' /usr/local/tomcat/conf/catalina.properties
+sed -i 's|shared.loader=|shared.loader=/usr/local/skysql/share/*.jar|g' /usr/local/tomcat7/conf/catalina.properties
 /usr/local/skysql/config/proxypass_tomcat.sh
 rm -f /usr/local/skysql/config/proxypass_tomcat.sh
 /etc/init.d/tomcat7 start
