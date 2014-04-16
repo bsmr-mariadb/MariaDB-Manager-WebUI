@@ -36,9 +36,9 @@ fi
 #AWS support
 ipaddress=$(curl http://instance-data/latest/meta-data/public-ipv4 2>/dev/null)
 if [[ "x$ipaddress" == "x" ]] ; then
-    ipaddress=$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p')
+    ipaddress=$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | head -n 1)
 fi
-connector8081="<Connector port=\"8081\" proxyName=\"$ipaddress\" proxyPort=\"80\"\/>"
+connector8081="<Connector port=\"8081\" proxyName=\"$ipaddress\" proxyPort=\"80\" />"
 
 
 if ! grep -q "<Connector port=\"8081" $tomcatConf ; then

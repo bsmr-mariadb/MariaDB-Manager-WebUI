@@ -41,7 +41,7 @@ service iptables save
 sed -i 's|shared.loader=|shared.loader=/usr/local/skysql/share/*.jar|g' /usr/local/tomcat7/conf/catalina.properties
 /usr/local/skysql/config/proxypass_tomcat.sh
 rm -f /usr/local/skysql/config/proxypass_tomcat.sh
-/etc/init.d/tomcat7 start
+/etc/init.d/tomcat7 restart
 
 %install
 mkdir -p $RPM_BUILD_ROOT%{install_path}
