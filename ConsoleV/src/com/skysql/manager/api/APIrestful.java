@@ -269,28 +269,46 @@ public class APIrestful {
 	}
 
 	/**
-	 * Gets the.
-	 *
-	 * @param uri the uri
+	 * Convenience call for <code>get(uri, null, null)</code>.
+	 * No parameters will be passed to the API for this
+	 * GET request, and no If-Modified-Since header will
+	 * be set.
+	 * @param uri			the API uri request
 	 * @return true, if successful
 	 */
 	public boolean get(String uri) {
 
-		return call(uri, CallType.GET, null);
+		return get(uri, null);
 
 	}
 
 	/**
-	 * Performs a GET
-	 *
-	 * @param uri the uri
-	 * @param value the value
+	 * Convenience call for <code>get(uri, value, null)</code>,
+	 * i.e. no If-Modified-Since header will be set.
+	 * @param uri			the API uri request
+	 * @param value			the parameters string
 	 * @return true, if successful
 	 */
 	public boolean get(String uri, String value) {
 
-		return call(uri, CallType.GET, value);
+		return get(uri, value, null);
 
+	}
+
+	/**
+	 * Issues a GET request to the API, sending some parameter.
+	 * The parameters must be given in the form
+	 * <code>field1=value1&field2=value2</code>, or it can be <code>null</code>.
+	 * A date can also be provided, to set the If-Modified-Since header
+	 * in the rfc-2822 format. If it is null or empty, the header will
+	 * not be set.
+	 * @param uri				the API uri request
+	 * @param value				the parameters string
+	 * @param lastModified		the date of last modified, in rfc-2822 format
+	 * @return
+	 */
+	public boolean get(String uri, String value, String lastModified) {
+		return call(uri, CallType.GET, value, lastModified);
 	}
 
 	/**
@@ -332,14 +350,19 @@ public class APIrestful {
 	}
 
 	/**
-	 * Makes a call to the API
-	 *
-	 * @param uri the uri
-	 * @param type the type (GET,PUT,POST,DELETE)
-	 * @param value the value
+	 * Convenience call for <code>call(uri, type, value, null)</code>.
+	 * It does not set the if-Modified-Since header.
+	 * Avoid calling this method for a GET.
+	 * @param uri			the API uri request
+	 * @param type			the request type (GET, POST, PUT, DELETE)
+	 * @param value			the parameters string
 	 * @return true, if successful
 	 */
 	private boolean call(String uri, CallType type, String value) {
+		return call(uri, type, value, null);
+	}
+
+	private boolean call(String uri, CallType type, String value, String lastModified) {
 
 		HttpURLConnection httpConnection = null;
 		URL url = null;
@@ -369,6 +392,9 @@ public class APIrestful {
 			switch (type) {
 			case GET:
 				//httpConnection.setRequestProperty("Accept-Encoding", "gzip");
+				if (lastModified != null && !lastModified.isEmpty()) {
+					httpConnection.setRequestProperty("If-Modified-Since", lastModified);
+				}
 				break;
 
 			case PUT:
@@ -419,6 +445,9 @@ public class APIrestful {
 				APIrestful api = getGson().fromJson(result, APIrestful.class);
 				return api.success;
 
+			} else if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
+				// Massimo Siani, 2014-02-13, to test for If-Modified-Since
+				return true;
 			} else {
 				BufferedReader in = new BufferedReader(new InputStreamReader(httpConnection.getErrorStream()));
 				errors = in.readLine();

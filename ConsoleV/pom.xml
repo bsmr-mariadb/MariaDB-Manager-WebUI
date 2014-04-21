@@ -123,7 +123,8 @@
 		<dependency>
 			<groupId>com.skysql.java</groupId>
 			<artifactId>libMariaDB-Manager-java</artifactId>
-			<version>0.1</version>
+			<version>[0.1,)</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 	<build>
