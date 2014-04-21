@@ -60,7 +60,7 @@ import com.vaadin.ui.VerticalLayout;
 public class ManagerUI extends UI {
 
 	public static final String GUI_RELEASE = "1.0.2";
-	public static final String GUI_VERSION = "1.1-93";
+	public static final String GUI_VERSION = "1.1-94";
 
 	/** The main timer future. */
 	private ScheduledFuture<?> mainTimerFuture;
@@ -107,7 +107,7 @@ public class ManagerUI extends UI {
 					break;
 				}
 				session.setAttribute(UserInfo.class, userInfo);
-				
+
 				session.setAttribute(CachedData.class, new CachedData());
 
 			} while (false);
