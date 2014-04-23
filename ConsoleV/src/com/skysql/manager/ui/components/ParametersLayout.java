@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.skysql.java.Encryption;
 import com.skysql.java.Logging;
 import com.skysql.manager.BackupRecord;
 import com.skysql.manager.Commands;
@@ -371,11 +372,11 @@ public class ParametersLayout extends HorizontalLayout {
 				String password = connectPassword.getValue();
 				String sshkey = connectKey.getValue();
 				if (!password.isEmpty() || !sshkey.isEmpty()) {
-					APIrestful api = new APIrestful();
+					Encryption encryption = new Encryption();
 					if (usePassword) {
-						params.put(PARAM_CONNECT_ROOTPASSWORD, api.encryptAES(password));
+						params.put(PARAM_CONNECT_ROOTPASSWORD, encryption.encrypt(password, APIrestful.getKey()));
 					} else {
-						params.put(PARAM_CONNECT_SSHKEY, api.encryptAES(sshkey));
+						params.put(PARAM_CONNECT_SSHKEY, encryption.encrypt(sshkey, APIrestful.getKey()));
 					}
 					isParameterReady = true;
 				}
@@ -402,7 +403,7 @@ public class ParametersLayout extends HorizontalLayout {
 		} catch (InvalidValueException e) {
 			return false;
 		} catch (Exception e) {
-//			e.printStackTrace();
+			//			e.printStackTrace();
 			Logging.error(e.getMessage());
 			return false;
 		}

@@ -21,6 +21,7 @@ package com.skysql.manager.ui;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.skysql.java.Encryption;
 import com.skysql.manager.api.APIrestful;
 import com.skysql.manager.api.NodeInfo;
 import com.skysql.manager.api.SystemInfo;
@@ -143,12 +144,12 @@ public class NodeDialog implements Window.CloseListener {
 							String sshkey = nodeForm.connectKey.getValue();
 							if (!password.isEmpty() || !sshkey.isEmpty()) {
 								Map<String, String> params = new HashMap<String, String>();
+								Encryption encryption = new Encryption();
 								if (nodeForm.usePassword) {
-									params.put(ParametersLayout.PARAM_CONNECT_ROOTPASSWORD, api.encryptAES(password));
+									params.put(ParametersLayout.PARAM_CONNECT_ROOTPASSWORD, encryption.encrypt(password, APIrestful.getKey()));
 								} else {
-									params.put(ParametersLayout.PARAM_CONNECT_SSHKEY, api.encryptAES(sshkey));
+									params.put(ParametersLayout.PARAM_CONNECT_SSHKEY, encryption.encrypt(sshkey, APIrestful.getKey()));
 								}
-
 								TaskRun taskRun = new TaskRun(nodeInfo.getParentID(), nodeInfo.getID(), userID, "connect", params, null);
 							}
 						}

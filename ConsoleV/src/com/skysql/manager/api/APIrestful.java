@@ -19,36 +19,22 @@
 package com.skysql.manager.api;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
-import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -116,21 +102,27 @@ public class APIrestful {
 	}
 
 	/**
+	 * Gets the API key.
+	 *
+	 * @return the key
+	 */
+	public static String getKey() {
+		return keyCode;
+	}
+
+	/**
 	 * Creates or obtains the instance of the api singleton.
 	 *
 	 * @param URI the uri
 	 * @param keys the keys ID and code table
 	 * @return the api instance
 	 */
-	public static APIrestful newInstance(String URI, Hashtable<String, String> keys) {
+	public static APIrestful newInstance(String URI, String id, String key) {
 		if (api == null) {
 			api = new APIrestful();
 			apiURI = URI;
-			if (keys.size() > 0) {
-				// TODO: for now it takes first set - needs to be changed into searching for the GUI's own ID ("1") and produce an error if it cannot find it 
-				keyID = (String) keys.keySet().toArray()[0];
-				keyCode = keys.get(keyID);
-			}
+			keyID = id;
+			keyCode = key;
 			api.get("apidate");
 			String apiDate = api.result.substring(api.result.indexOf(":") + 2);
 			apiDate = apiDate.substring(0, apiDate.indexOf("\""));
@@ -474,69 +466,6 @@ public class APIrestful {
 
 	}
 
-	/**
-	 * Encrypt the authentication header as per API requirements.
-	 *
-	 * @param input the input
-	 * @return the string
-	 */
-	public String encryptAES(String input) {
-		SecureRandom random = new SecureRandom();
-		byte ivBytes[] = new byte[16];
-		random.nextBytes(ivBytes);
-		byte[] data = input.getBytes();
-		byte[] encrypted = null;
-		byte[] keyBytes = new BigInteger(keyCode, 16).toByteArray();
-		if (keyBytes[0] == 0) {
-			byte[] tmp = new byte[keyBytes.length - 1];
-			System.arraycopy(keyBytes, 1, tmp, 0, tmp.length);
-			keyBytes = tmp;
-		}
-		try {
-			SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
-			IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
-			Cipher cipher;
-			cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-			cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
-			encrypted = cipher.doFinal(data);
-		} catch (NoSuchAlgorithmException e) {
-			//			e.printStackTrace();
-			Logging.error(e.getMessage());
-			return null;
-		} catch (NoSuchPaddingException e) {
-			//			e.printStackTrace();
-			Logging.error(e.getMessage());
-			return null;
-		} catch (InvalidKeyException e) {
-			//			e.printStackTrace();
-			Logging.error(e.getMessage());
-			return null;
-		} catch (IllegalBlockSizeException e) {
-			//			e.printStackTrace();
-			Logging.error(e.getMessage());
-			return null;
-		} catch (BadPaddingException e) {
-			//			e.printStackTrace();
-			Logging.error(e.getMessage());
-			return null;
-		} catch (InvalidAlgorithmParameterException e) {
-			//			e.printStackTrace();
-			Logging.error(e.getMessage());
-			return null;
-		}
-
-		byte output[] = null;
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		try {
-			outputStream.write(ivBytes);
-			outputStream.write(encrypted);
-			output = outputStream.toByteArray();
-		} catch (IOException e) {
-			//			e.printStackTrace();
-			Logging.error(e.getMessage());
-		}
-		return DatatypeConverter.printBase64Binary(output);
-	}
 }
 
 /**

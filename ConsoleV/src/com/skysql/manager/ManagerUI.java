@@ -59,7 +59,7 @@ import com.vaadin.ui.VerticalLayout;
 public class ManagerUI extends UI {
 
 	public static final String GUI_RELEASE = "1.0.2";
-	public static final String GUI_VERSION = "1.1-93";
+	public static final String GUI_VERSION = "1.1-94";
 
 	/** The main timer future. */
 	private ScheduledFuture<?> mainTimerFuture;
@@ -94,7 +94,7 @@ public class ManagerUI extends UI {
 				}
 				session.setAttribute(AppData.class, appData);
 
-				APIrestful api = APIrestful.newInstance(appData.getApiURI(), appData.getApiKeys());
+				APIrestful api = APIrestful.newInstance(appData.getApiURI(), appData.getAppID(), appData.getApiKey());
 				if (api == null) {
 					setContent(new ErrorView(Notification.Type.ERROR_MESSAGE, null));
 					return;
@@ -143,7 +143,7 @@ public class ManagerUI extends UI {
 
 		AppData appData = session.getAttribute(AppData.class);
 		if (appData == null) {
-			setContent(new ErrorView(Notification.Type.ERROR_MESSAGE, "Cannot find configuration file: " + AppData.configPATH));
+			setContent(new ErrorView(Notification.Type.ERROR_MESSAGE, "Cannot find configuration file"));
 			return;
 		}
 
@@ -283,7 +283,7 @@ public class ManagerUI extends UI {
 	 */
 	public static void log(String msg) {
 		if (Debug.ON) {
-			System.out.println(msg);
+			// System.out.println(msg);
 			Logging.debug(msg);
 		}
 	}
