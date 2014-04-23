@@ -121,9 +121,9 @@
 		<version>3.1</version>
 		</dependency>
 		<dependency>
-			<groupId>com.skysql.java</groupId>
+			<groupId>skysql</groupId>
 			<artifactId>libMariaDB-Manager-java</artifactId>
-			<version>[0.1,)</version>
+			<version>[0.2,)</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
