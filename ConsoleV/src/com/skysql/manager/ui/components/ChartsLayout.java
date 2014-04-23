@@ -507,8 +507,6 @@ public class ChartsLayout extends DDCssLayout {
 			public void run() {
 				// Here the UI is locked and can be updated
 
-				ManagerUI.log("ChartsLayout access run() xaxis");
-
 				if (finalNeedsRedraw) {
 					ManagerUI.log("ChartsLayout needsRedraw");
 

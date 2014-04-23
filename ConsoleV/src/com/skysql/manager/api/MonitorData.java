@@ -27,9 +27,8 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.skysql.java.Logging;
+import com.skysql.manager.ManagerUI;
 import com.skysql.manager.MonitorRecord;
-import com.skysql.manager.ui.ErrorDialog;
 import com.vaadin.server.VaadinSession;
 
 /**
@@ -46,19 +45,19 @@ public class MonitorData {
 	/** The monitor. */
 	private MonitorRecord monitor;
 
-	/** The avg points. */
+	/** The data points for a call that returns the average value. */
 	private ArrayList<Number> avgPoints;
 
-	/** The min points. */
+	/** The data points for a call that returns the min and max values */
 	private ArrayList<Number> minPoints;
-
-	/** The max points. */
 	private ArrayList<Number> maxPoints;
 
 	/** The time stamps. */
 	private ArrayList<Long> timeStamps;
 
 	private String system, node, timeSpan, method;
+
+	private int updatedPointsCount;
 
 	private ThreadLocal<CachedData> lastModified;
 
@@ -232,14 +231,16 @@ public class MonitorData {
 		String uri = "system/" + system + (node.equals(SystemInfo.SYSTEM_NODEID) ? "" : "/node/" + node) + "/monitor/" + monitor.getID() + "/data";
 		String params = "?finish=" + String.valueOf(timeEnd) + "&interval=" + String.valueOf(interval) + "&count=" + count + "&method=" + method;
 
+		/***
 		String thisLastModified = getLastModified().getLastModifiedMonitorData(system, node, monitor.getID());
 		if (api.get(uri, params, thisLastModified)) {
 			getLastModified().addLastModifiedMonitorData(system, node, monitor.getID());
 			try {
 				if (api.getResult() == null || api.getResult().isEmpty()) {
-					Logging.error("If-Modified-Since worked!");
+					ManagerUI.log("If-Modified-Since worked for " + monitor.getID());
 					return;
 				}
+				ManagerUI.log("If-Modified-Since failed for " + monitor.getID());
 				MonitorData monitorData = APIrestful.getGson().fromJson(api.getResult(), MonitorData.class);
 				avgPoints = monitorData.avgPoints;
 				minPoints = monitorData.minPoints;
@@ -252,7 +253,16 @@ public class MonitorData {
 				new ErrorDialog(e, "JSON parse error in API results for:" + api.errorString());
 				throw new RuntimeException("API response");
 			}
+		}  
+		***/
+		if (api.get(uri, params)) {
+			MonitorData monitorData = APIrestful.getGson().fromJson(api.getResult(), MonitorData.class);
+			avgPoints = monitorData.avgPoints;
+			minPoints = monitorData.minPoints;
+			maxPoints = monitorData.maxPoints;
+			timeStamps = monitorData.timeStamps;
 		}
+
 	}
 }
 
@@ -330,6 +340,12 @@ class MonitorDataDeserializer implements JsonDeserializer<MonitorData> {
 
 	}
 
+	/**
+	 * Sanitize reduces the number of decimal points to accommodate display
+	 *
+	 * @param value the double value with unknown decimal points
+	 * @return the double value with reduced decimal points
+	 */
 	private Double sanitize(Double value) {
 
 		String strValue = String.valueOf(value);

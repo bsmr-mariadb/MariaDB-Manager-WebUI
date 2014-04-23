@@ -446,7 +446,8 @@ public class APIrestful {
 				return api.success;
 
 			} else if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
-				// Massimo Siani, 2014-02-13, to test for If-Modified-Since
+				ManagerUI.log("If-Modified-Since worked!");
+				APIrestful api = getGson().fromJson("", APIrestful.class);
 				return true;
 			} else {
 				BufferedReader in = new BufferedReader(new InputStreamReader(httpConnection.getErrorStream()));
@@ -469,6 +470,7 @@ public class APIrestful {
 				case HttpURLConnection.HTTP_BAD_REQUEST:
 				case HttpURLConnection.HTTP_NOT_FOUND:
 				case HttpURLConnection.HTTP_CONFLICT:
+				case HttpURLConnection.HTTP_UNAUTHORIZED:
 					Notification.show(errors, Notification.Type.ERROR_MESSAGE);
 					return false;
 
