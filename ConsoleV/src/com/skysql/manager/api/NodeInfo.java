@@ -30,7 +30,6 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.skysql.java.Logging;
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.Commands;
 import com.skysql.manager.MonitorLatest;
@@ -288,6 +287,7 @@ public class NodeInfo extends ClusterComponent {
 		APIrestful api = new APIrestful();
 		boolean success = false;
 
+		/***
 		String thisLastModified = getLastModified().getLastModifiedNodeInfo(this.parentID, ID);
 		if (api.get("system/" + this.parentID + "/node/" + ID, "?fields=task,state", thisLastModified)) {
 			try {
@@ -311,7 +311,16 @@ public class NodeInfo extends ClusterComponent {
 			}
 
 		}
+		***/
 
+		if (api.get("system/" + this.parentID + "/node/" + ID, "?fields=task,state")) {
+			if (api.getResult() != null && !api.getResult().isEmpty()) {
+				NodeInfo nodeInfo = APIrestful.getGson().fromJson(api.getResult(), NodeInfo.class);
+				this.state = nodeInfo.state;
+				this.task = nodeInfo.task;
+				return true;
+			}
+		}
 		return false;
 
 	}
