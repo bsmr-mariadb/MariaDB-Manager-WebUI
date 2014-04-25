@@ -17,6 +17,6 @@ Afterwards, use "mvn package" to generate the WAR file (to be found in the targe
   -DgroupId=skysql \
   -DartifactId=libMariaDB-Manager-java \
   -Dpackaging=jar \
-  -Dversion=0.1 \
+  -Dversion=0.2 \
   -Dfile=WebContent/WEB-INF/lib/libMariaDB-Manager-java.jar \
   -DgeneratePom=true

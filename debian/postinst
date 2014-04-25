@@ -4,6 +4,6 @@ rm -rf /var/lib/tomcat7/webapps/MariaDBManager/
 chown tomcat7:tomcat7 /var/lib/tomcat7/webapps/MariaDBManager.war
 iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
 iptables-save > /etc/iptables/rules.v4
-/usr/local/skysql/config/proxypass_tomcat.sh
-rm -f /usr/local/skysql/config/proxypass_tomcat.sh
-/etc/init.d/tomcat7 start
+/usr/local/skysql/config/proxypass_debian.sh
+rm -rf /usr/local/skysql/config/
+/etc/init.d/tomcat7 restart
