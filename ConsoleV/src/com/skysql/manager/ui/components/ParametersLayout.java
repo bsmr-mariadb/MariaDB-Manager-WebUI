@@ -25,10 +25,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.skysql.java.Encryption;
-import com.skysql.java.Logging;
 import com.skysql.manager.BackupRecord;
 import com.skysql.manager.Commands;
 import com.skysql.manager.Commands.Command;
+import com.skysql.manager.ManagerUI;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.APIrestful;
 import com.skysql.manager.api.BackupStates;
@@ -403,8 +403,7 @@ public class ParametersLayout extends HorizontalLayout {
 		} catch (InvalidValueException e) {
 			return false;
 		} catch (Exception e) {
-			//			e.printStackTrace();
-			Logging.error(e.getMessage());
+			ManagerUI.error(e.getMessage());
 			return false;
 		}
 

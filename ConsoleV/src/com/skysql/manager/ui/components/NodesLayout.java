@@ -402,7 +402,7 @@ public class NodesLayout extends HorizontalLayout {
 						break;
 					default:
 						toolTip = "Unknown component type";
-						Logging.error(toolTip);
+						ManagerUI.error(toolTip);
 						break;
 					}
 					button.setDescription(toolTip);

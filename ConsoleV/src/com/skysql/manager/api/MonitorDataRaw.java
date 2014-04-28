@@ -29,7 +29,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.skysql.java.Logging;
+import com.skysql.manager.ManagerUI;
 import com.skysql.manager.MonitorRecord;
 import com.skysql.manager.ui.ErrorDialog;
 import com.vaadin.addon.timeline.Timeline;
@@ -137,8 +137,7 @@ public class MonitorDataRaw {
 
 			Item item = container.addItem(cal.getTime());
 			if (item == null) {
-//				System.err.println("point in time is null");
-				Logging.error("point in time is null");
+				ManagerUI.error("point in time is null");
 			} else {
 				item.getItemProperty(Timeline.PropertyId.TIMESTAMP).setValue(cal.getTime());
 				double value = dataPoints.get(i);

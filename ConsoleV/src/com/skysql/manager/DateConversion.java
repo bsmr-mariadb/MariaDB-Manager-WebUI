@@ -123,8 +123,8 @@ public class DateConversion {
 				}
 				adjusted = sdfOutput.format(myDate);
 			} catch (Exception e) {
-				Logging.error("Exception parsing timestamp: " + timestamp + " with format: " + format);
-				Logging.error(e.getMessage());
+				ManagerUI.error("Exception parsing timestamp: " + timestamp + " with format: " + format);
+				ManagerUI.error(e.getMessage());
 				adjusted = "Format Error";
 			}
 			return adjusted;

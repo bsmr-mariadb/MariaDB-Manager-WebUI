@@ -60,7 +60,7 @@ import com.vaadin.ui.VerticalLayout;
 public class ManagerUI extends UI {
 
 	public static final String GUI_RELEASE = "1.0.2";
-	public static final String GUI_VERSION = "1.1-95";
+	public static final String GUI_VERSION = "1.1-96";
 
 	/** The main timer future. */
 	private ScheduledFuture<?> mainTimerFuture;
@@ -115,8 +115,7 @@ public class ManagerUI extends UI {
 			refreshContentBasedOnSessionData();
 
 		} catch (RuntimeException e) {
-			//			System.err.println("RunTime error: " + e.getLocalizedMessage());
-			Logging.error("RunTime error: " + e.getLocalizedMessage());
+			ManagerUI.error("RunTime error: " + e.getLocalizedMessage());
 			close();
 		}
 
@@ -289,6 +288,16 @@ public class ManagerUI extends UI {
 			// System.out.println(msg);
 			Logging.debug(msg);
 		}
+	}
+
+	/**
+	 * Log error messages.
+	 *
+	 * @param msg the msg
+	 */
+	public static void error(String msg) {
+		// System.err.println(msg);
+		Logging.error(msg);
 	}
 
 }

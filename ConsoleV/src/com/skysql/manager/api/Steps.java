@@ -27,7 +27,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.skysql.java.Logging;
+import com.skysql.manager.ManagerUI;
 import com.skysql.manager.ui.ErrorDialog;
 
 /**
@@ -50,8 +50,7 @@ public class Steps {
 		GetSteps();
 		String description = stepsList.get(step);
 		if (description == null) {
-//			System.err.println("Unknown step found in API response: " + step);
-			Logging.error("Unknown step found in API response: " + step);
+			ManagerUI.error("Unknown step found in API response: " + step);
 			description = "Unknown step: " + step;
 		}
 

@@ -18,7 +18,7 @@
 
 package com.skysql.manager.ui;
 
-import com.skysql.java.Logging;
+import com.skysql.manager.ManagerUI;
 import com.skysql.manager.SystemRecord;
 import com.skysql.manager.api.SystemTypes;
 import com.skysql.manager.validators.Password2Validator;
@@ -215,8 +215,7 @@ public class SystemForm extends VerticalLayout {
 		} catch (InvalidValueException e) {
 			return false;
 		} catch (Exception e) {
-//			e.printStackTrace();
-			Logging.error(e.getMessage());
+			ManagerUI.error(e.getMessage());
 			return false;
 		}
 

@@ -46,7 +46,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.MalformedJsonException;
-import com.skysql.java.Logging;
 import com.skysql.manager.AppData.Debug;
 import com.skysql.manager.Commands;
 import com.skysql.manager.ManagerUI;
@@ -446,27 +445,31 @@ public class APIrestful {
 				errors = in.readLine();
 				in.close();
 
+				String msg = "Response Time: " + estimatedTime + "ms, responseCode: " + responseCode + ", errorStream: " + errors;
 				if (Debug.ON) {
-					ManagerUI.log("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
+					ManagerUI.log(msg);
 				} else {
-					//					System.err.println("API " + lastCall);
-					//					System.err.println("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
-					Logging.error("API " + lastCall);
-					Logging.error("Response Time: " + estimatedTime + "ms, errorStream: " + errors);
+					ManagerUI.error("API " + lastCall);
+					ManagerUI.error(msg);
 				}
 
 				APIrestful api = getGson().fromJson(errors, APIrestful.class);
-				errors = api.getErrors();
+				errors = "API error: HTTP " + responseCode + " - " + api.getErrors();
 
 				switch (responseCode) {
+				case HttpURLConnection.HTTP_INTERNAL_ERROR:
+				case HttpURLConnection.HTTP_UNAUTHORIZED:
+					Notification.show(errors, Notification.Type.ERROR_MESSAGE);
+					throw new RuntimeException("API error");
+
 				case HttpURLConnection.HTTP_BAD_REQUEST:
 				case HttpURLConnection.HTTP_NOT_FOUND:
 				case HttpURLConnection.HTTP_CONFLICT:
-				case HttpURLConnection.HTTP_UNAUTHORIZED:
 					Notification.show(errors, Notification.Type.ERROR_MESSAGE);
 					return false;
 
 				default:
+					Notification.show(errors, Notification.Type.ERROR_MESSAGE);
 					return false;
 				}
 
@@ -492,11 +495,10 @@ public class APIrestful {
 			throw new RuntimeException("JsonSyntax inputStream");
 		} catch (Exception e) {
 			new ErrorDialog(e, "API call: " + url.toString());
-			throw new RuntimeException("Exception inputStream");
+			throw new RuntimeException("API error");
 		}
 
 	}
-
 }
 
 /**

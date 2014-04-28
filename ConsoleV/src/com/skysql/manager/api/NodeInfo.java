@@ -296,7 +296,7 @@ public class NodeInfo extends ClusterComponent {
 					this.state = nodeInfo.state;
 					this.task = nodeInfo.task;
 				} else {
-					Logging.error("If-Modified-Since succeeded!");
+					ManagerUI.error("If-Modified-Since succeeded!");
 				}
 				getLastModified().addLastModifiedNodeInfo(this.parentID, ID);
 
