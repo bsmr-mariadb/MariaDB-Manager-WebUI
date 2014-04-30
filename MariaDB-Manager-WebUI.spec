@@ -15,7 +15,7 @@ Release: 		%{release}
 Source: 		%{name}-%{version}-%{release}.tar.gz
 Prefix: 		/
 Group: 			Development/Tools
-Requires:		tomcat7 httpd libMariaDB-Manager-java >= 0.1-12
+Requires:		tomcat7 httpd
 
 %description
 MariaDB Manager is a tool to manage and monitor a set of MariaDB
@@ -36,7 +36,6 @@ rm -rf %{install_path}MariaDBManager/
 chown tomcat:tomcat %{install_path}MariaDBManager.war
 iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
 service iptables save
-sed -i 's|shared.loader=|shared.loader=/usr/local/skysql/share/*.jar|g' /usr/local/tomcat7/conf/catalina.properties
 echo "ProxyPass /MariaDBManager ajp://localhost:8009/MariaDBManager" >> /etc/httpd/conf.d/skysql.conf
 /etc/init.d/httpd restart
 /etc/init.d/tomcat7 restart
