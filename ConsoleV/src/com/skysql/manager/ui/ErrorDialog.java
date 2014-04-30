@@ -21,7 +21,7 @@ package com.skysql.manager.ui;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import com.skysql.java.Logging;
+import com.skysql.manager.ManagerUI;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
@@ -55,8 +55,7 @@ public class ErrorDialog implements Window.CloseListener {
 	public ErrorDialog(Exception e, String humanizedError) {
 
 		if (e != null) {
-//			e.printStackTrace();
-			Logging.error(e.getMessage());
+			ManagerUI.error(e.getMessage());
 		}
 
 		dialogWindow = new ModalWindow("An Error has occurred", "775px");
@@ -86,8 +85,7 @@ public class ErrorDialog implements Window.CloseListener {
 
 		if (humanizedError != null || e != null) {
 			String error = (humanizedError != null) ? humanizedError : e.toString();
-//			System.err.println(error);
-			Logging.error(humanizedError);
+			ManagerUI.error(error);
 			Label label = new Label(error, ContentMode.HTML);
 			label.addStyleName("warning");
 			textLayout.addComponent(label);
