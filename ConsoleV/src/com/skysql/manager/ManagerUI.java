@@ -45,6 +45,7 @@ import com.vaadin.annotations.Title;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.MarginInfo;
+import com.vaadin.shared.ui.ui.Transport;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
@@ -55,7 +56,7 @@ import com.vaadin.ui.VerticalLayout;
 @SuppressWarnings("serial")
 @Theme("skystyle1")
 @Title("MariaDB Manager")
-@Push
+@Push(transport = Transport.STREAMING)
 @PreserveOnRefresh
 public class ManagerUI extends UI {
 
