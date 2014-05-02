@@ -15,7 +15,7 @@ Release: 		%{release}
 Source: 		%{name}-%{version}-%{release}.tar.gz
 Prefix: 		/
 Group: 			Development/Tools
-Requires:		tomcat7 httpd
+Requires:		tomcat7 httpd java >= 6
 
 %description
 MariaDB Manager is a tool to manage and monitor a set of MariaDB
