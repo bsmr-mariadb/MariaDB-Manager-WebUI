@@ -22,6 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -97,7 +98,7 @@ public class Schedule {
 	 * @param state the state
 	 * @param ical the ical
 	 */
-	public Schedule(String systemID, String nodeID, String userID, String command, String params, String state, String ical) {
+	public Schedule(String systemID, String nodeID, String userID, String command, Map<String, String> params, String state, String ical) {
 
 		APIrestful api = new APIrestful();
 
@@ -111,7 +112,9 @@ public class Schedule {
 				regParam.append("&state=" + URLEncoder.encode(state, "UTF-8"));
 			}
 			if (params != null) {
-				regParam.append("&parameters=" + URLEncoder.encode(params, "UTF-8"));
+				for (Map.Entry<String, String> entry : params.entrySet()) {
+					regParam.append("&" + entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), "UTF-8"));
+				}
 			}
 			regParam.append("&icalentry=" + URLEncoder.encode(ical, "UTF-8"));
 

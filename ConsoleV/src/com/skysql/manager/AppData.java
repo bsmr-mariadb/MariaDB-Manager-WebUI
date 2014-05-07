@@ -27,6 +27,7 @@ import com.skysql.java.Configuration.DEFAULT_SECTION;
 public class AppData {
 
 	public static String appID;
+	public static String verbose;
 
 	private static AppData appData;
 
@@ -39,6 +40,7 @@ public class AppData {
 		appData = new AppData();
 		Configuration config = new Configuration();
 		appID = config.getConfig(DEFAULT_SECTION.WEBUI).get("apikeyid");
+		verbose = config.getConfig(DEFAULT_SECTION.WEBUI).get("verbose");
 		appData.setApiKey(config.getConfig(DEFAULT_SECTION.APIKEYS).get(appID));
 		appData.setApiURI(config.getConfig(DEFAULT_SECTION.APIHOST).get("uri"));
 		if (appData.apiURI != null) {
@@ -101,7 +103,7 @@ public class AppData {
 	 */
 	public final class Debug {
 		//set to false to allow compiler to identify and eliminate unreachable code
-		public static final boolean ON = true;
+		public static final boolean ON = false;
 	}
 
 }

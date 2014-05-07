@@ -23,6 +23,9 @@ package com.skysql.manager;
  */
 public class BackupRecord {
 
+	public static final String BACKUP_TYPE_FULL = "1";
+	public static final String BACKUP_TYPE_INCREMENTAL = "2";
+
 	private String ID;
 	private String state;
 	private String started;
@@ -78,6 +81,21 @@ public class BackupRecord {
 	 */
 	public String getLevel() {
 		return level;
+	}
+
+	/**
+	 * Gets the backup level as string.
+	 *
+	 * @return the level
+	 */
+	public String getLevelAsString() {
+		if (level.equals(BACKUP_TYPE_FULL)) {
+			return "Full";
+		} else if (level.equals(BACKUP_TYPE_INCREMENTAL)) {
+			return "Incremental";
+		} else {
+			return level;
+		}
 	}
 
 	/**

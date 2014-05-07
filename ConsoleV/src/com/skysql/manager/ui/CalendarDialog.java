@@ -23,6 +23,7 @@ import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.ListIterator;
 import java.util.Locale;
@@ -38,6 +39,7 @@ import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.util.UidGenerator;
 
+import com.skysql.manager.BackupRecord;
 import com.skysql.manager.ClusterComponent;
 import com.skysql.manager.ManagerUI;
 import com.skysql.manager.ScheduleRecord;
@@ -47,6 +49,7 @@ import com.skysql.manager.api.Schedule;
 import com.skysql.manager.api.SystemInfo;
 import com.skysql.manager.api.UserObject;
 import com.skysql.manager.ui.components.BackupScheduledLayout;
+import com.skysql.manager.ui.components.ParametersLayout;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -1463,7 +1466,9 @@ public class CalendarDialog implements Window.CloseListener {
 		if (scheduleID == null) {
 			ClusterComponent systemRecord = VaadinSession.getCurrent().getAttribute(ClusterComponent.class);
 			UserObject userObject = VaadinSession.getCurrent().getAttribute(UserObject.class);
-			Schedule schedule = new Schedule(systemRecord.getID(), event.getNode(), userObject.getUserID(), "backup", "Full", null, vEvent.toString());
+			Map<String, String> params = new HashMap<String, String>();
+			params.put(ParametersLayout.PARAM_BACKUP_TYPE, BackupRecord.BACKUP_TYPE_FULL);
+			Schedule schedule = new Schedule(systemRecord.getID(), event.getNode(), userObject.getUserID(), "backup", params, null, vEvent.toString());
 			scheduleRecord = schedule.getScheduleList().entrySet().iterator().next().getValue();
 			scheduleID = scheduleRecord.getID();
 			event.setData(scheduleID);

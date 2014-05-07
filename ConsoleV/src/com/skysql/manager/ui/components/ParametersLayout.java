@@ -70,9 +70,7 @@ public class ParametersLayout extends HorizontalLayout {
 
 	public static final String PARAM_CONNECT_ROOTPASSWORD = "xparam-rootpassword";
 	public static final String PARAM_CONNECT_SSHKEY = "xparam-sshkey";
-	private static final String PARAM_BACKUP_TYPE = "param-type";
-	private static final String PARAM_BACKUP_TYPE_FULL = "1";
-	private static final String PARAM_BACKUP_TYPE_INCREMENTAL = "2";
+	public static final String PARAM_BACKUP_TYPE = "param-type";
 	private static final String PARAM_BACKUP_PARENT = "param-parent";
 	private static final String PARAM_BACKUP_ID = "param-id";
 
@@ -118,10 +116,10 @@ public class ParametersLayout extends HorizontalLayout {
 		case backup:
 			backupLevel = new OptionGroup("Backup Level");
 			backupLevel.setImmediate(true);
-			backupLevel.addItem(PARAM_BACKUP_TYPE_FULL);
-			backupLevel.setItemCaption(PARAM_BACKUP_TYPE_FULL, "Full");
-			backupLevel.addItem(PARAM_BACKUP_TYPE_INCREMENTAL);
-			backupLevel.setItemCaption(PARAM_BACKUP_TYPE_INCREMENTAL, "Incremental");
+			backupLevel.addItem(BackupRecord.BACKUP_TYPE_FULL);
+			backupLevel.setItemCaption(BackupRecord.BACKUP_TYPE_FULL, "Full");
+			backupLevel.addItem(BackupRecord.BACKUP_TYPE_INCREMENTAL);
+			backupLevel.setItemCaption(BackupRecord.BACKUP_TYPE_INCREMENTAL, "Incremental");
 			addComponent(backupLevel);
 			setComponentAlignment(backupLevel, Alignment.MIDDLE_LEFT);
 			backupLevel.addValueChangeListener(new ValueChangeListener() {
@@ -130,10 +128,11 @@ public class ParametersLayout extends HorizontalLayout {
 				public void valueChange(ValueChangeEvent event) {
 					String level = (String) event.getProperty().getValue();
 					params.put(PARAM_BACKUP_TYPE, level);
-					if (level.equals(PARAM_BACKUP_TYPE_INCREMENTAL)) {
+					if (level.equals(BackupRecord.BACKUP_TYPE_INCREMENTAL)) {
 						addComponent(prevBackupsLayout);
 						selectPrevBackup.select(firstItem);
 					} else {
+						params.remove(PARAM_BACKUP_PARENT);
 						if (getComponentIndex(prevBackupsLayout) != -1) {
 							removeComponent(prevBackupsLayout);
 						}
@@ -141,7 +140,7 @@ public class ParametersLayout extends HorizontalLayout {
 				}
 			});
 
-			backupLevel.setValue(PARAM_BACKUP_TYPE_FULL);
+			backupLevel.setValue(BackupRecord.BACKUP_TYPE_FULL);
 			isParameterReady = true;
 
 		case restore:
@@ -184,7 +183,7 @@ public class ParametersLayout extends HorizontalLayout {
 								BackupRecord backupRecord = iter.next();
 								String backupID = backupRecord.getID();
 								selectPrevBackup.addItem(backupID);
-								selectPrevBackup.setItemCaption(backupID, backupRecord.getStarted());
+								selectPrevBackup.setItemCaption(backupID, "ID: " + backupID + ", " + backupRecord.getStarted());
 								if (firstItem == null) {
 									firstItem = backupID;
 									selectPrevBackup.select(firstItem);
@@ -207,23 +206,26 @@ public class ParametersLayout extends HorizontalLayout {
 			selectPrevBackup.setImmediate(true);
 			selectPrevBackup.setNullSelectionAllowed(false);
 			selectPrevBackup.setRows(8); // Show a few items and a scrollbar if there are more
-			selectPrevBackup.setWidth("16em");
+			selectPrevBackup.setWidth("20em");
 			prevBackupsLayout.addComponent(selectPrevBackup);
 			final Backups backups = new Backups(nodeInfo.getParentID(), null);
-			backupsList = backups.getBackupsForNode(nodeInfo.getID());
+			//*** this is for when we only want backups from a specific node
+			// backupsList = backups.getBackupsForNode(nodeInfo.getID());
+			backupsList = backups.getBackupsList();
 			if (backupsList != null && backupsList.size() > 0) {
 				Collection<BackupRecord> set = backupsList.values();
 				Iterator<BackupRecord> iter = set.iterator();
 				while (iter.hasNext()) {
 					BackupRecord backupRecord = iter.next();
 					selectPrevBackup.addItem(backupRecord.getID());
-					selectPrevBackup.setItemCaption(backupRecord.getID(), backupRecord.getStarted());
+					selectPrevBackup.setItemCaption(backupRecord.getID(), "ID: " + backupRecord.getID() + ", " + backupRecord.getStarted());
 					if (firstItem == null) {
 						firstItem = backupRecord.getID();
 					}
 				}
 
 				backupInfoLayout = new VerticalLayout();
+				backupInfoLayout.setSpacing(false);
 				backupInfoLayout.setMargin(new MarginInfo(false, true, false, true));
 				prevBackupsLayout.addComponent(backupInfoLayout);
 				prevBackupsLayout.setComponentAlignment(backupInfoLayout, Alignment.MIDDLE_CENTER);
@@ -410,7 +412,7 @@ public class ParametersLayout extends HorizontalLayout {
 	}
 
 	/** The backup labels. */
-	private String backupLabels[] = { "Node", "Level", "State", "Size", "Restored" };
+	private String backupLabels[] = { "Node", "Level", "Parent", "State", "Size" };
 
 	/**
 	 * Display backup info.
@@ -420,9 +422,12 @@ public class ParametersLayout extends HorizontalLayout {
 	 */
 	final public void displayBackupInfo(VerticalLayout layout, BackupRecord record) {
 		String value;
-		String values[] = { (value = record.getNode()) != null ? value : NOT_AVAILABLE, (value = record.getLevel()) != null ? value : NOT_AVAILABLE,
-				((value = record.getState()) != null) && (value = BackupStates.getDescriptions().get(value)) != null ? value : "Invalid",
-				(value = record.getSize()) != null ? value : NOT_AVAILABLE, (value = record.getRestored()) != null ? value : NOT_AVAILABLE };
+		String values[] = {
+				(value = record.getNode()) != null ? value : NOT_AVAILABLE,
+				(value = record.getLevelAsString()) != null ? value : NOT_AVAILABLE,
+				((record.getLevel() != null) && (record.getLevel().equals(BackupRecord.BACKUP_TYPE_INCREMENTAL)) && ((value = record.getParent()) != null)) ? value
+						: "-", ((value = record.getState()) != null) && (value = BackupStates.getDescriptions().get(value)) != null ? value : "Invalid",
+				(value = record.getSize()) != null ? value : NOT_AVAILABLE };
 
 		GridLayout newBackupInfoGrid = new GridLayout(2, backupLabels.length);
 		newBackupInfoGrid.setSpacing(true);

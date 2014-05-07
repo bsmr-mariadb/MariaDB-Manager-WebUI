@@ -58,10 +58,12 @@ public class BackupSetsLayout extends HorizontalLayout {
 
 		backupsTable = new Table("Existing Backup Sets");
 		backupsTable.setPageLength(10);
+		backupsTable.addContainerProperty("ID", String.class, null);
 		backupsTable.addContainerProperty("Started", String.class, null);
 		backupsTable.addContainerProperty("Completed", String.class, null);
 		backupsTable.addContainerProperty("Restored", String.class, null);
 		backupsTable.addContainerProperty("Level", String.class, null);
+		backupsTable.addContainerProperty("Parent", String.class, null);
 		backupsTable.addContainerProperty("Node", String.class, null);
 		backupsTable.addContainerProperty("Size", String.class, null);
 		backupsTable.addContainerProperty("Storage", String.class, null);
@@ -196,10 +198,11 @@ public class BackupSetsLayout extends HorizontalLayout {
 							***/
 
 							backupsTable.addItem(
-									new Object[] { dateConversion.adjust(backupRecord.getStarted()), dateConversion.adjust(backupRecord.getCompleted()),
-											dateConversion.adjust(backupRecord.getRestored()), backupRecord.getLevel(), backupRecord.getNode(),
-											backupRecord.getSize(), backupRecord.getStorage(), BackupStates.getDescriptions().get(backupRecord.getState()),
-											backupLogLink }, backupRecord.getID());
+									new Object[] { backupRecord.getID(), dateConversion.adjust(backupRecord.getStarted()),
+											dateConversion.adjust(backupRecord.getCompleted()), dateConversion.adjust(backupRecord.getRestored()),
+											backupRecord.getLevelAsString(), backupRecord.getParent(), backupRecord.getNode(), backupRecord.getSize(),
+											backupRecord.getStorage(), BackupStates.getDescriptions().get(backupRecord.getState()), backupLogLink },
+									backupRecord.getID());
 						}
 					}
 				} else {

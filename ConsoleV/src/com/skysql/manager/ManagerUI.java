@@ -61,7 +61,7 @@ import com.vaadin.ui.VerticalLayout;
 public class ManagerUI extends UI {
 
 	public static final String GUI_RELEASE = "1.0.2";
-	public static final String GUI_VERSION = "1.1-96";
+	public static final String GUI_VERSION = "1.1-97";
 
 	/** The main timer future. */
 	private ScheduledFuture<?> mainTimerFuture;
@@ -82,8 +82,6 @@ public class ManagerUI extends UI {
 
 		Logging.setComponent("WebUI");
 
-		log("init session: - " + session + " UI: " + this.toString());
-
 		try {
 
 			do {
@@ -95,6 +93,7 @@ public class ManagerUI extends UI {
 					return;
 				}
 				session.setAttribute(AppData.class, appData);
+				log("init session: - " + session + " UI: " + this.toString());
 
 				APIrestful api = APIrestful.newInstance(appData.getApiURI(), appData.getAppID(), appData.getApiKey());
 				if (api == null) {
@@ -255,10 +254,8 @@ public class ManagerUI extends UI {
 				return;
 			}
 
-			if (Debug.ON) {
-				log("");
-				log("Heartbeat: " + count++);
-			}
+			log("");
+			log("Heartbeat: " + count++);
 
 			Boolean isChartsRefreshing;
 			if ((isChartsRefreshing = (Boolean) session.getAttribute("ChartsRefresh")) != null && isChartsRefreshing == true) {
@@ -286,7 +283,10 @@ public class ManagerUI extends UI {
 	 */
 	public static void log(String msg) {
 		if (Debug.ON) {
-			// System.out.println(msg);
+			System.out.println(msg);
+		}
+
+		if (AppData.verbose.equals("true")) {
 			Logging.debug(msg);
 		}
 	}
@@ -297,7 +297,10 @@ public class ManagerUI extends UI {
 	 * @param msg the msg
 	 */
 	public static void error(String msg) {
-		// System.err.println(msg);
+		if (Debug.ON) {
+			System.err.println(msg);
+		}
+
 		Logging.error(msg);
 	}
 
