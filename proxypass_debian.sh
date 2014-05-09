@@ -25,3 +25,30 @@ if ! grep -q ProxyPass /etc/apache2/sites-enabled/000-default ; then
     sed -i "/\/VirtualHost/i $apacheMod" /etc/apache2/sites-enabled/000-default
 fi
 service apache2 reload
+
+# Connector ajp on port 8009 disabled?
+if [[ -f /etc/tomcat6/server.xml ]] ; then
+    tomcatConf="/etc/tomcat6/server.xml"
+    tomcatService=tomcat6
+elif [[ -f /usr/local/tomcat7/conf/server.xml ]] ; then
+    tomcatConf="/usr/local/tomcat7/conf/server.xml"
+    tomcatService=tomcat7
+elif [[ -f /etc/tomcat7/server.xml ]] ; then
+    tomcatConf="/etc/tomcat7/server.xml"
+    tomcatService=tomcat7
+else
+    echo "ERROR: tomcat configuration file server.xml not found"
+    exit 1
+fi
+connector=$(grep -C 1 "<Connector port=\"8009\"" $tomcatConf)
+connOnly=$(head -n 2 <<<"$connector" | tail -n 1)
+connComment=$(head -n 1 <<<"$connector")
+connAfter=$(tail -n 1 <<<"$connector")
+if [[ $connComment =~ ^[[:space:]]\<\!--$ && $connAfter =~ ^[[:space:]]--\>$ ]] ; then
+	connectorLine=$(grep -n "$connOnly" $tomcatConf | cut -f1 -d":")
+	(( before = connectorLine - 1 ))
+	(( after = connectorLine + 1 ))
+	sed -i -e "$before d" -e "$after d" $tomcatConf
+else
+	exit 0
+fi
