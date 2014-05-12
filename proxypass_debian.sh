@@ -44,7 +44,7 @@ connector=$(grep -C 1 "<Connector port=\"8009\"" $tomcatConf)
 connOnly=$(head -n 2 <<<"$connector" | tail -n 1)
 connComment=$(head -n 1 <<<"$connector")
 connAfter=$(tail -n 1 <<<"$connector")
-if [[ $connComment =~ ^[[:space:]]\<\!--$ && $connAfter =~ ^[[:space:]]--\>$ ]] ; then
+if [[ "$connComment" =~ ^[[:space:]]*\<\!--$ && "$connAfter" =~ ^[[:space:]]*--\>$ ]] ; then
 	connectorLine=$(grep -n "$connOnly" $tomcatConf | cut -f1 -d":")
 	(( before = connectorLine - 1 ))
 	(( after = connectorLine + 1 ))
