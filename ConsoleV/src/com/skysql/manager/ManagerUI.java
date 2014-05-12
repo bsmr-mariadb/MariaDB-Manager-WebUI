@@ -61,7 +61,7 @@ import com.vaadin.ui.VerticalLayout;
 public class ManagerUI extends UI {
 
 	public static final String GUI_RELEASE = "1.0.2";
-	public static final String GUI_VERSION = "1.1-97";
+	public static final String GUI_VERSION = "1.1-98";
 
 	/** The main timer future. */
 	private ScheduledFuture<?> mainTimerFuture;
