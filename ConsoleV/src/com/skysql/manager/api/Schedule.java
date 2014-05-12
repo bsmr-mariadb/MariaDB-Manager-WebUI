@@ -209,6 +209,7 @@ public class Schedule {
 
 // {"total":"0","scheduled":null}
 // {"schedule":{"scheduleid":"3","command":"backup","systemid":"1","nodeid":"1","username":"admin","level":0,"parameters":"Full","icalentry":"BEGIN:VEVENT\r\nDTSTAMP:20131016T131512Z\r\nDTSTART:20131016T180000Z\r\nDTEND:20131016T190000Z\r\nSUMMARY:Backup\r\nRRULE:FREQ=WEEKLY\r\nEND:VEVENT","nextstart":"Wed, 16 Oct 2013 18:00:00 +0000","atjobnumber":"2","created":"","updated":"Wed, 16 Oct 2013 13:15:12 +0000","state":"scheduled"},"warnings":["Caching directory \/usr\/local\/skysql\/cache\/api is not writeable, cannot write cache, please check existence, permissions, SELinux"]}
+// {"total":"3","schedules":[{"scheduleid":"1","systemid":"1","nodeid":"1","username":"admin","command":"backup","parameters":{"type":"1"},"icalentry":"BEGIN:VEVENT\r\nDTSTAMP:20140509T151034Z\r\nDTSTART:20140509T151205Z\r\nDTEND:20140509T151205Z\r\nSUMMARY:Backup\r\nDESCRIPTION:New backup event\r\nEND:VEVENT","nextstart":"Fri, 09 May 2014 15:12:05 +0000","atjobnumber":"0","created":"Fri, 09 May 2014 15:10:34 +0000","updated":"Fri, 09 May 2014 15:10:34 +0000"},{"scheduleid":"2","systemid":"1","nodeid":"1","username":"admin","command":"backup","parameters":{"type":"1"},"icalentry":"BEGIN:VEVENT\r\nDTSTAMP:20140509T151205Z\r\nDTSTART:20140509T151555Z\r\nDTEND:20140509T151555Z\r\nSUMMARY:Backup\r\nDESCRIPTION:New backup event\r\nEND:VEVENT","nextstart":"Fri, 09 May 2014 15:15:55 +0000","atjobnumber":"0","created":"Fri, 09 May 2014 15:12:05 +0000","updated":"Fri, 09 May 2014 15:12:05 +0000"},{"scheduleid":"3","systemid":"1","nodeid":"3","username":"admin","command":"backup","parameters":{"type":"1"},"icalentry":"BEGIN:VEVENT\r\nDTSTAMP:20140509T151348Z\r\nDTSTART:20140509T151538Z\r\nDTEND:20140509T151538Z\r\nSUMMARY:Backup\r\nDESCRIPTION:New backup event\r\nEND:VEVENT","nextstart":"Fri, 09 May 2014 15:15:38 +0000","atjobnumber":"0","created":"Fri, 09 May 2014 15:13:48 +0000","updated":"Fri, 09 May 2014 15:13:48 +0000"}]}
 
 /**
  * The Class ScheduleDeserializer.
@@ -242,13 +243,14 @@ class ScheduleDeserializer implements JsonDeserializer<Schedule> {
 			String systemID = (element = scheduleObject.get("systemid")).isJsonNull() ? null : element.getAsString();
 			String nodeID = (element = scheduleObject.get("nodeid")).isJsonNull() ? null : element.getAsString();
 			String userID = (element = scheduleObject.get("username")).isJsonNull() ? null : element.getAsString();
-			String parameters = (element = scheduleObject.get("parameters")).isJsonNull() ? null : element.getAsString();
+			String params = ((element = scheduleObject.get("parameters")).isJsonNull()) ? null : element.getAsJsonObject().toString()
+					.replaceAll("[\\{\\}\"]*", "");
 			String iCal = (element = scheduleObject.get("icalentry")).isJsonNull() ? null : element.getAsString();
 			String nextStart = (element = scheduleObject.get("nextstart")).isJsonNull() ? null : element.getAsString();
 			String created = (element = scheduleObject.get("created")).isJsonNull() ? null : element.getAsString();
 			String updated = (element = scheduleObject.get("updated")).isJsonNull() ? null : element.getAsString();
 			String state = (element = scheduleObject.get("state")) == null || element.isJsonNull() ? null : element.getAsString();
-			ScheduleRecord scheduleRecord = new ScheduleRecord(id, command, systemID, nodeID, userID, parameters, iCal, nextStart, created, updated, state);
+			ScheduleRecord scheduleRecord = new ScheduleRecord(id, command, systemID, nodeID, userID, params, iCal, nextStart, created, updated, state);
 			scheduleList.put(id, scheduleRecord);
 		}
 
