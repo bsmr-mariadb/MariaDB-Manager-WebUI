@@ -1,2 +1,2 @@
-MariaDBManager.war  var/lib/tomcat7/webapps/
-proxypass_debian.sh usr/local/skysql/config/
+MariaDBManager.war  usr/local/skysql/WebUI/
+proxypass_debian.sh usr/local/skysql/tmp/

@@ -1,9 +1,16 @@
-update-rc.d tomcat7 defaults
-/etc/init.d/tomcat7 stop
-rm -rf /var/lib/tomcat7/webapps/MariaDBManager/
-chown tomcat7:tomcat7 /var/lib/tomcat7/webapps/MariaDBManager.war
+if [[ -f /etc/init.d/tomcat6 ]] ; then
+    tomcatName=tomcat6
+elif [[ -f /etc/init.d/tomcat7 ]]	; then
+    tomcatName=tomcat7
+fi
+update-rc.d $tomcatName defaults
+/etc/init.d/$tomcatName stop
+rm -rf /var/lib/$tomcatName/webapps/MariaDBManager/
+ln -s /usr/local/skysql/WebUI/MariaDBManager.war /var/lib/$tomcatName/webapps/MariaDBManager.war
+chown -R ${tomcatName}:${tomcatName} /usr/local/skysql/WebUI/
+chown ${tomcatName}:${tomcatName} /var/lib/$tomcatName/webapps/MariaDBManager.war
 iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
 iptables-save > /etc/iptables/rules.v4
-/usr/local/skysql/config/proxypass_debian.sh
-rm -rf /usr/local/skysql/config/
-/etc/init.d/tomcat7 restart
+/usr/local/skysql/tmp/proxypass_debian.sh
+rm -rf /usr/local/skysql/tmp/
+/etc/init.d/$tomcatName restart
