@@ -1,6 +1,7 @@
+#!/bin/bash
 if [[ -f /etc/init.d/tomcat6 ]] ; then
     tomcatName=tomcat6
-elif [[ -f /etc/init.d/tomcat7 ]]	; then
+elif [[ -f /etc/init.d/tomcat7 ]] ; then
     tomcatName=tomcat7
 fi
 update-rc.d $tomcatName defaults
