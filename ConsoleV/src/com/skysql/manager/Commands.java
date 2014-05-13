@@ -26,7 +26,7 @@ import java.util.LinkedHashMap;
 public class Commands {
 
 	public enum Command {
-		backup, connect, isolate, probe, promote, provision, rejoin, restart, restore, start, stop;
+		backup, connect, isolate, probe, promote, provision, rejoin, restart, restore, start, stop, upgrade;
 	}
 
 	private LinkedHashMap<String, String> descriptions;
