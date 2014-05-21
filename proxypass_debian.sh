@@ -19,14 +19,15 @@
 # Author: Massimo Siani
 # Date: April 2014
 
+apacheConfFile="/etc/apache2/sites-enabled/000-default"
+
 a2enmod proxy_ajp 
 apacheMod=$(echo "ProxyPass /MariaDBManager ajp://localhost:8009/MariaDBManager" | sed 's/[]\/()$*.^|[]/\\&/g' | sed -e ':a;N;$!ba;s/\n/\\\n/g')
-if ! grep -q ProxyPass /etc/apache2/sites-enabled/000-default ; then
-    sed -i "/\/VirtualHost/i $apacheMod" /etc/apache2/sites-enabled/000-default
+if ! grep -q ProxyPass $apacheConfFile ; then
+    sed -i "/\/VirtualHost/i $apacheMod" $apacheConfFile
 fi
 service apache2 reload
 
-# Connector ajp on port 8009 disabled?
 if [[ -f /etc/tomcat6/server.xml ]] ; then
     tomcatConf="/etc/tomcat6/server.xml"
     tomcatService=tomcat6
@@ -40,6 +41,19 @@ else
     echo "ERROR: tomcat configuration file server.xml not found"
     exit 1
 fi
+# tomcat 6 needs redirect
+if [[ "$tomcatService" == "tomcat6" ]] ; then
+	if ! grep -q 'RewriteEngine On' $apacheConfFile ; then
+		sed -i "/\/VirtualHost/i RewriteEngine On" $apacheConfFile
+	fi
+	apacheMod=$(echo "RewriteRule ^(/MariaDBManager/.*) http://%{HTTP_HOST}:8080/MariaDBManager [R,L]" | sed 's/[]\/()$*.^|[]/\\&/g' | sed -e ':a;N;$!ba;s/\n/\\\n/g')
+	sed -i '/ajp:\/\/localhost:8009\/MariaDBManager/d' $tomcatConf 2>/dev/null
+	sed -i "/\/VirtualHost/i $apacheMod" $apacheConfFile
+	service apache2 reload
+	exit 0
+fi
+
+# Connector ajp on port 8009 disabled?
 connector=$(grep -C 1 "<Connector port=\"8009\"" $tomcatConf)
 connOnly=$(head -n 2 <<<"$connector" | tail -n 1)
 connComment=$(head -n 1 <<<"$connector")
