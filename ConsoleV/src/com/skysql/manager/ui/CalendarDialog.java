@@ -285,8 +285,8 @@ public class CalendarDialog implements Window.CloseListener {
 	 */
 	private void addEventsToMap(String eventID, VEvent vEvent, String nodeID) {
 
-		String summary = vEvent.getSummary().getValue();
-		String description = vEvent.getDescription().getValue();
+		String summary = vEvent.getSummary() != null ? vEvent.getSummary().getValue() : null;
+		String description = vEvent.getDescription() != null ? vEvent.getDescription().getValue() : null;
 		net.fortuna.ical4j.model.Property rruleProperty = vEvent.getProperty("RRULE");
 		String rrule = rruleProperty != null ? rruleProperty.getValue() : null;
 		ManagerUI.log("RRULE: " + rrule);
