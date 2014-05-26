@@ -20,6 +20,11 @@
 # Date: April 2014
 
 apacheConfFile="/etc/apache2/sites-enabled/000-default"
+if [[ -f /etc/apache2/sites-enabled/000-default ]] ; then
+	apacheConfFile="/etc/apache2/sites-enabled/000-default"
+elif [[ -f /etc/apache2/sites-enabled/000-default.conf ]] ; then
+	apacheConfFile="/etc/apache2/sites-enabled/000-default.conf"
+fi
 
 a2enmod proxy_ajp 
 apacheMod=$(echo "ProxyPass /MariaDBManager ajp://localhost:8009/MariaDBManager" | sed 's/[]\/()$*.^|[]/\\&/g' | sed -e ':a;N;$!ba;s/\n/\\\n/g')
