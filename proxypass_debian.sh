@@ -51,8 +51,8 @@ if [[ "$tomcatService" == "tomcat6" ]] ; then
 	if ! grep -q 'RewriteEngine On' $apacheConfFile ; then
 		sed -i "/\/VirtualHost/i RewriteEngine On" $apacheConfFile
 	fi
-	apacheMod=$(echo "RewriteRule ^(/MariaDBManager/.*) http://%{HTTP_HOST}:8080/MariaDBManager [R,L]" | sed 's/[]\/()$*.^|[]/\\&/g' | sed -e ':a;N;$!ba;s/\n/\\\n/g')
-	sed -i '/ajp:\/\/localhost:8009\/MariaDBManager/d' $tomcatConf 2>/dev/null
+	apacheMod=$(echo "RewriteRule ^(/MariaDBManager.*) http://%{HTTP_HOST}:8080/MariaDBManager [R,L]" | sed 's/[]\/()$*.^|[]/\\&/g' | sed -e ':a;N;$!ba;s/\n/\\\n/g')
+	sed -i '/ajp:\/\/localhost:8009\/MariaDBManager/d' $apacheConfFile 2>/dev/null
 	sed -i "/RewriteEngine On/a $apacheMod" $apacheConfFile
 	service apache2 reload
 	exit 0
