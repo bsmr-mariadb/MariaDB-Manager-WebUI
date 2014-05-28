@@ -61,7 +61,7 @@ import com.vaadin.ui.VerticalLayout;
 public class ManagerUI extends UI {
 
 	public static final String GUI_RELEASE = "1.0.2";
-	public static final String GUI_VERSION = "1.1-100";
+	public static final String GUI_VERSION = "1.1-101";
 
 	/** The main timer future. */
 	private ScheduledFuture<?> mainTimerFuture;
@@ -286,7 +286,7 @@ public class ManagerUI extends UI {
 			System.out.println(msg);
 		}
 
-		if (AppData.verbose.equals("true")) {
+		if (AppData.verbose != null && AppData.verbose.equals("true")) {
 			Logging.debug(msg);
 		}
 	}
